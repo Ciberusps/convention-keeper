@@ -2,7 +2,7 @@
 
 #include "ConventionKeeperEditorCommands.h"
 
-#define LOCTEXT_NAMESPACE "FUHLConventionKeeperEditorModule"
+#define LOCTEXT_NAMESPACE "FConventionKeeperEditorModule"
 
 void FConventionKeeperEditorCommands::RegisterCommands()
 {

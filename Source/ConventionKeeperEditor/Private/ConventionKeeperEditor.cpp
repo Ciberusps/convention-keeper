@@ -8,7 +8,6 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Developer/MessageLog/Public/MessageLogModule.h"
 #include "Development/ConventionKeeperSettings.h"
-#include "ThumbnailRendering/ThumbnailManager.h"
 
 DEFINE_LOG_CATEGORY(LogConventionKeeper);
 
@@ -18,6 +17,8 @@ static const FName ConventionKeeperEditorTabName("ConventionKeeperEditor");
 
 void FConventionKeeperEditorModule::StartupModule()
 {
+	UE_LOG(LogConventionKeeper, Log, TEXT(">>> ConventionKeeperEditor StartupModule() called"));
+
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 
 	FConventionKeeperEditorStyle::Initialize();
@@ -26,7 +27,6 @@ void FConventionKeeperEditorModule::StartupModule()
 	FConventionKeeperEditorCommands::Register();
 
 	PluginCommands = MakeShareable(new FUICommandList);
-
 	PluginCommands->MapAction(
 		FConventionKeeperEditorCommands::Get().PluginAction,
 		FExecuteAction::CreateRaw(this, &FConventionKeeperEditorModule::PluginButtonClicked),
@@ -34,14 +34,16 @@ void FConventionKeeperEditorModule::StartupModule()
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FConventionKeeperEditorModule::RegisterMenus));
 
-    UThumbnailManager::Get().UnregisterCustomRenderer(UBlueprint::StaticClass());
-	
 	// Register the details customizer
-	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	PropertyModule.NotifyCustomizationModuleChanged();
+	// FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	// PropertyModule.NotifyCustomizationModuleChanged();
 
 	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
 	MessageLogModule.RegisterLogListing("ConventionKeeper", FText::FromString("ConventionKeeper"));
+
+	// *Also* immediately inject & refresh so you don’t depend on the callback timing:
+	RegisterMenus();
+	UToolMenus::Get()->RefreshAllWidgets();
 }
 
 void FConventionKeeperEditorModule::ShutdownModule()
@@ -54,16 +56,7 @@ void FConventionKeeperEditorModule::ShutdownModule()
 	UToolMenus::UnregisterOwner(this);
 
 	FConventionKeeperEditorStyle::Shutdown();
-
 	FConventionKeeperEditorCommands::Unregister();
-
-	// Unregister the details customization
-	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
-	{
-		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		PropertyModule.UnregisterCustomPropertyTypeLayout("ValueOrBBKey_GameplayTag");
-		PropertyModule.NotifyCustomizationModuleChanged();
-	}
 }
 
 void FConventionKeeperEditorModule::PluginButtonClicked()
@@ -112,26 +105,22 @@ bool FConventionKeeperEditorModule::CheckAssetPathExists(const FString& PackageP
 
 void FConventionKeeperEditorModule::RegisterMenus()
 {
+	UE_LOG(LogConventionKeeper, Log, TEXT(">>> ConventionKeeperEditor::RegisterMenus() called"));
+
 	// Owner will be used for cleanup in call to UToolMenus::UnregisterOwner
 	FToolMenuOwnerScoped OwnerScoped(this);
-
+	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Tools");
+	if (Menu)
 	{
-		UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Window");
-		{
-			FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
-			Section.AddMenuEntryWithCommandList(FConventionKeeperEditorCommands::Get().PluginAction, PluginCommands);
-		}
+		FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
+		Section.AddMenuEntryWithCommandList(FConventionKeeperEditorCommands::Get().PluginAction, PluginCommands);	
 	}
 
+	if (UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar"))
 	{
-		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar");
-		{
-			FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
-			{
-				FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FConventionKeeperEditorCommands::Get().PluginAction));
-				Entry.SetCommandList(PluginCommands);
-			}
-		}
+		FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
+		FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FConventionKeeperEditorCommands::Get().PluginAction));
+		Entry.SetCommandList(PluginCommands);
 	}
 }
 

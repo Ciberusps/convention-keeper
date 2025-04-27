@@ -11,7 +11,7 @@ class FConventionKeeperEditorCommands : public TCommands<FConventionKeeperEditor
 public:
 
 	FConventionKeeperEditorCommands()
-		: TCommands<FConventionKeeperEditorCommands>(TEXT("ConventionKeeperEditor"), NSLOCTEXT("Contexts", "ConventionKeeperEditor", "UHL Plugin"), NAME_None, FConventionKeeperEditorStyle::GetStyleSetName())
+		: TCommands<FConventionKeeperEditorCommands>(TEXT("ConventionKeeperEditor"), NSLOCTEXT("Contexts", "ConventionKeeperEditor", "ConventionKeeper Plugin"), NAME_None, FConventionKeeperEditorStyle::GetStyleSetName())
 	{
 	}
 

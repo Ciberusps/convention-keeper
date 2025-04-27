@@ -39,17 +39,18 @@ public class ConventionKeeperEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"Slate",
+				"SlateCore",
+				
 				"Projects",
 				"InputCore",
 				"EditorFramework",
 				"UnrealEd",
 				"ToolMenus",
-				"Slate",
-				"SlateCore",
-				"UnrealEd",
+				
 				"DeveloperSettings", 
 				"EditorWidgets",
-				"GameplayTags",
+				"MessageLog",
 				// ... add private dependencies that you statically link with here ...
 			}
 			);
