@@ -14,8 +14,8 @@
 #include "ContentBrowserModule.h"
 #include "ContentBrowserDelegates.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
-#include "Misc/PackageName.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Commandlets/ConventionKeeperCommandlet.h"
 
 DEFINE_LOG_CATEGORY(LogConventionKeeper);
 
@@ -188,55 +188,9 @@ void FConventionKeeperEditorModule::UnregisterAssetTypeActions()
 	RegisteredAssetTypeActions.Empty();
 }
 
-static FString NormalizeRelativePathForValidation(const FString& InPath)
-{
-	FString Result = InPath;
-	Result.ReplaceInline(TEXT("\\"), TEXT("/"));
-	if (!Result.EndsWith(TEXT("/")))
-	{
-		Result += TEXT("/");
-	}
-	return Result;
-}
-
-static FString ConvertContentBrowserPathToRelative(const FString& InPath)
-{
-	if (FPackageName::IsValidLongPackageName(InPath))
-	{
-		FString Filename = FPackageName::LongPackageNameToFilename(InPath, TEXT(""));
-		FPaths::MakePathRelativeTo(Filename, *FPaths::ProjectDir());
-		return NormalizeRelativePathForValidation(Filename);
-	}
-
-	FString Result = InPath;
-	Result.RemoveFromStart(TEXT("/Game"));
-	Result.RemoveFromStart(TEXT("Game"));
-	Result = FString::Printf(TEXT("Content/%s"), *Result);
-	return NormalizeRelativePathForValidation(Result);
-}
-
 static void ValidateConventionFolders(const TArray<FString> SelectedPaths)
 {
-	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
-	if (!ConventionKeeperSettings || !ConventionKeeperSettings->Convention.Get())
-	{
-		return;
-	}
-
-	UConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
-	if (!Convention)
-	{
-		return;
-	}
-
-	TArray<FString> RelativePaths;
-	RelativePaths.Reserve(SelectedPaths.Num());
-	for (const FString& Path : SelectedPaths)
-	{
-		RelativePaths.Add(ConvertContentBrowserPathToRelative(Path));
-	}
-
-	Convention->ValidateFolderStructuresForPaths(RelativePaths);
+	UConventionKeeperCommandlet::ValidateData(MakeArrayView(SelectedPaths));
 }
 
 static void CreateConventionFolderMenu(FMenuBuilder& MenuBuilder, const TArray<FString> SelectedPaths)
