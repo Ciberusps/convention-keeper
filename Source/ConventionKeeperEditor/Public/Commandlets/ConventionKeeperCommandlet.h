@@ -17,5 +17,9 @@ public:
 	virtual int32 Main(const FString& Params) override;
 	// End UCommandlet Interface
 
-	static bool ValidateData(TArrayView<const FString> Paths);
+	static bool ValidateData(TArrayView<const FString> Paths, bool bAssetPaths = false);
+
+	/** Converts a content-browser or package path to Content/... form. If bFolder, adds trailing slash. */
+	static FString ConvertPathToRelativeForValidation(const FString& InPath);
+	static FString ConvertPathToRelativeForExclusion(const FString& InPath, bool bFolder);
 };

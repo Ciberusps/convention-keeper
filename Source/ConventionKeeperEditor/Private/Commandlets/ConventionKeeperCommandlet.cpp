@@ -20,6 +20,19 @@ static FString NormalizeRelativePathForValidation(const FString& InPath)
 {
 	FString Result = InPath;
 	Result.ReplaceInline(TEXT("\\"), TEXT("/"));
+	Result.TrimStartAndEndInline();
+	while (Result.StartsWith(TEXT("/")))
+	{
+		Result.RemoveFromStart(TEXT("/"));
+	}
+	if (Result.StartsWith(TEXT("All/")))
+	{
+		Result.RemoveFromStart(TEXT("All/"));
+	}
+	if (Result.StartsWith(TEXT("Game/")))
+	{
+		Result = FString(TEXT("Content/")) + Result.Mid(5);
+	}
 	if (!Result.EndsWith(TEXT("/")))
 	{
 		Result += TEXT("/");
@@ -27,28 +40,82 @@ static FString NormalizeRelativePathForValidation(const FString& InPath)
 	return Result;
 }
 
-static FString ConvertPathToRelativeForValidation(const FString& InPath)
+FString UConventionKeeperCommandlet::ConvertPathToRelativeForValidation(const FString& InPath)
 {
-	if (InPath.StartsWith(TEXT("Content/")) || InPath.StartsWith(TEXT("/Content/")))
+	FString Path = InPath;
+	Path.TrimStartAndEndInline();
+	Path.ReplaceInline(TEXT("\\"), TEXT("/"));
+
+	const FString ProjectDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()).Replace(TEXT("\\"), TEXT("/"));
+	if (Path.StartsWith(ProjectDir))
 	{
-		return NormalizeRelativePathForValidation(InPath);
+		Path = Path.Mid(ProjectDir.Len());
+	}
+	else
+	{
+		const FString ContentMarker = TEXT("/Content/");
+		const int32 ContentPos = Path.Find(ContentMarker);
+		if (ContentPos != INDEX_NONE)
+		{
+			Path = FString(TEXT("Content/")) + Path.Mid(ContentPos + ContentMarker.Len());
+		}
 	}
 
-	if (FPackageName::IsValidLongPackageName(InPath))
+	while (Path.StartsWith(TEXT("/")))
 	{
-		FString Filename = FPackageName::LongPackageNameToFilename(InPath, TEXT(""));
+		Path.RemoveFromStart(TEXT("/"));
+	}
+	if (Path.StartsWith(TEXT("All/")))
+	{
+		Path.RemoveFromStart(TEXT("All/"));
+	}
+
+	const int32 DotPos = Path.Find(TEXT("."), ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+	if (DotPos != INDEX_NONE)
+	{
+		const FString Ext = Path.Mid(DotPos + 1).ToLower();
+		if (Ext == TEXT("uasset") || Ext == TEXT("umap"))
+		{
+			Path = Path.Left(DotPos);
+		}
+	}
+
+	if (Path.StartsWith(TEXT("Content/")))
+	{
+		return NormalizeRelativePathForValidation(Path);
+	}
+
+	if (Path.StartsWith(TEXT("Game/")))
+	{
+		return NormalizeRelativePathForValidation(FString(TEXT("Content/")) + Path.Mid(5));
+	}
+
+	FString ForPackageName = Path;
+	if (!ForPackageName.StartsWith(TEXT("Game")))
+	{
+		ForPackageName = FString(TEXT("Game/")) + ForPackageName;
+	}
+	if (FPackageName::IsValidLongPackageName(ForPackageName))
+	{
+		FString Filename = FPackageName::LongPackageNameToFilename(ForPackageName, TEXT(""));
 		FPaths::MakePathRelativeTo(Filename, *FPaths::ProjectDir());
 		return NormalizeRelativePathForValidation(Filename);
 	}
 
-	FString Result = InPath;
-	Result.RemoveFromStart(TEXT("/Game"));
-	Result.RemoveFromStart(TEXT("Game"));
-	Result = FString::Printf(TEXT("Content/%s"), *Result);
-	return NormalizeRelativePathForValidation(Result);
+	return NormalizeRelativePathForValidation(FString(TEXT("Content/")) + Path);
 }
 
-bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths)
+FString UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(const FString& InPath, bool bFolder)
+{
+	FString Result = ConvertPathToRelativeForValidation(InPath);
+	if (!bFolder && Result.EndsWith(TEXT("/")))
+	{
+		Result.LeftChopInline(1);
+	}
+	return Result;
+}
+
+bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, bool bAssetPaths)
 {
 	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
 	UConventionKeeperConvention* Convention = ConventionKeeperSettings ? ConventionKeeperSettings->GetResolvedConvention() : nullptr;
@@ -68,7 +135,9 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths)
 	RelativePaths.Reserve(Paths.Num());
 	for (const FString& Path : Paths)
 	{
-		RelativePaths.Add(ConvertPathToRelativeForValidation(Path));
+		RelativePaths.Add(bAssetPaths
+			? UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(Path, false)
+			: UConventionKeeperCommandlet::ConvertPathToRelativeForValidation(Path));
 	}
 
 	Convention->ValidateFolderStructuresForPaths(RelativePaths);

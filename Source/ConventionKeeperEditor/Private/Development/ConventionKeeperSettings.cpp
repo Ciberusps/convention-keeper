@@ -3,19 +3,30 @@
 #include "Development/ConventionKeeperSettings.h"
 
 #include "Conventions/UHLConvention/UHLConvention.h"
+#include "Misc/ConfigCacheIni.h"
 #include "UObject/UnrealType.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperSettings)
 
 UConventionKeeperSettings::UConventionKeeperSettings()
 {
-    Convention = UUHLConvention::StaticClass();
+	Convention = UUHLConvention::StaticClass();
 }
 
 void UConventionKeeperSettings::PostLoad()
 {
 	Super::PostLoad();
 	bConventionAssetIsSet = !ConventionAsset.IsNull();
+	if (Exclusions.Num() == 0)
+	{
+		TArray<FString> LegacyExcludeFolders;
+		const FString ConfigFilename = GetDefaultConfigFilename();
+		if (GConfig->GetArray(*GetClass()->GetPathName(), TEXT("ExcludeFolders"), LegacyExcludeFolders, ConfigFilename) && LegacyExcludeFolders.Num() > 0)
+		{
+			Exclusions = MoveTemp(LegacyExcludeFolders);
+			SaveConfig(CPF_Config);
+		}
+	}
 }
 
 void UConventionKeeperSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

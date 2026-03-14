@@ -1,7 +1,7 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
-#include "ConventionKeeperBlueprintLibrary.h"
 #include "ConventionKeeperConvention.h"
+#include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Logging/MessageLog.h"
 #include "Misc/Paths.h"

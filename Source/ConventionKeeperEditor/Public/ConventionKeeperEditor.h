@@ -38,4 +38,5 @@ private:
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class IAssetTypeActions>> RegisteredAssetTypeActions;
 	FDelegateHandle ContentBrowserPathExtenderDelegateHandle;
+	FDelegateHandle ContentBrowserAssetExtenderDelegateHandle;
 };

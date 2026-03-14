@@ -34,35 +34,130 @@ FString UConventionKeeperRule_FolderStructure::NormalizeRelativePath(const FStri
 	return Result;
 }
 
+namespace FolderStructurePathHelpers
+{
+FString LiteralPrefixOfPath(const FString& NormalizedPath)
+{
+	TArray<FString> Segments;
+	NormalizedPath.ParseIntoArray(Segments, TEXT("/"), true);
+	FString Prefix;
+	for (const FString& Seg : Segments)
+	{
+		if (Seg.Contains(TEXT("{")))
+		{
+			break;
+		}
+		if (!Prefix.IsEmpty())
+		{
+			Prefix += TEXT("/");
+		}
+		Prefix += Seg;
+	}
+	if (!Prefix.IsEmpty())
+	{
+		Prefix += TEXT("/");
+	}
+	return Prefix;
+}
+
+FString SelectedPathAsContentForm(const FString& InPath)
+{
+	FString Path = InPath;
+	Path.ReplaceInline(TEXT("\\"), TEXT("/"));
+	Path.TrimStartAndEndInline();
+	const FString ProjectDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()).Replace(TEXT("\\"), TEXT("/"));
+	if (Path.StartsWith(ProjectDir))
+	{
+		Path = Path.Mid(ProjectDir.Len());
+	}
+	else
+	{
+		const FString ContentMarker = TEXT("/Content/");
+		const int32 ContentPos = Path.Find(ContentMarker);
+		if (ContentPos != INDEX_NONE)
+		{
+			Path = FString(TEXT("Content/")) + Path.Mid(ContentPos + ContentMarker.Len());
+		}
+	}
+	while (Path.StartsWith(TEXT("/")))
+	{
+		Path.RemoveFromStart(TEXT("/"));
+	}
+	if (Path.StartsWith(TEXT("All/")))
+	{
+		Path.RemoveFromStart(TEXT("All/"));
+	}
+	if (Path.StartsWith(TEXT("Game/")))
+	{
+		Path = FString(TEXT("Content/")) + Path.Mid(5);
+	}
+	const int32 DotPos = Path.Find(TEXT("."), ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+	if (DotPos != INDEX_NONE)
+	{
+		const FString Ext = Path.Mid(DotPos + 1).ToLower();
+		if (Ext == TEXT("uasset") || Ext == TEXT("umap"))
+		{
+			Path = Path.Left(DotPos);
+		}
+	}
+	if (!Path.EndsWith(TEXT("/")))
+	{
+		Path += TEXT("/");
+	}
+	return Path;
+}
+}
+
 bool UConventionKeeperRule_FolderStructure::IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths)
+{
+	return IsRelevantPath(TArray<FString>{NormalizeRelativePath(ResolvedPath)}, SelectedPaths);
+}
+
+bool UConventionKeeperRule_FolderStructure::IsRelevantPath(const TArray<FString>& ResolvedPathsToCheck, const TArray<FString>& SelectedPaths)
 {
 	if (SelectedPaths.IsEmpty())
 	{
 		return true;
 	}
-
-	const FString NormalizedResolvedPath = NormalizeRelativePath(ResolvedPath);
-	for (const FString& SelectedPath : SelectedPaths)
+	for (const FString& ResolvedPath : ResolvedPathsToCheck)
 	{
-		const FString NormalizedSelectedPath = NormalizeRelativePath(SelectedPath);
-		if (NormalizedResolvedPath.StartsWith(NormalizedSelectedPath))
+		const FString NormalizedResolvedPath = NormalizeRelativePath(ResolvedPath);
+		for (const FString& SelectedPath : SelectedPaths)
 		{
-			return true;
+			const FString NormalizedSelectedPath = FolderStructurePathHelpers::SelectedPathAsContentForm(SelectedPath);
+			if (NormalizedResolvedPath.StartsWith(NormalizedSelectedPath))
+			{
+				return true;
+			}
 		}
 	}
 	return false;
 }
 
-bool UConventionKeeperRule_FolderStructure::IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& ExcludeFolders, const TMap<FString, FString>& Placeholders)
+bool UConventionKeeperRule_FolderStructure::IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& Exclusions, const TMap<FString, FString>& Placeholders)
 {
 	const FString NormalizedPath = NormalizeRelativePath(ResolvedPath);
-	for (const FString& ExcludeFolder : ExcludeFolders)
+	for (const FString& Exclusion : Exclusions)
 	{
-		const FString ResolvedExclude = ResolvePlaceholdersForPath(ExcludeFolder, Placeholders);
-		const FString NormalizedExclude = NormalizeRelativePath(ResolvedExclude);
-		if (NormalizedPath.StartsWith(NormalizedExclude) || NormalizedExclude.StartsWith(NormalizedPath))
+		const FString ResolvedExclude = ResolvePlaceholdersForPath(Exclusion, Placeholders);
+		FString NormalizedExclude = ResolvedExclude;
+		NormalizedExclude.ReplaceInline(TEXT("\\"), TEXT("/"));
+		NormalizedExclude.TrimStartAndEndInline();
+		const bool bExclusionIsFolder = NormalizedExclude.EndsWith(TEXT("/"));
+		if (bExclusionIsFolder)
 		{
-			return true;
+			NormalizedExclude = NormalizeRelativePath(ResolvedExclude);
+			if (NormalizedPath.StartsWith(NormalizedExclude) || NormalizedExclude.StartsWith(NormalizedPath))
+			{
+				return true;
+			}
+		}
+		else
+		{
+			if (NormalizedPath == NormalizedExclude + TEXT("/") || NormalizedPath.StartsWith(NormalizedExclude + TEXT("/")))
+			{
+				return true;
+			}
 		}
 	}
 	return false;
@@ -85,12 +180,40 @@ bool UConventionKeeperRule_FolderStructure::CanValidate_Implementation(const TAr
 	const FString ResolvedFolderPath = ResolvePlaceholdersForPath(FolderPath.Path, Placeholders);
 
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
-	if (Settings && IsPathUnderExcluded(ResolvedFolderPath, Settings->ExcludeFolders, Placeholders))
+	if (Settings && IsPathUnderExcluded(ResolvedFolderPath, Settings->Exclusions, Placeholders))
 	{
 		return false;
 	}
 
-	return IsRelevantPath(ResolvedFolderPath, SelectedPaths);
+	TArray<FString> PathsToCheck;
+	if (ResolvedFolderPath.Contains(TEXT("{")))
+	{
+		TMap<FString, FString> PlaceholdersWithBraces = Settings ? Settings->GetPlaceholders() : TMap<FString, FString>();
+		for (const TTuple<FString, FString>& P : Placeholders)
+		{
+			FString Key = P.Key;
+			if (!Key.StartsWith(TEXT("{")))
+			{
+				Key = FString::Printf(TEXT("{%s}"), *P.Key);
+			}
+			PlaceholdersWithBraces.Add(Key, P.Value);
+		}
+		TArray<FString> Resolved = UConventionKeeperBlueprintLibrary::ResolveTemplatePaths(ResolvedFolderPath, PlaceholdersWithBraces);
+		for (FString& P : Resolved)
+		{
+			P.ReplaceInline(TEXT("\\"), TEXT("/"));
+			if (P.StartsWith(TEXT("/")))
+			{
+				P.RemoveFromStart(TEXT("/"));
+			}
+			PathsToCheck.Add(NormalizeRelativePath(P));
+		}
+	}
+	else
+	{
+		PathsToCheck.Add(NormalizeRelativePath(ResolvedFolderPath));
+	}
+	return IsRelevantPath(PathsToCheck, SelectedPaths);
 }
 
 static EMessageSeverity::Type RuleSeverityToMessageSeverity(EConventionRuleSeverity RuleSeverity)
@@ -154,6 +277,66 @@ static void LogRuleMessage(EMessageSeverity::Type Severity, const FText& Message
 	}
 }
 
+TArray<FString> UConventionKeeperRule_FolderStructure::GetConcreteBasePathsForFolderRule(
+	const FString& FolderPathPath,
+	const TMap<FString, FString>& Placeholders,
+	const UConventionKeeperSettings* Settings,
+	const TArray<FString>& SelectedPaths)
+{
+	const FString ResolvedFolderPath = ResolvePlaceholdersForPath(FolderPathPath, Placeholders);
+	TArray<FString> PathsToCheck;
+	if (ResolvedFolderPath.Contains(TEXT("{")))
+	{
+		TMap<FString, FString> PlaceholdersWithBraces = Settings ? Settings->GetPlaceholders() : TMap<FString, FString>();
+		for (const TTuple<FString, FString>& P : Placeholders)
+		{
+			FString Key = P.Key;
+			if (!Key.StartsWith(TEXT("{")))
+			{
+				Key = FString::Printf(TEXT("{%s}"), *P.Key);
+			}
+			PlaceholdersWithBraces.Add(Key, P.Value);
+		}
+		TArray<FString> Resolved = UConventionKeeperBlueprintLibrary::ResolveTemplatePaths(ResolvedFolderPath, PlaceholdersWithBraces);
+		for (FString& P : Resolved)
+		{
+			P.ReplaceInline(TEXT("\\"), TEXT("/"));
+			if (P.StartsWith(TEXT("/")))
+			{
+				P.RemoveFromStart(TEXT("/"));
+			}
+			PathsToCheck.Add(NormalizeRelativePath(P));
+		}
+	}
+	else
+	{
+		PathsToCheck.Add(NormalizeRelativePath(ResolvedFolderPath));
+	}
+	if (SelectedPaths.IsEmpty())
+	{
+		return PathsToCheck;
+	}
+	TArray<FString> Filtered;
+	for (const FString& BasePath : PathsToCheck)
+	{
+		for (const FString& SelectedPath : SelectedPaths)
+		{
+			const FString NormalizedSelectedPath = FolderStructurePathHelpers::SelectedPathAsContentForm(SelectedPath);
+			if (BasePath.StartsWith(NormalizedSelectedPath))
+			{
+				Filtered.AddUnique(BasePath);
+				break;
+			}
+			if (NormalizedSelectedPath.StartsWith(BasePath))
+			{
+				Filtered.AddUnique(NormalizedSelectedPath);
+				break;
+			}
+		}
+	}
+	return Filtered;
+}
+
 void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders)
 {
 	if (!CanValidate_Implementation(SelectedPaths, Placeholders))
@@ -165,83 +348,115 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 	const bool bDebug = Settings && Settings->bDebug;
 	const EMessageSeverity::Type FailureSeverity = RuleSeverityToMessageSeverity(Severity);
 
-	const FString ResolvedBasePath = ResolvePlaceholdersForPath(FolderPath.Path, Placeholders);
-
+	const FString ResolvedFolderPath = ResolvePlaceholdersForPath(FolderPath.Path, Placeholders);
+	TArray<FString> BasePathsToValidate = GetConcreteBasePathsForFolderRule(FolderPath.Path, Placeholders, Settings, SelectedPaths);
+	if (BasePathsToValidate.IsEmpty())
 	{
-		const bool bExists = DoesDirectoryExist(FolderPath.Path, Placeholders);
+		return;
+	}
+
+	TMap<FString, FString> PlaceholdersWithBraces = Settings ? Settings->GetPlaceholders() : TMap<FString, FString>();
+	for (const TTuple<FString, FString>& P : Placeholders)
+	{
+		FString Key = P.Key;
+		if (!Key.StartsWith(TEXT("{")))
+		{
+			Key = FString::Printf(TEXT("{%s}"), *P.Key);
+		}
+		PlaceholdersWithBraces.Add(Key, P.Value);
+	}
+
+	for (const FString& ResolvedBasePath : BasePathsToValidate)
+	{
+		const FString AbsoluteBasePath = FPaths::ProjectDir() / ResolvedBasePath;
+		const bool bExists = FPaths::DirectoryExists(AbsoluteBasePath);
 		if (!bExists)
 		{
 			LogRuleMessage(FailureSeverity, FText::Format(
 				LOCTEXT("FolderMissing", "[{0}] Required folder is missing: "),
 				FText::FromName(RuleId)),
 				&ResolvedBasePath);
+			continue;
 		}
-		else if (bDebug)
+		if (bDebug)
 		{
 			LogRuleMessage(EMessageSeverity::Info, FText::Format(
 				LOCTEXT("FolderExists", "[{0}] Folder exists: "),
 				FText::FromName(RuleId)),
 				&ResolvedBasePath, FText::FromString(TEXT(" — OK")));
 		}
-	}
 
-	for (const FDirectoryPath& RequiredFolder : RequiredFolders)
-	{
-		const bool bRequiredFolderExists = DoesDirectoryExist(RequiredFolder.Path, Placeholders);
-		const FString ResolvedRequired = ResolvePlaceholdersForPath(RequiredFolder.Path, Placeholders);
-		if (!bRequiredFolderExists)
+		TMap<FString, FString> PathPlaceholders;
+		if (ResolvedFolderPath.Contains(TEXT("{")))
 		{
-			LogRuleMessage(FailureSeverity, FText::Format(
-				LOCTEXT("RequiredSubfolderMissing", "[{0}] Required folder is missing: "),
-				FText::FromName(RuleId)),
-				&ResolvedRequired, FText::Format(LOCTEXT("RequiredSubfolderMissingSuffix", " (under {0})"), FText::FromString(ResolvedBasePath)));
+			UConventionKeeperBlueprintLibrary::ExtractPathPlaceholders(ResolvedFolderPath, ResolvedBasePath, PlaceholdersWithBraces, PathPlaceholders);
 		}
-		else if (bDebug)
+		TMap<FString, FString> MergedPlaceholders = PlaceholdersWithBraces;
+		for (const TTuple<FString, FString>& PP : PathPlaceholders)
 		{
-			LogRuleMessage(EMessageSeverity::Info, FText::Format(
-				LOCTEXT("RequiredSubfolderExists", "[{0}] Required folder exists: "),
-				FText::FromName(RuleId)),
-				&ResolvedRequired, FText::FromString(TEXT(" — OK")));
+			MergedPlaceholders.Add(FString::Printf(TEXT("{%s}"), *PP.Key), PP.Value);
 		}
-	}
 
-	if (bOtherFoldersNotAllowed)
-	{
-		TArray<FString> AllFoldersInThisPath;
-		UConventionKeeperBlueprintLibrary::GetDiskFoldersRelativeToRoot(FolderPath.Path, AllFoldersInThisPath);
-
-		for (const FString& Folder : AllFoldersInThisPath)
+		for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 		{
-			if (Settings && IsPathUnderExcluded(Folder, Settings->ExcludeFolders, Placeholders))
+			const FString ResolvedRequired = ResolvePlaceholdersForPath(RequiredFolder.Path, MergedPlaceholders);
+			const FString AbsoluteRequired = FPaths::ProjectDir() / ResolvedRequired;
+			const bool bRequiredExists = FPaths::DirectoryExists(AbsoluteRequired);
+			if (!bRequiredExists)
 			{
-				continue;
+				LogRuleMessage(FailureSeverity, FText::Format(
+					LOCTEXT("RequiredSubfolderMissing", "[{0}] Required folder is missing: "),
+					FText::FromName(RuleId)),
+					&ResolvedRequired, FText::Format(LOCTEXT("RequiredSubfolderMissingSuffix", " (under {0})"), FText::FromString(ResolvedBasePath)));
 			}
-
-			bool bFolderAllowed = false;
-			for (const FDirectoryPath& RequiredFolder : RequiredFolders)
+			else if (bDebug)
 			{
-				if (FPaths::IsSamePath(Folder, RequiredFolder.Path))
+				LogRuleMessage(EMessageSeverity::Info, FText::Format(
+					LOCTEXT("RequiredSubfolderExists", "[{0}] Required folder exists: "),
+					FText::FromName(RuleId)),
+					&ResolvedRequired, FText::FromString(TEXT(" — OK")));
+			}
+		}
+
+		if (bOtherFoldersNotAllowed)
+		{
+			TArray<FString> AllFoldersInThisPath;
+			UConventionKeeperBlueprintLibrary::GetDiskFoldersRelativeToRoot(ResolvedBasePath, AllFoldersInThisPath);
+
+			for (const FString& Folder : AllFoldersInThisPath)
+			{
+				if (Settings && IsPathUnderExcluded(Folder, Settings->Exclusions, Placeholders))
 				{
-					bFolderAllowed = true;
-					break;
+					continue;
+				}
+
+				bool bFolderAllowed = false;
+				for (const FDirectoryPath& RequiredFolder : RequiredFolders)
+				{
+					const FString ResolvedRequired = ResolvePlaceholdersForPath(RequiredFolder.Path, MergedPlaceholders);
+					if (FPaths::IsSamePath(Folder, ResolvedRequired))
+					{
+						bFolderAllowed = true;
+						break;
+					}
+				}
+
+				if (!bFolderAllowed)
+				{
+					LogRuleMessage(FailureSeverity, FText::Format(
+						LOCTEXT("DisallowedFolder", "[{0}] Folder not allowed in "),
+						FText::FromName(RuleId)),
+						&ResolvedBasePath, FText::Format(LOCTEXT("DisallowedFolderSuffix", ": {0}"), FText::FromString(Folder)));
 				}
 			}
 
-			if (!bFolderAllowed)
+			if (bDebug && AllFoldersInThisPath.Num() == 0)
 			{
-				LogRuleMessage(FailureSeverity, FText::Format(
-					LOCTEXT("DisallowedFolder", "[{0}] Folder not allowed in "),
+				LogRuleMessage(EMessageSeverity::Info, FText::Format(
+					LOCTEXT("NoExtraFolders", "[{0}] No disallowed folders in "),
 					FText::FromName(RuleId)),
-					&ResolvedBasePath, FText::Format(LOCTEXT("DisallowedFolderSuffix", ": {0}"), FText::FromString(Folder)));
+					&ResolvedBasePath, FText::FromString(TEXT(" — OK")));
 			}
-		}
-
-		if (bDebug && AllFoldersInThisPath.Num() == 0)
-		{
-			LogRuleMessage(EMessageSeverity::Info, FText::Format(
-				LOCTEXT("NoExtraFolders", "[{0}] No disallowed folders in "),
-				FText::FromName(RuleId)),
-				&ResolvedBasePath, FText::FromString(TEXT(" — OK")));
 		}
 	}
 }

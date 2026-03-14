@@ -6,6 +6,15 @@
 #include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperRule_AssetNaming.generated.h"
 
+USTRUCT(BlueprintType)
+struct CONVENTIONKEEPEREDITOR_API FAssetNamingScopeEntry
+{
+	GENERATED_BODY()
+	FString RulePath;
+	FString QueryPath;
+	TArray<FString> OnlyAssetPaths;
+};
+
 /**
  * Rule: assets in a templated folder path must follow a naming pattern.
  * - Folder path can contain placeholders (e.g. Content/{ProjectName}/Characters/{CharacterName}/Animations).
@@ -61,12 +70,25 @@ public:
 	/** Fills OutPathPlaceholders from resolved path using pattern with {Placeholder} segments. GlobalPlaceholders keys must include braces (e.g. "{ProjectName}"). */
 	static bool ExtractPathPlaceholders(const FString& PatternPath, const FString& ResolvedPath, const TMap<FString, FString>& GlobalPlaceholders, TMap<FString, FString>& OutPathPlaceholders);
 
+	/** True if any of the rule paths is under one of the selected paths (so we only validate that folder). */
+	static bool IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths);
+	static bool IsRelevantPath(const TArray<FString>& ResolvedPathsToCheck, const TArray<FString>& SelectedPaths);
+
+	/** True if path is under a folder exclusion or equals a file exclusion. Used by rules and tests. */
+	static bool IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& Exclusions, const TMap<FString, FString>& Placeholders);
+
+	/**
+	 * Returns the list of (QueryPath, OnlyAssetPaths) scopes to validate.
+	 * Used by Validate_Implementation and by tests to assert folder/asset scope.
+	 * ResolvedPaths: rule paths in Content form, with or without trailing slash.
+	 * SelectedPaths: from menu; folder paths should end with / so only that folder is queried; asset paths without / restrict to that asset.
+	 */
+	static TArray<FAssetNamingScopeEntry> GetScopesForValidation(const TArray<FString>& ResolvedPaths, const TArray<FString>& SelectedPaths);
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 private:
 	static FString NormalizeRelativePath(const FString& InPath);
-	static bool IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths);
-	static bool IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& ExcludeFolders, const TMap<FString, FString>& Placeholders);
 };

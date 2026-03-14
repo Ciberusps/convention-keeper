@@ -1,6 +1,7 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "ConventionKeeperBlueprintLibrary.h"
+#include "Commandlets/ConventionKeeperCommandlet.h"
 #include "HAL/FileManager.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/Paths.h"
@@ -188,6 +189,33 @@ void ConventionSpec::Define()
 			TArray<FString> Results = UConventionKeeperBlueprintLibrary::ResolveTemplatePaths(Pattern, Placeholders);
 			TestEqual(TEXT("One path when only global placeholder"), Results.Num(), 1);
 			TestTrue(TEXT("Path contains Content/GameCode"), Results[0].Contains(TEXT("Content")) && Results[0].Contains(TEXT("GameCode")));
+		});
+	});
+
+	Describe("Path normalization", [this]()
+	{
+		It("converts absolute folder path to Content form with slash", [this]()
+		{
+			const FString InPath = TEXT("P:/gamecode/Content/GameCode/Characters/Player/Animations/Swords/Staggers/Light");
+			const FString Result = UConventionKeeperCommandlet::ConvertPathToRelativeForValidation(InPath);
+			TestEqual(TEXT("Folder path normalized"), Result,
+				FString(TEXT("Content/GameCode/Characters/Player/Animations/Swords/Staggers/Light/")));
+		});
+
+		It("converts absolute uasset path to file exclusion form without extension", [this]()
+		{
+			const FString InPath = TEXT("P:/gamecode/Content/GameCode/Characters/Player/Animations/Swords/Staggers/Light/AS_1H_Swords_Stagger_Light_B.uasset");
+			const FString Result = UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(InPath, false);
+			TestEqual(TEXT("Asset path normalized for exclusion"), Result,
+				FString(TEXT("Content/GameCode/Characters/Player/Animations/Swords/Staggers/Light/AS_1H_Swords_Stagger_Light_B")));
+		});
+
+		It("converts /All/Game folder path to Content form", [this]()
+		{
+			const FString InPath = TEXT("/All/Game/GameCode/Characters/Player/Animations/Swords/Staggers/Light");
+			const FString Result = UConventionKeeperCommandlet::ConvertPathToRelativeForValidation(InPath);
+			TestEqual(TEXT("All/Game path normalized"), Result,
+				FString(TEXT("Content/GameCode/Characters/Player/Animations/Swords/Staggers/Light/")));
 		});
 	});
 }

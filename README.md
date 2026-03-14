@@ -46,8 +46,13 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Con
 
 ## 📖 Documentation
 
-> - Components
->   - [UHLStateTreeAIComponent](#UUHLStateTreeAIComponent)
+
+## TODO:
+
+- GameplayTags Rule
+- [ue5-style-guide](https://github.com/Allar/ue5-style-guide)
+- localization
+
 
 ## 🤝 Contributing
 

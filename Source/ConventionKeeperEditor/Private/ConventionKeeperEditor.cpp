@@ -5,6 +5,7 @@
 #include "ConventionKeeperEditorCommands.h"
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
+#include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Developer/MessageLog/Public/MessageLogModule.h"
 #include "Logging/MessageLog.h"
@@ -191,7 +192,59 @@ void FConventionKeeperEditorModule::UnregisterAssetTypeActions()
 
 static void ValidateConventionFolders(const TArray<FString> SelectedPaths)
 {
-	UConventionKeeperCommandlet::ValidateData(MakeArrayView(SelectedPaths));
+	TArray<FString> Normalized;
+	Normalized.Reserve(SelectedPaths.Num());
+	for (const FString& P : SelectedPaths)
+	{
+		FString S = P;
+		S.ReplaceInline(TEXT("\\"), TEXT("/"));
+		S.TrimStartAndEndInline();
+		if (!S.IsEmpty() && !S.EndsWith(TEXT("/")))
+		{
+			S += TEXT("/");
+		}
+		Normalized.Add(S);
+	}
+	UConventionKeeperCommandlet::ValidateData(MakeArrayView(Normalized), false);
+}
+
+static void ValidateConventionAssets(const TArray<FString> AssetPaths)
+{
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	TArray<FString> Filtered;
+	for (const FString& Path : AssetPaths)
+	{
+		FString Normalized = UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(Path, false);
+		if (!Normalized.IsEmpty() && (!Settings || !Settings->Exclusions.Contains(Normalized)))
+		{
+			Filtered.Add(Path);
+		}
+	}
+	if (Filtered.Num() > 0)
+	{
+		UConventionKeeperCommandlet::ValidateData(MakeArrayView(Filtered), true);
+	}
+}
+
+static void AddToExclusionsWithConfirmation(const TArray<FString>& Paths, bool bFolder)
+{
+	if (Paths.IsEmpty()) return;
+	if (FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("ConfirmAddToExclusion", "Are you SURE you want to add to exclusions?")) != EAppReturnType::Yes)
+	{
+		return;
+	}
+	UConventionKeeperSettings* Settings = GetMutableDefault<UConventionKeeperSettings>();
+	if (!Settings) return;
+	for (const FString& Path : Paths)
+	{
+		FString Normalized = UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(Path, bFolder);
+		if (Normalized.IsEmpty()) continue;
+		if (!Settings->Exclusions.Contains(Normalized))
+		{
+			Settings->Exclusions.Add(Normalized);
+		}
+	}
+	Settings->SaveConfig();
 }
 
 static void CreateConventionFolderMenu(FMenuBuilder& MenuBuilder, const TArray<FString> SelectedPaths)
@@ -201,6 +254,12 @@ static void CreateConventionFolderMenu(FMenuBuilder& MenuBuilder, const TArray<F
 		LOCTEXT("ConventionKeeperValidateFolderTooltip", "Run convention validation on the selected folder(s)."),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Tools"),
 		FUIAction(FExecuteAction::CreateStatic(ValidateConventionFolders, SelectedPaths))
+	);
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("ConventionKeeperAddToExclusionTitle", "ConventionKeeper add to Exclusion"),
+		LOCTEXT("ConventionKeeperAddToExclusionTooltip", "Add the selected folder(s) to Convention Keeper exclusions."),
+		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Tools"),
+		FUIAction(FExecuteAction::CreateLambda([SelectedPaths]() { AddToExclusionsWithConfirmation(SelectedPaths, true); }))
 	);
 }
 
@@ -216,6 +275,43 @@ static TSharedRef<FExtender> OnExtendContentBrowserPathSelectionMenu(const TArra
 	return Extender;
 }
 
+static TSharedRef<FExtender> OnExtendContentBrowserAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets)
+{
+	TArray<FString> AssetPathsForValidate;
+	TArray<FString> AssetPathsForExclusion;
+	for (const FAssetData& Asset : SelectedAssets)
+	{
+		FString PackageName = Asset.PackageName.ToString();
+		if (!PackageName.IsEmpty())
+		{
+			AssetPathsForValidate.AddUnique(PackageName);
+			AssetPathsForExclusion.AddUnique(PackageName);
+		}
+	}
+	TSharedRef<FExtender> Extender(new FExtender());
+	Extender->AddMenuExtension(
+		"GetAssetActions",
+		EExtensionHook::After,
+		nullptr,
+		FMenuExtensionDelegate::CreateLambda([AssetPathsForValidate, AssetPathsForExclusion](FMenuBuilder& MenuBuilder)
+		{
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("ConventionKeeperValidateAssetTitle", "Validate Convention"),
+				LOCTEXT("ConventionKeeperValidateAssetTooltip", "Run convention validation for the selected asset(s) only. Excluded assets are skipped."),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Tools"),
+				FUIAction(FExecuteAction::CreateLambda([AssetPathsForValidate]() { ValidateConventionAssets(AssetPathsForValidate); }))
+			);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("ConventionKeeperAddToExclusionAssetTitle", "ConventionKeeper add to Exclusion"),
+				LOCTEXT("ConventionKeeperAddToExclusionTooltip", "Add the selected asset(s) to Convention Keeper exclusions."),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Tools"),
+				FUIAction(FExecuteAction::CreateLambda([AssetPathsForExclusion]() { AddToExclusionsWithConfirmation(AssetPathsForExclusion, false); }))
+			);
+		})
+	);
+	return Extender;
+}
+
 void FConventionKeeperEditorModule::RegisterContentBrowserExtenders()
 {
 	if (!FSlateApplication::IsInitialized())
@@ -227,6 +323,10 @@ void FConventionKeeperEditorModule::RegisterContentBrowserExtenders()
 	auto& PathMenuExtenders = ContentBrowserModule.GetAllPathViewContextMenuExtenders();
 	PathMenuExtenders.Add(FContentBrowserMenuExtender_SelectedPaths::CreateStatic(OnExtendContentBrowserPathSelectionMenu));
 	ContentBrowserPathExtenderDelegateHandle = PathMenuExtenders.Last().GetHandle();
+
+	auto& AssetMenuExtenders = ContentBrowserModule.GetAllAssetViewContextMenuExtenders();
+	AssetMenuExtenders.Add(FContentBrowserMenuExtender_SelectedAssets::CreateStatic(OnExtendContentBrowserAssetSelectionMenu));
+	ContentBrowserAssetExtenderDelegateHandle = AssetMenuExtenders.Last().GetHandle();
 }
 
 void FConventionKeeperEditorModule::UnregisterContentBrowserExtenders()
@@ -236,6 +336,13 @@ void FConventionKeeperEditorModule::UnregisterContentBrowserExtenders()
 		auto& PathMenuExtenders = ContentBrowserModule->GetAllPathViewContextMenuExtenders();
 		PathMenuExtenders.RemoveAll(
 			[&Handle = ContentBrowserPathExtenderDelegateHandle](const FContentBrowserMenuExtender_SelectedPaths& Delegate)
+			{
+				return Delegate.GetHandle() == Handle;
+			}
+		);
+		auto& AssetMenuExtenders = ContentBrowserModule->GetAllAssetViewContextMenuExtenders();
+		AssetMenuExtenders.RemoveAll(
+			[&Handle = ContentBrowserAssetExtenderDelegateHandle](const FContentBrowserMenuExtender_SelectedAssets& Delegate)
 			{
 				return Delegate.GetHandle() == Handle;
 			}

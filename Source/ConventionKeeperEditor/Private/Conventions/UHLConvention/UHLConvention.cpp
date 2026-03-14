@@ -1,7 +1,7 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
-#include "Animation/AnimSequence.h"
 #include "Conventions/UHLConvention/UHLConvention.h"
+#include "Animation/AnimSequence.h"
 #include "Internationalization/Text.h"
 #include "NamingConventions/PascalCaseNamingConvention.h"
 #include "Rules/ConventionKeeperRule_AssetNaming.h"
