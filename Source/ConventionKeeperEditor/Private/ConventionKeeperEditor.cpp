@@ -11,6 +11,11 @@
 #include "AssetToolsModule.h"
 #include "AssetTypeActions/ConventionAssetTypeActions.h"
 #include "Styling/AppStyle.h"
+#include "ContentBrowserModule.h"
+#include "ContentBrowserDelegates.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Misc/PackageName.h"
+#include "Framework/Application/SlateApplication.h"
 
 DEFINE_LOG_CATEGORY(LogConventionKeeper);
 
@@ -48,6 +53,7 @@ void FConventionKeeperEditorModule::StartupModule()
 	RegisterMenus();
 	UToolMenus::Get()->RefreshAllWidgets();
 	RegisterAssetTypeActions();
+	RegisterContentBrowserExtenders();
 }
 
 void FConventionKeeperEditorModule::ShutdownModule()
@@ -63,6 +69,7 @@ void FConventionKeeperEditorModule::ShutdownModule()
 	FConventionKeeperEditorCommands::Unregister();
 
 	UnregisterAssetTypeActions();
+	UnregisterContentBrowserExtenders();
 }
 
 void FConventionKeeperEditorModule::PluginButtonClicked()
@@ -179,6 +186,106 @@ void FConventionKeeperEditorModule::UnregisterAssetTypeActions()
 	}
 
 	RegisteredAssetTypeActions.Empty();
+}
+
+static FString NormalizeRelativePathForValidation(const FString& InPath)
+{
+	FString Result = InPath;
+	Result.ReplaceInline(TEXT("\\"), TEXT("/"));
+	if (!Result.EndsWith(TEXT("/")))
+	{
+		Result += TEXT("/");
+	}
+	return Result;
+}
+
+static FString ConvertContentBrowserPathToRelative(const FString& InPath)
+{
+	if (FPackageName::IsValidLongPackageName(InPath))
+	{
+		FString Filename = FPackageName::LongPackageNameToFilename(InPath, TEXT(""));
+		FPaths::MakePathRelativeTo(Filename, *FPaths::ProjectDir());
+		return NormalizeRelativePathForValidation(Filename);
+	}
+
+	FString Result = InPath;
+	Result.RemoveFromStart(TEXT("/Game"));
+	Result.RemoveFromStart(TEXT("Game"));
+	Result = FString::Printf(TEXT("Content/%s"), *Result);
+	return NormalizeRelativePathForValidation(Result);
+}
+
+static void ValidateConventionFolders(const TArray<FString> SelectedPaths)
+{
+	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
+	if (!ConventionKeeperSettings || !ConventionKeeperSettings->Convention.Get())
+	{
+		return;
+	}
+
+	UConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
+	if (!Convention)
+	{
+		return;
+	}
+
+	TArray<FString> RelativePaths;
+	RelativePaths.Reserve(SelectedPaths.Num());
+	for (const FString& Path : SelectedPaths)
+	{
+		RelativePaths.Add(ConvertContentBrowserPathToRelative(Path));
+	}
+
+	Convention->ValidateFolderStructuresForPaths(RelativePaths);
+}
+
+static void CreateConventionFolderMenu(FMenuBuilder& MenuBuilder, const TArray<FString> SelectedPaths)
+{
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("ConventionKeeperValidateFolderTitle", "Validate Convention In Folder"),
+		LOCTEXT("ConventionKeeperValidateFolderTooltip", "Run convention validation on the selected folder(s)."),
+		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Tools"),
+		FUIAction(FExecuteAction::CreateStatic(ValidateConventionFolders, SelectedPaths))
+	);
+}
+
+static TSharedRef<FExtender> OnExtendContentBrowserPathSelectionMenu(const TArray<FString>& SelectedPaths)
+{
+	TSharedRef<FExtender> Extender(new FExtender());
+	Extender->AddMenuExtension(
+		"PathContextBulkOperations",
+		EExtensionHook::After,
+		nullptr,
+		FMenuExtensionDelegate::CreateStatic(CreateConventionFolderMenu, SelectedPaths)
+	);
+	return Extender;
+}
+
+void FConventionKeeperEditorModule::RegisterContentBrowserExtenders()
+{
+	if (!FSlateApplication::IsInitialized())
+	{
+		return;
+	}
+
+	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
+	auto& PathMenuExtenders = ContentBrowserModule.GetAllPathViewContextMenuExtenders();
+	PathMenuExtenders.Add(FContentBrowserMenuExtender_SelectedPaths::CreateStatic(OnExtendContentBrowserPathSelectionMenu));
+	ContentBrowserPathExtenderDelegateHandle = PathMenuExtenders.Last().GetHandle();
+}
+
+void FConventionKeeperEditorModule::UnregisterContentBrowserExtenders()
+{
+	if (FContentBrowserModule* ContentBrowserModule = FModuleManager::GetModulePtr<FContentBrowserModule>(TEXT("ContentBrowser")))
+	{
+		auto& PathMenuExtenders = ContentBrowserModule->GetAllPathViewContextMenuExtenders();
+		PathMenuExtenders.RemoveAll(
+			[&Handle = ContentBrowserPathExtenderDelegateHandle](const FContentBrowserMenuExtender_SelectedPaths& Delegate)
+			{
+				return Delegate.GetHandle() == Handle;
+			}
+		);
+	}
 }
 
 

@@ -99,6 +99,119 @@ void UConvention::ValidateFolderStructures_Implementation()
 	MyMessageLog.Open();
 }
 
+static FString ResolvePlaceholdersForPath(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders)
+{
+	FString ResultPath = DirectoryPath;
+	for (const TTuple<FString, FString>& Placeholder : Placeholders)
+	{
+		ResultPath = ResultPath.Replace(*Placeholder.Key, *Placeholder.Value, ESearchCase::CaseSensitive);
+	}
+	return ResultPath;
+}
+
+static FString NormalizeRelativePath(const FString& InPath)
+{
+	FString Result = InPath;
+	Result.ReplaceInline(TEXT("\\"), TEXT("/"));
+	if (!Result.EndsWith(TEXT("/")))
+	{
+		Result += TEXT("/");
+	}
+	return Result;
+}
+
+void UConvention::ValidateFolderStructuresForPaths(const TArray<FString>& SelectedPaths)
+{
+	if (SelectedPaths.IsEmpty())
+	{
+		ValidateFolderStructures();
+		return;
+	}
+
+	FMessageLog MyMessageLog = FMessageLog(TEXT("ConventionKeeper"));
+	MyMessageLog.NewPage(FText::FromString("Starting a new logging session..."));
+
+	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
+	TMap<FString, FString> Placeholders = ConventionKeeperSettings->GetPlaceholders();
+
+	TArray<FString> NormalizedSelectedPaths;
+	NormalizedSelectedPaths.Reserve(SelectedPaths.Num());
+	for (const FString& Path : SelectedPaths)
+	{
+		NormalizedSelectedPaths.Add(NormalizeRelativePath(Path));
+	}
+
+	auto IsRelevantPath = [&NormalizedSelectedPaths](const FString& ResolvedPath)
+	{
+		const FString NormalizedResolvedPath = NormalizeRelativePath(ResolvedPath);
+		for (const FString& SelectedPath : NormalizedSelectedPaths)
+		{
+			if (NormalizedResolvedPath.StartsWith(SelectedPath) || SelectedPath.StartsWith(NormalizedResolvedPath))
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+
+	for (const FFolderStructure& FolderStructure : FolderStructures)
+	{
+		const FString ResolvedFolderPath = ResolvePlaceholdersForPath(FolderStructure.FolderPath.Path, Placeholders);
+		if (!IsRelevantPath(ResolvedFolderPath))
+		{
+			continue;
+		}
+
+		TSet<FString> DiscoveredTemplates = ExtractTemplatesFromPath(FolderStructure.FolderPath.Path, Placeholders);
+		for (const FString& TemplateName : DiscoveredTemplates)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Found template: %s"), *TemplateName);
+		}
+
+		const bool bExists = DoesDirectoryExist(FolderStructure.FolderPath.Path, Placeholders);
+		MyMessageLog.Message(
+			bExists ? EMessageSeverity::Type::Info : EMessageSeverity::Type::Error,
+			FText::Format(LOCTEXT("ConventionKeeperEditor","Path {0} exists? {1}"), FText::FromString(FolderStructure.FolderPath.Path), bExists)
+		);
+
+		for (const FDirectoryPath& RequiredFolder : FolderStructure.RequiredFolders)
+		{
+			const bool bRequiredFOlderExists = DoesDirectoryExist(RequiredFolder.Path, Placeholders);
+			MyMessageLog.Message(
+				bRequiredFOlderExists ? EMessageSeverity::Type::Info : EMessageSeverity::Type::Error,
+				FText::Format(LOCTEXT("ConventionKeeperEditor","Path {0} exists? {1}"), FText::FromString(RequiredFolder.Path), bRequiredFOlderExists)
+			);
+		}
+
+		if (FolderStructure.bOtherFoldersNotAllowed)
+		{
+			TArray<FString> AllFoldersInThisPath = {};
+			UConventionKeeperBlueprintLibrary::GetDiskFoldersRelativeToRoot(FolderStructure.FolderPath.Path, AllFoldersInThisPath);
+
+			for (const FString& Folder : AllFoldersInThisPath)
+			{
+				bool bFolderAlreadyInRequiredFolders = false;
+				for (const FDirectoryPath& RequiredFolder : FolderStructure.RequiredFolders)
+				{
+					const bool bIsSameFolder = FPaths::IsSamePath(Folder, RequiredFolder.Path);
+					if (bIsSameFolder)
+					{
+						bFolderAlreadyInRequiredFolders = true;
+						break;
+					};
+				}
+
+				if (!bFolderAlreadyInRequiredFolders)
+				{
+					MyMessageLog.Error(FText::Format(LOCTEXT("ConventionKeeperEditor","Other folders not allowed in {0}"), FText::FromString(FolderStructure.FolderPath.Path)));
+				}
+			}
+		}
+	}
+
+	MyMessageLog.Open();
+}
+
 bool UConvention::DoesDirectoryExist(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders)
 {
 	FString ResultPath = DirectoryPath;

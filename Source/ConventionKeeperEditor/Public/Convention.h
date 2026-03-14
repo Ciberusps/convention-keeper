@@ -109,6 +109,9 @@ public:
 	void ValidateFolderStructures();
 	void ValidateFolderStructures_Implementation();
 
+	UFUNCTION(BlueprintCallable)
+	void ValidateFolderStructuresForPaths(const TArray<FString>& SelectedPaths);
+
 	bool DoesDirectoryExist(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders);
 	
 };

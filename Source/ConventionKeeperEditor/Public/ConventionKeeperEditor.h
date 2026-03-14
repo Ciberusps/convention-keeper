@@ -10,6 +10,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogConventionKeeper, Log, All);
 class FToolBarBuilder;
 class FMenuBuilder;
 class IAssetTypeActions;
+class FExtender;
 
 class FConventionKeeperEditorModule : public IModuleInterface
 {
@@ -30,7 +31,11 @@ private:
 	void RegisterAssetTypeActions();
 	void UnregisterAssetTypeActions();
 
+	void RegisterContentBrowserExtenders();
+	void UnregisterContentBrowserExtenders();
+
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class IAssetTypeActions>> RegisteredAssetTypeActions;
+	FDelegateHandle ContentBrowserPathExtenderDelegateHandle;
 };
