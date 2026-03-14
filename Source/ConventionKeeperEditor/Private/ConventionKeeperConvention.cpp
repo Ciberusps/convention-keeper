@@ -5,24 +5,48 @@
 #include "HAL/FileManager.h"
 #include "Logging/MessageLog.h"
 #include "Misc/Paths.h"
+#include "UObject/UnrealType.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperConvention)
 
-TArray<UConventionKeeperRule*> UConventionKeeperConvention::GetEffectiveRules() const
+void UConventionKeeperConvention::SyncExtendsConventionAssetFlag()
 {
-	UConventionKeeperConvention const* Base = nullptr;
+	bExtendsConventionAssetIsSet = !ExtendsConventionAsset.IsNull();
+}
+
+void UConventionKeeperConvention::PostLoad()
+{
+	Super::PostLoad();
+	SyncExtendsConventionAssetFlag();
+}
+
+void UConventionKeeperConvention::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConventionAsset))
+	{
+		SyncExtendsConventionAssetFlag();
+	}
+}
+
+UConventionKeeperConvention const* UConventionKeeperConvention::GetResolvedExtendsConvention() const
+{
+	if (ExtendsConventionAsset.IsValid())
+	{
+		UConventionKeeperConvention const* Asset = ExtendsConventionAsset.Get();
+		return (Asset && Asset != this) ? Asset : nullptr;
+	}
 	if (ExtendsConvention.Get())
 	{
 		UConventionKeeperConvention const* BaseCDO = ExtendsConvention->GetDefaultObject<UConventionKeeperConvention>();
-		if (BaseCDO == this)
-		{
-			Base = nullptr;
-		}
-		else
-		{
-			Base = BaseCDO;
-		}
+		return (BaseCDO && BaseCDO != this) ? BaseCDO : nullptr;
 	}
+	return nullptr;
+}
+
+TArray<UConventionKeeperRule*> UConventionKeeperConvention::GetEffectiveRules() const
+{
+	UConventionKeeperConvention const* Base = GetResolvedExtendsConvention();
 
 	if (!Base)
 	{

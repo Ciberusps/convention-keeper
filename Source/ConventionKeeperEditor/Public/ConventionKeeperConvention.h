@@ -35,7 +35,7 @@ struct CONVENTIONKEEPEREDITOR_API FRuleOverride
  * Extend only via ExtendsConvention (ESLint-style), not by subclassing.
  * Chained extends are supported: MyConvention extends GodreaperConvention extends UHLConvention.
  */
-UCLASS(Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
+UCLASS(Blueprintable, BlueprintType)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperConvention : public UObject
 {
 	GENERATED_BODY()
@@ -89,9 +89,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UConventionKeeperNamingConvention> NamingConvention;
 
-	/** Convention to extend (ESLint-style extends). If set, effective rules = extended GetEffectiveRules() + RuleOverrides + AdditionalRules. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Extends Convention"))
+	/** Class to extend when Extends Convention Asset is not set. Disabled when Extends Convention Asset is set. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Extends Convention (Class)", AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention", EditCondition = "!bExtendsConventionAssetIsSet"))
 	TSubclassOf<UConventionKeeperConvention> ExtendsConvention;
+
+	/** Optional: extend this Convention asset (e.g. created via Asset Actions). When set, used instead of Extends Convention class CDO. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Extends Convention (Asset)", AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention"))
+	TSoftObjectPtr<UConventionKeeperConvention> ExtendsConventionAsset;
+
+	/** Used by EditCondition only; true when ExtendsConventionAsset is set. */
+	UPROPERTY(Transient, meta = (EditCondition = "false", EditConditionHides, NoResetToDefault))
+	bool bExtendsConventionAssetIsSet = false;
 
 	/** Override or disable rules from base by RuleId. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -118,4 +126,15 @@ public:
 
 	bool DoesDirectoryExist(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders);
 
+	/** Returns the base convention: ExtendsConventionAsset if set, else ExtendsConvention class CDO. */
+	UConventionKeeperConvention const* GetResolvedExtendsConvention() const;
+
+	//~UObject interface
+	virtual void PostLoad() override;
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~End of UObject interface
+
+private:
+	void SyncExtendsConventionAssetFlag();
 };
+

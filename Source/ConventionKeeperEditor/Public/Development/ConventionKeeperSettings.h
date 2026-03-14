@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ConventionKeeperConvention.h"
-#include "Conventions/UHLConvention.h"
 #include "ConventionKeeperSettings.generated.h"
 
 
@@ -31,11 +30,25 @@ class CONVENTIONKEEPEREDITOR_API UConventionKeeperSettings : public UDeveloperSe
 	GENERATED_BODY()
 
 public:
+    UConventionKeeperSettings();
+
 	UPROPERTY(Config, EditAnywhere)
 	FString ProjectNameFolder = FApp::GetProjectName();
 
-	UPROPERTY(Config, EditAnywhere)
-	TSubclassOf<UConventionKeeperConvention> Convention = UUHLConvention::StaticClass();
+	/** Class to use when Convention Asset is not set (Blueprint or native class; uses CDO). Disabled when Convention Asset is set. */
+	UPROPERTY(Config, EditAnywhere, meta = (AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention", EditCondition = "!bConventionAssetIsSet"))
+	TSubclassOf<UConventionKeeperConvention> Convention;
+
+	/** Optional: specific Convention asset (e.g. created via Asset Actions). When set, this is used instead of Convention class CDO. */
+	UPROPERTY(Config, EditAnywhere, meta = (AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention"))
+	TSoftObjectPtr<UConventionKeeperConvention> ConventionAsset;
+
+	/** Used by EditCondition only; true when ConventionAsset is set so Convention is disabled. */
+	UPROPERTY(Transient, meta = (EditCondition = "false", EditConditionHides, NoResetToDefault))
+	bool bConventionAssetIsSet = false;
+
+	/** Returns the Convention to use: ConventionAsset if set, otherwise Convention class CDO. */
+	UConventionKeeperConvention* GetResolvedConvention() const;
 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
 	TArray<FString> ExceptionFolders = {
@@ -44,8 +57,13 @@ public:
 	};
 
 	//~UDeveloperSettings interface
-	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); };
+	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }
 	//~End of UDeveloperSettings interface
+
+	//~UObject interface
+	virtual void PostLoad() override;
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~End of UObject interface
 
 	TMap<FString, FString> GetPlaceholders() const;
 

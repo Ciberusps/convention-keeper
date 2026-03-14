@@ -44,10 +44,6 @@ void FConventionKeeperEditorModule::StartupModule()
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FConventionKeeperEditorModule::RegisterMenus));
 
-	// Register the details customizer
-	// FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	// PropertyModule.NotifyCustomizationModuleChanged();
-
 	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
 	FMessageLogInitializationOptions InitOptions;
 	InitOptions.bShowFilters = true;
@@ -86,17 +82,10 @@ void FConventionKeeperEditorModule::PluginButtonClicked()
 		return;
 	}
 
-	if (!ConventionKeeperSettings->Convention.Get())
-	{
-		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoConvention", "Convention Keeper: Convention is not set. Set it in Project Settings → Convention Keeper."));
-		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
-		return;
-	}
-
-	UConventionKeeperConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
+	UConventionKeeperConvention* Convention = ConventionKeeperSettings->GetResolvedConvention();
 	if (!Convention)
 	{
-		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoConventionCDO", "Convention Keeper: Failed to get Convention instance."));
+		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoConvention", "Convention Keeper: Convention is not set. Set Convention or Convention Asset in Project Settings → Convention Keeper."));
 		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
 		return;
 	}

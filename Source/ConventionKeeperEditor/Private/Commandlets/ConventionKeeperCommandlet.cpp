@@ -51,16 +51,10 @@ static FString ConvertPathToRelativeForValidation(const FString& InPath)
 bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths)
 {
 	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
-	if (!ConventionKeeperSettings || !ConventionKeeperSettings->Convention.Get())
-	{
-		UE_LOG(LogTemp, Error, TEXT("ConventionKeeper: Settings or Convention class is not set."));
-		return false;
-	}
-
-	UConventionKeeperConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
+	UConventionKeeperConvention* Convention = ConventionKeeperSettings ? ConventionKeeperSettings->GetResolvedConvention() : nullptr;
 	if (!Convention)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ConventionKeeper: Failed to get Convention default object."));
+		UE_LOG(LogTemp, Error, TEXT("ConventionKeeper: Settings or Convention/Convention Asset is not set."));
 		return false;
 	}
 

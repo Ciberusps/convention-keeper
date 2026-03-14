@@ -39,6 +39,7 @@ public class ConventionKeeperEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"ClassViewer",
 				"Slate",
 				"SlateCore",
 				
