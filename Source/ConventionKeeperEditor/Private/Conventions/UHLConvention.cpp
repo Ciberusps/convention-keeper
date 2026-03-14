@@ -3,6 +3,7 @@
 
 #include "Conventions/UHLConvention.h"
 #include "NamingConventions/PascalCaseNamingConvention.h"
+#include "Rules/ConventionKeeperRule_FolderStructure.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UHLConvention)
 
@@ -11,39 +12,58 @@ UUHLConvention::UUHLConvention()
 	Name = "UHL Convention";
 	NamingConvention = UPascalCaseNamingConvention::StaticClass();
 
-	FFolderStructure ContentFolderStructure = {};
-	ContentFolderStructure.FolderPath = FDirectoryPath("Content/");
-	ContentFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/3rdParty/"));
-	ContentFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/"));
+	FDirectoryPath ContentFolderPath("Content/");
 	// Should be added only if we have FMOD enabled
-	ContentFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/FMOD/"));
+	TArray<FDirectoryPath> ContentRequiredFolders = {
+		FDirectoryPath("Content/3rdParty/"),
+		FDirectoryPath("Content/{ProjectName}/"),
+		FDirectoryPath("Content/FMOD/"),
+		FDirectoryPath("Content/Movies/")
+	};
+	{
+		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Content"));
+		Rule->FolderPath = ContentFolderPath;
+		Rule->RequiredFolders = ContentRequiredFolders;
+		Rules.Add(Rule);
+	}
 
-	// move to optional folders or exclusions ???
-	ContentFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/Movies/"));
-	FolderStructures.Add(ContentFolderStructure);
+	FDirectoryPath ProjectNameFolderPath("Content/{ProjectName}/");
+	TArray<FDirectoryPath> ProjectNameRequiredFolders = {
+		FDirectoryPath("Content/{ProjectName}/Characters"),
+		FDirectoryPath("Content/{ProjectName}/Maps"),
+		FDirectoryPath("Content/{ProjectName}/Core"),
+		FDirectoryPath("Content/{ProjectName}/SFX"),
+		FDirectoryPath("Content/{ProjectName}/VFX"),
+		FDirectoryPath("Content/{ProjectName}/AI")
+	};
+	{
+		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_ProjectName"));
+		Rule->FolderPath = ProjectNameFolderPath;
+		Rule->RequiredFolders = ProjectNameRequiredFolders;
+		Rules.Add(Rule);
+	}
 
-	FFolderStructure ProjectNameFolderFolderStructure = {};
-	ProjectNameFolderFolderStructure.FolderPath = FDirectoryPath("Content/{ProjectName}/");
-	ProjectNameFolderFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Characters"));
-	ProjectNameFolderFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Maps"));
-	ProjectNameFolderFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Core"));
-	ProjectNameFolderFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/SFX"));
-	ProjectNameFolderFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/VFX"));
-	ProjectNameFolderFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/AI"));
-	FolderStructures.Add(ProjectNameFolderFolderStructure);
+	FDirectoryPath CharacterFolderPath("Content/{ProjectName}/Characters/{CharacterName}/");
+	TArray<FDirectoryPath> CharacterRequiredFolders = {
+		FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/AI"),
+		FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Projectiles"),
+		FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Animations"),
+		FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Gyms"),
+		FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Data"),
+		FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Abilities"),
+		FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Materials")
+	};
+	{
+		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Character"));
+		Rule->FolderPath = CharacterFolderPath;
+		Rule->RequiredFolders = CharacterRequiredFolders;
+		Rules.Add(Rule);
+	}
 
-	FFolderStructure CharacterFolderStructure = {};
-	CharacterFolderStructure.FolderPath = FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/");
-	CharacterFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/AI"));
-	CharacterFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Projectiles"));
-	CharacterFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Animations"));
-	CharacterFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Gyms"));
-	CharacterFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Data"));
-	CharacterFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Abilities"));
-	CharacterFolderStructure.RequiredFolders.Add(FDirectoryPath("Content/{ProjectName}/Characters/{CharacterName}/Materials"));
-	FolderStructures.Add(CharacterFolderStructure);
-
-	FFolderStructure CoreFolderStructure = {};
-	CoreFolderStructure.FolderPath = FDirectoryPath("Content/{ProjectName}/Core/AI/");
-	FolderStructures.Add(CoreFolderStructure);
+	FDirectoryPath CoreFolderPath("Content/{ProjectName}/Core/AI/");
+	{
+		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_CoreAI"));
+		Rule->FolderPath = CoreFolderPath;
+		Rules.Add(Rule);
+	}
 }

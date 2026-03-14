@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NamingConvention.generated.h"
+#include "ConventionKeeperNamingConvention.generated.h"
 
 UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
-class CONVENTIONKEEPEREDITOR_API UNamingConvention : public UObject
+class CONVENTIONKEEPEREDITOR_API UConventionKeeperNamingConvention : public UObject
 {
 	GENERATED_BODY()
 

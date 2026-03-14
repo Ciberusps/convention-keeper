@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Convention.h"
+#include "ConventionKeeperConvention.h"
 #include "Conventions/UHLConvention.h"
 #include "ConventionKeeperSettings.generated.h"
 
@@ -35,7 +35,7 @@ public:
 	FString ProjectNameFolder = FApp::GetProjectName();
 
 	UPROPERTY(Config, EditAnywhere)
-	TSubclassOf<UConvention> Convention = UUHLConvention::StaticClass();
+	TSubclassOf<UConventionKeeperConvention> Convention = UUHLConvention::StaticClass();
 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
 	TArray<FString> ExceptionFolders = {

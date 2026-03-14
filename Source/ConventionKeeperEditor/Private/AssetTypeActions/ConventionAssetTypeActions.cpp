@@ -1,7 +1,7 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "AssetTypeActions/ConventionAssetTypeActions.h"
-#include "Convention.h"
+#include "ConventionKeeperConvention.h"
 
 #define LOCTEXT_NAMESPACE "ConventionAssetTypeActions"
 
@@ -17,7 +17,7 @@ FColor FConventionTypeActions::GetTypeColor() const
 
 UClass* FConventionTypeActions::GetSupportedClass() const
 {
-	return UConvention::StaticClass();
+	return UConventionKeeperConvention::StaticClass();
 }
 
 uint32 FConventionTypeActions::GetCategories()

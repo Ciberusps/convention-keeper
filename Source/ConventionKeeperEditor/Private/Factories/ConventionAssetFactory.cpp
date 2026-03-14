@@ -1,13 +1,13 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "Factories/ConventionAssetFactory.h"
-#include "Convention.h"
+#include "ConventionKeeperConvention.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionAssetFactory)
 
 UConventionFactory::UConventionFactory()
 {
-	SupportedClass = UConvention::StaticClass();
+	SupportedClass = UConventionKeeperConvention::StaticClass();
 	bCreateNew = true;
 	bEditAfterNew = true;
 }
@@ -21,5 +21,5 @@ UObject* UConventionFactory::FactoryCreateNew(
 	FFeedbackContext* Warn
 )
 {
-	return NewObject<UConvention>(InParent, Class, Name, Flags | RF_Transactional);
+	return NewObject<UConventionKeeperConvention>(InParent, Class, Name, Flags | RF_Transactional);
 }

@@ -1,6 +1,6 @@
 // ConventionSpec.cpp
 
-#include "Convention.h"
+#include "ConventionKeeperConvention.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/Paths.h"
 #include "HAL/PlatformFilemanager.h"
@@ -40,7 +40,7 @@ void ConventionSpec::Define()
         It("returns an empty set when there are no {…} segments", [this]()
         {
             const FString Path = TEXT("/Game/Content/Static/Meshes");
-            TSet<FString> Results = UConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
+            TSet<FString> Results = UConventionKeeperConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
 
             TestTrue("Should be empty", Results.Num() == 0);
         });
@@ -48,7 +48,7 @@ void ConventionSpec::Define()
         It("finds a single template and ignores placeholders", [this]()
         {
             const FString Path = TEXT("/{ProjectName}/{CharacterName}/Meshes");
-            TSet<FString> Results = UConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
+            TSet<FString> Results = UConventionKeeperConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
 
             TestTrue("Contains CharacterName", Results.Contains(TEXT("CharacterName")));
             TestFalse("Does not contain ProjectName", Results.Contains(TEXT("ProjectName")));
@@ -58,7 +58,7 @@ void ConventionSpec::Define()
         It("finds multiple templates in one path", [this]()
         {
             const FString Path = TEXT("/UI/{WidgetType}/{SkinVariant}/Preview");
-            TSet<FString> Results = UConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
+            TSet<FString> Results = UConventionKeeperConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
 
             TestTrue("Contains WidgetType",   Results.Contains(TEXT("WidgetType")));
             TestTrue("Contains SkinVariant",  Results.Contains(TEXT("SkinVariant")));
@@ -68,7 +68,7 @@ void ConventionSpec::Define()
         It("handles braces but empty name gracefully", [this]()
         {
             const FString Path = TEXT("/Data/{}/Values/{LOD}");
-            TSet<FString> Results = UConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
+            TSet<FString> Results = UConventionKeeperConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
 
             // "{}" is length <3 once trimmed, so should be ignored; only LOD
             TestTrue("Contains LOD",    Results.Contains(TEXT("LOD")));
@@ -79,7 +79,7 @@ void ConventionSpec::Define()
         It("handles trailing and leading slashes correctly", [this]()
         {
             const FString Path = TEXT("{Global}/Start/{End}/");
-            TSet<FString> Results = UConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
+            TSet<FString> Results = UConventionKeeperConvention::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
 
             // "Global" is not in placeholder list, so should be returned
             TestTrue("Contains Global", Results.Contains(TEXT("Global")));
@@ -111,7 +111,7 @@ void ConventionSpec::Define()
         It("returns empty when the literal base folder does not exist", [this]()
         {
             const FString Pattern = FPaths::Combine(RootDir, TEXT("DoesNotExist"), TEXT("{Tpl}"));
-            TArray<FString> Results = UConvention::ResolveTemplatePaths(Pattern, GlobalPlaceholders);
+            TArray<FString> Results = UConventionKeeperConvention::ResolveTemplatePaths(Pattern, GlobalPlaceholders);
             TestTrue(TEXT("No matches"), Results.Num() == 0);
         });
 
@@ -126,7 +126,7 @@ void ConventionSpec::Define()
             }
 
             const FString Pattern = FPaths::Combine(Base, TEXT("{Tpl}"));
-            TArray<FString> Results = UConvention::ResolveTemplatePaths(Pattern, GlobalPlaceholders);
+            TArray<FString> Results = UConventionKeeperConvention::ResolveTemplatePaths(Pattern, GlobalPlaceholders);
 
             TestEqual(TEXT("Two matches expected"), Results.Num(), 2);
             for (const TCHAR* Sub : { TEXT("A"), TEXT("B") })
@@ -159,7 +159,7 @@ void ConventionSpec::Define()
             FM.MakeDirectory(*FPaths::Combine(T2, TEXT("Sub3")), true);
 
             const FString Pattern = FPaths::Combine(Base, TEXT("{Tpl1}"), TEXT("{Tpl2}"));
-            TArray<FString> Results = UConvention::ResolveTemplatePaths(Pattern, GlobalPlaceholders);
+            TArray<FString> Results = UConventionKeeperConvention::ResolveTemplatePaths(Pattern, GlobalPlaceholders);
 
             // First‐level (T1, T2) + second‐level (Sub1, Sub2, Sub3) = 5
             TestEqual(TEXT("Five matches expected"), Results.Num(), 5);
@@ -188,7 +188,7 @@ void ConventionSpec::Define()
             FM.MakeDirectory(*FPaths::Combine(Base, TEXT("{ProjectName}"), TEXT("X")), true);
 
             const FString Pattern = FPaths::Combine(Base, TEXT("{ProjectName}"), TEXT("{Tpl}"));
-            TArray<FString> Results = UConvention::ResolveTemplatePaths(Pattern, GlobalPlaceholders);
+            TArray<FString> Results = UConventionKeeperConvention::ResolveTemplatePaths(Pattern, GlobalPlaceholders);
 
             // Only “X” should appear under the literal {ProjectName} folder
             TestEqual(TEXT("One match expected"), Results.Num(), 1);

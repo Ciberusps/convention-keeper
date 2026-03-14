@@ -85,7 +85,7 @@ void FConventionKeeperEditorModule::PluginButtonClicked()
 		return;
 	}
 
-	UConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
+	UConventionKeeperConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
 	if (Convention)
 	{
 		Convention->ValidateFolderStructures();

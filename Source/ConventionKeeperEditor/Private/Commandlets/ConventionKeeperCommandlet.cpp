@@ -57,7 +57,7 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths)
 		return false;
 	}
 
-	UConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
+	UConventionKeeperConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
 	if (!Convention)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ConventionKeeper: Failed to get Convention default object."));

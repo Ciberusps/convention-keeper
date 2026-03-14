@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Convention.h"
+#include "ConventionKeeperConvention.h"
 #include "UHLConvention.generated.h"
 
 
 UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
-class CONVENTIONKEEPEREDITOR_API UUHLConvention : public UConvention
+class CONVENTIONKEEPEREDITOR_API UUHLConvention : public UConventionKeeperConvention
 {
 	GENERATED_BODY()
 

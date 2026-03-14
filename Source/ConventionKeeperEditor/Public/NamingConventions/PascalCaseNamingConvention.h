@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NamingConvention.h"
+#include "ConventionKeeperNamingConvention.h"
 #include "PascalCaseNamingConvention.generated.h"
 
 
 UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
-class CONVENTIONKEEPEREDITOR_API UPascalCaseNamingConvention : public UNamingConvention
+class CONVENTIONKEEPEREDITOR_API UPascalCaseNamingConvention : public UConventionKeeperNamingConvention
 {
 	GENERATED_BODY()
 
