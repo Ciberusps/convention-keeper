@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Rules/ConventionRule.h"
+#include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperRule_FolderStructure.generated.h"
 
 UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew)
-class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_FolderStructure : public UConventionRule
+class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_FolderStructure : public UConventionKeeperRule
 {
 	GENERATED_BODY()
 

@@ -4,8 +4,31 @@
 
 #include "CoreMinimal.h"
 #include "ConventionKeeperNamingConvention.h"
-#include "Rules/ConventionRule.h"
+#include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperConvention.generated.h"
+
+UENUM(BlueprintType)
+enum class EConventionRuleOverrideMode : uint8
+{
+	UseBase,
+	Off,
+	Replace
+};
+
+USTRUCT(BlueprintType)
+struct CONVENTIONKEEPEREDITOR_API FRuleOverride
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName RuleId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EConventionRuleOverrideMode Mode = EConventionRuleOverrideMode::UseBase;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "Mode == EConventionRuleOverrideMode::Replace"))
+	TObjectPtr<UConventionKeeperRule> ReplacementRule = nullptr;
+};
 
 UCLASS(Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperConvention : public UObject
@@ -58,11 +81,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name = "";
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TSubclassOf<UConventionKeeperNamingConvention> NamingConvention;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TObjectPtr<UConventionRule>> Rules = {};
+	TSubclassOf<UConventionKeeperNamingConvention> NamingConvention;
+
+	/** Convention to extend (ESLint-style extends). If set, effective rules = extended GetEffectiveRules() + RuleOverrides + AdditionalRules. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Extends Convention"))
+	TSubclassOf<UConventionKeeperConvention> ExtendsConvention;
+
+	/** Override or disable rules from base by RuleId. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FRuleOverride> RuleOverrides = {};
+
+	/** Root rules (used when ExtendsConvention is null). Read-only: extend via ExtendsConvention and override via RuleOverrides / AdditionalRules. */
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "false"))
+	TArray<TObjectPtr<UConventionKeeperRule>> Rules = {};
+
+	/** Extra rules when extending a base; merged after base rules and overrides. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Additional Rules"))
+	TArray<TObjectPtr<UConventionKeeperRule>> AdditionalRules = {};
+
+	/** Effective rules: from base (if any) with RuleOverrides applied, then AdditionalRules. Use this for validation. */
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	TArray<UConventionKeeperRule*> GetEffectiveRules() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ValidateFolderStructures();

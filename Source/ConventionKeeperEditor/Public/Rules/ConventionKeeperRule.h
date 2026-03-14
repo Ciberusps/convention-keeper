@@ -4,14 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "ConventionRule.generated.h"
+#include "ConventionKeeperRule.generated.h"
 
 UCLASS(Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
-class CONVENTIONKEEPEREDITOR_API UConventionRule : public UObject
+class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	/** Stable id for extend/override (e.g. folder-content); empty = no override key. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName RuleId;
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool CanValidate(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const;
 	virtual bool CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const;

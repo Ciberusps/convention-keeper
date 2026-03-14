@@ -22,6 +22,7 @@ UUHLConvention::UUHLConvention()
 	};
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Content"));
+		Rule->RuleId = FName(TEXT("folder-content"));
 		Rule->FolderPath = ContentFolderPath;
 		Rule->RequiredFolders = ContentRequiredFolders;
 		Rules.Add(Rule);
@@ -38,6 +39,7 @@ UUHLConvention::UUHLConvention()
 	};
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_ProjectName"));
+		Rule->RuleId = FName(TEXT("folder-project-name"));
 		Rule->FolderPath = ProjectNameFolderPath;
 		Rule->RequiredFolders = ProjectNameRequiredFolders;
 		Rules.Add(Rule);
@@ -55,6 +57,7 @@ UUHLConvention::UUHLConvention()
 	};
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Character"));
+		Rule->RuleId = FName(TEXT("folder-character"));
 		Rule->FolderPath = CharacterFolderPath;
 		Rule->RequiredFolders = CharacterRequiredFolders;
 		Rules.Add(Rule);
@@ -63,6 +66,7 @@ UUHLConvention::UUHLConvention()
 	FDirectoryPath CoreFolderPath("Content/{ProjectName}/Core/AI/");
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_CoreAI"));
+		Rule->RuleId = FName(TEXT("folder-core-ai"));
 		Rule->FolderPath = CoreFolderPath;
 		Rules.Add(Rule);
 	}

@@ -101,12 +101,6 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 		return;
 	}
 
-	if (!IsRunningCommandlet())
-	{
-		FMessageLog MyMessageLog = FMessageLog(TEXT("ConventionKeeper"));
-		MyMessageLog.NewPage(FText::FromString("Starting a new logging session..."));
-	}
-
 	TSet<FString> DiscoveredTemplates = UConventionKeeperConvention::ExtractTemplatesFromPath(FolderPath.Path, Placeholders);
 	for (const FString& TemplateName : DiscoveredTemplates)
 	{
@@ -154,12 +148,6 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 				);
 			}
 		}
-	}
-
-	if (!IsRunningCommandlet())
-	{
-		FMessageLog MyMessageLog = FMessageLog(TEXT("ConventionKeeper"));
-		MyMessageLog.Open();
 	}
 }
 

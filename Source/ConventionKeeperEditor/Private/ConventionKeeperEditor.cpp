@@ -7,6 +7,7 @@
 #include "ToolMenus.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Developer/MessageLog/Public/MessageLogModule.h"
+#include "MessageLogInitializationOptions.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "AssetToolsModule.h"
 #include "AssetTypeActions/ConventionAssetTypeActions.h"
@@ -47,7 +48,9 @@ void FConventionKeeperEditorModule::StartupModule()
 	// PropertyModule.NotifyCustomizationModuleChanged();
 
 	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
-	MessageLogModule.RegisterLogListing("ConventionKeeper", FText::FromString("ConventionKeeper"));
+	FMessageLogInitializationOptions InitOptions;
+	InitOptions.bShowFilters = true;
+	MessageLogModule.RegisterLogListing("ConventionKeeper", LOCTEXT("ConventionKeeperLogLabel", "Convention Keeper"), InitOptions);
 
 	// *Also* immediately inject & refresh so you don’t depend on the callback timing:
 	RegisterMenus();

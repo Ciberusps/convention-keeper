@@ -1,6 +1,6 @@
 # 🛡️ Convention Keeper
 
-**Convention Keeper** - plugin for keeping your conventions, naming, folders, and all other kinds
+**Convention Keeper** - plugin for keeping your conventions, naming, folders, and all other kinds of conventions. Eslint-like system for Unreal Engine.
 
 Support: `all`
 
@@ -24,6 +24,11 @@ git submodule update --remote`
 ## 🚀 Setup
 
 TODO how to setup in project
+
+## 🤔 How it works
+
+- Conventions - are sets of rules that are used to validate the structure of the project
+- Rules - are used to validate project assets/folders/etc.
 
 ## 📖 Documentation
 
