@@ -30,6 +30,20 @@ TODO how to setup in project
 - Conventions - are sets of rules that are used to validate the structure of the project
 - Rules - are used to validate project assets/folders/etc.
 
+## ▶️ Commandlet (CI / CLI)
+
+Проверка конвенций из командной строки (например, в CI):
+
+```bash
+# Вся валидация (по настройкам Convention в Project Settings)
+UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet
+
+# Только указанные пути (разделитель — ;)
+UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Content/GameCode;Content/Shared"
+```
+
+Код выхода: `0` — успех, `1` — ошибка.
+
 ## 📖 Documentation
 
 > - Components
