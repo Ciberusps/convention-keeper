@@ -105,15 +105,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FRuleOverride> RuleOverrides = {};
 
-	/** Root rules (used when ExtendsConvention is null). Read-only: extend via ExtendsConvention and override via RuleOverrides / AdditionalRules. */
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "false"))
+	/** Inherited rules from the base convention chain (read-only). Shown when extending; empty when not. */
+	UPROPERTY(Transient, VisibleDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "false"))
+	TArray<TObjectPtr<UConventionKeeperRule>> ExtendedRules = {};
+
+	/** Own rules: root rules when not extending, or rules added after the base when extending. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Rules"))
 	TArray<TObjectPtr<UConventionKeeperRule>> Rules = {};
 
-	/** Extra rules when extending a base; merged after base rules and overrides. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Additional Rules"))
-	TArray<TObjectPtr<UConventionKeeperRule>> AdditionalRules = {};
-
-	/** Effective rules: from base (if any) with RuleOverrides applied, then AdditionalRules. Use this for validation. */
+	/** Effective rules: from base (if any) with RuleOverrides applied, then Rules. Use this for validation. */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<UConventionKeeperRule*> GetEffectiveRules() const;
 
@@ -136,5 +136,6 @@ public:
 
 private:
 	void SyncExtendsConventionAssetFlag();
+	void RefreshExtendedRules();
 };
 

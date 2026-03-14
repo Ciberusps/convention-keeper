@@ -38,6 +38,7 @@ FName FConventionKeeperEditorStyle::GetStyleSetName()
 
 const FVector2D Icon16x16(16.0f, 16.0f);
 const FVector2D Icon20x20(20.0f, 20.0f);
+const FVector2D Icon128x128(128.0f, 128.0f);
 
 TSharedRef< FSlateStyleSet > FConventionKeeperEditorStyle::Create()
 {
@@ -74,7 +75,8 @@ TSharedRef< FSlateStyleSet > FConventionKeeperEditorStyle::Create()
     //     }
     // }
 
-    Style->Set("ConventionKeeperEditor.PluginAction", new IMAGE_BRUSH_SVG(TEXT("PlaceholderButtonIcon"), Icon20x20));
+	Style->Set("ConventionKeeperEditor.PluginAction", new IMAGE_BRUSH_SVG(TEXT("PlaceholderButtonIcon"), Icon20x20));
+	Style->Set("ConventionKeeperEditor.ConventionAssetIcon", new IMAGE_BRUSH(TEXT("Icon128"), Icon128x128));
 	// FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Tools")
     return Style;
 }

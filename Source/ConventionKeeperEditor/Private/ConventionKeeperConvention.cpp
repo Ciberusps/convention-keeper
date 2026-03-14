@@ -14,18 +14,41 @@ void UConventionKeeperConvention::SyncExtendsConventionAssetFlag()
 	bExtendsConventionAssetIsSet = !ExtendsConventionAsset.IsNull();
 }
 
+void UConventionKeeperConvention::RefreshExtendedRules()
+{
+	ExtendedRules.Empty();
+	UConventionKeeperConvention const* Base = GetResolvedExtendsConvention();
+	if (Base)
+	{
+		for (UConventionKeeperRule* Rule : Base->GetEffectiveRules())
+		{
+			if (Rule)
+			{
+				ExtendedRules.Add(Rule);
+			}
+		}
+	}
+}
+
 void UConventionKeeperConvention::PostLoad()
 {
 	Super::PostLoad();
 	SyncExtendsConventionAssetFlag();
+	RefreshExtendedRules();
 }
 
 void UConventionKeeperConvention::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConventionAsset))
+	const FName PropName = PropertyChangedEvent.GetPropertyName();
+	if (PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConventionAsset))
 	{
 		SyncExtendsConventionAssetFlag();
+	}
+	if (PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConvention)
+		|| PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConventionAsset))
+	{
+		RefreshExtendedRules();
 	}
 }
 
@@ -106,7 +129,7 @@ TArray<UConventionKeeperRule*> UConventionKeeperConvention::GetEffectiveRules() 
 		}
 	}
 
-	for (UConventionKeeperRule* Rule : AdditionalRules)
+	for (UConventionKeeperRule* Rule : Rules)
 	{
 		if (Rule)
 		{
