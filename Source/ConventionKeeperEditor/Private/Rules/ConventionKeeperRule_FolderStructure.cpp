@@ -68,6 +68,32 @@ bool UConventionKeeperRule_FolderStructure::CanValidate_Implementation(const TAr
 	return IsRelevantPath(ResolvedFolderPath, SelectedPaths);
 }
 
+static void LogValidationMessage(const EMessageSeverity::Type Severity, const FText& Message)
+{
+	if (IsRunningCommandlet())
+	{
+		const FString Text = Message.ToString();
+		switch (Severity)
+		{
+		case EMessageSeverity::Error:
+			UE_LOG(LogTemp, Error, TEXT("%s"), *Text);
+			break;
+		case EMessageSeverity::Warning:
+		case EMessageSeverity::PerformanceWarning:
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *Text);
+			break;
+		default:
+			UE_LOG(LogTemp, Display, TEXT("%s"), *Text);
+			break;
+		}
+	}
+	else
+	{
+		FMessageLog MyMessageLog = FMessageLog(TEXT("ConventionKeeper"));
+		MyMessageLog.Message(Severity, Message);
+	}
+}
+
 void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders)
 {
 	if (!CanValidate_Implementation(SelectedPaths, Placeholders))
@@ -75,8 +101,11 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 		return;
 	}
 
-	FMessageLog MyMessageLog = FMessageLog(TEXT("ConventionKeeper"));
-	MyMessageLog.NewPage(FText::FromString("Starting a new logging session..."));
+	if (!IsRunningCommandlet())
+	{
+		FMessageLog MyMessageLog = FMessageLog(TEXT("ConventionKeeper"));
+		MyMessageLog.NewPage(FText::FromString("Starting a new logging session..."));
+	}
 
 	TSet<FString> DiscoveredTemplates = UConventionKeeperConvention::ExtractTemplatesFromPath(FolderPath.Path, Placeholders);
 	for (const FString& TemplateName : DiscoveredTemplates)
@@ -85,7 +114,7 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 	}
 
 	const bool bExists = DoesDirectoryExist(FolderPath.Path, Placeholders);
-	MyMessageLog.Message(
+	LogValidationMessage(
 		bExists ? EMessageSeverity::Type::Info : EMessageSeverity::Type::Error,
 		FText::Format(LOCTEXT("ConventionKeeperEditor","Path {0} exists? {1}"), FText::FromString(FolderPath.Path), bExists)
 	);
@@ -93,7 +122,7 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 	for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 	{
 		const bool bRequiredFOlderExists = DoesDirectoryExist(RequiredFolder.Path, Placeholders);
-		MyMessageLog.Message(
+		LogValidationMessage(
 			bRequiredFOlderExists ? EMessageSeverity::Type::Info : EMessageSeverity::Type::Error,
 			FText::Format(LOCTEXT("ConventionKeeperEditor","Path {0} exists? {1}"), FText::FromString(RequiredFolder.Path), bRequiredFOlderExists)
 		);
@@ -119,12 +148,19 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 
 			if (!bFolderAlreadyInRequiredFolders)
 			{
-				MyMessageLog.Error(FText::Format(LOCTEXT("ConventionKeeperEditor","Other folders not allowed in {0}"), FText::FromString(FolderPath.Path)));
+				LogValidationMessage(
+					EMessageSeverity::Error,
+					FText::Format(LOCTEXT("ConventionKeeperEditor","Other folders not allowed in {0}"), FText::FromString(FolderPath.Path))
+				);
 			}
 		}
 	}
 
-	MyMessageLog.Open();
+	if (!IsRunningCommandlet())
+	{
+		FMessageLog MyMessageLog = FMessageLog(TEXT("ConventionKeeper"));
+		MyMessageLog.Open();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -58,11 +58,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name = "";
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TObjectPtr<UConventionRule>> Rules = {};
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<UConventionKeeperNamingConvention> NamingConvention;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UConventionKeeperNamingConvention> NamingConvention;
+	TArray<TObjectPtr<UConventionRule>> Rules = {};
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ValidateFolderStructures();
