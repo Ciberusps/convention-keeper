@@ -51,7 +51,7 @@ public:
 	UConventionKeeperConvention* GetResolvedConvention() const;
 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
-	TArray<FString> ExceptionFolders = {
+	TArray<FString> ExcludeFolders = {
 		"MyCustomFOlder2323",
 		"RetardedFolderForMyDrawings1337",
 	};

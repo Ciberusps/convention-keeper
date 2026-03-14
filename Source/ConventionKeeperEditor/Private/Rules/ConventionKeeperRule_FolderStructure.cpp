@@ -45,7 +45,22 @@ bool UConventionKeeperRule_FolderStructure::IsRelevantPath(const FString& Resolv
 	for (const FString& SelectedPath : SelectedPaths)
 	{
 		const FString NormalizedSelectedPath = NormalizeRelativePath(SelectedPath);
-		if (NormalizedResolvedPath.StartsWith(NormalizedSelectedPath) || NormalizedSelectedPath.StartsWith(NormalizedResolvedPath))
+		if (NormalizedResolvedPath.StartsWith(NormalizedSelectedPath))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UConventionKeeperRule_FolderStructure::IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& ExcludeFolders, const TMap<FString, FString>& Placeholders)
+{
+	const FString NormalizedPath = NormalizeRelativePath(ResolvedPath);
+	for (const FString& ExcludeFolder : ExcludeFolders)
+	{
+		const FString ResolvedExclude = ResolvePlaceholdersForPath(ExcludeFolder, Placeholders);
+		const FString NormalizedExclude = NormalizeRelativePath(ResolvedExclude);
+		if (NormalizedPath.StartsWith(NormalizedExclude) || NormalizedExclude.StartsWith(NormalizedPath))
 		{
 			return true;
 		}
@@ -68,6 +83,13 @@ bool UConventionKeeperRule_FolderStructure::DoesDirectoryExist(const FString& Di
 bool UConventionKeeperRule_FolderStructure::CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const
 {
 	const FString ResolvedFolderPath = ResolvePlaceholdersForPath(FolderPath.Path, Placeholders);
+
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	if (Settings && IsPathUnderExcluded(ResolvedFolderPath, Settings->ExcludeFolders, Placeholders))
+	{
+		return false;
+	}
+
 	return IsRelevantPath(ResolvedFolderPath, SelectedPaths);
 }
 
@@ -190,6 +212,11 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 
 		for (const FString& Folder : AllFoldersInThisPath)
 		{
+			if (Settings && IsPathUnderExcluded(Folder, Settings->ExcludeFolders, Placeholders))
+			{
+				continue;
+			}
+
 			bool bFolderAllowed = false;
 			for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 			{

@@ -38,5 +38,6 @@ private:
 	static FString ResolvePlaceholdersForPath(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders);
 	static FString NormalizeRelativePath(const FString& InPath);
 	static bool IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths);
+	static bool IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& ExcludeFolders, const TMap<FString, FString>& Placeholders);
 	static bool DoesDirectoryExist(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders);
 };
