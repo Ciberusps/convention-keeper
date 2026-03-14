@@ -64,9 +64,16 @@ static void ResolveTemplatePathsRecurse(
 		}
 		TArray<FString> SubDirs;
 		IFileManager::Get().FindFiles(SubDirs, *(BasePath + TEXT("*")), false, true);
+		FString RestTrimmed = Rest;
+		RestTrimmed.TrimStartAndEndInline();
+		const bool bHasMoreSegments = !RestTrimmed.IsEmpty();
 		for (const FString& Sub : SubDirs)
 		{
 			FString NewPrefix = Prefix.IsEmpty() ? Sub : (Prefix / Sub);
+			if (bHasMoreSegments)
+			{
+				OutPaths.Add(NewPrefix);
+			}
 			ResolveTemplatePathsRecurse(NewPrefix, Rest, GlobalPlaceholders, OutPaths);
 		}
 		return;
