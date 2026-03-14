@@ -56,6 +56,10 @@ public:
 		"RetardedFolderForMyDrawings1337",
 	};
 
+    /** When enabled, every check is logged: failures as Error/Warning, passed checks as Info. */
+    UPROPERTY(Config, EditAnywhere)
+    bool bDebug = false;
+
 	//~UDeveloperSettings interface
 	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }
 	//~End of UDeveloperSettings interface

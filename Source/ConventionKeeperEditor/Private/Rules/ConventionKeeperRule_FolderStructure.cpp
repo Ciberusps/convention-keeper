@@ -4,9 +4,12 @@
 
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "ConventionKeeperConvention.h"
+#include "Development/ConventionKeeperSettings.h"
+#include "Logging/MessageLog.h"
+#include "Logging/TokenizedMessage.h"
 #include "Misc/Paths.h"
 
-#define LOCTEXT_NAMESPACE "FConventionKeeperEditorModule"
+#define LOCTEXT_NAMESPACE "ConventionKeeperRule_FolderStructure"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule_FolderStructure)
 
@@ -68,11 +71,24 @@ bool UConventionKeeperRule_FolderStructure::CanValidate_Implementation(const TAr
 	return IsRelevantPath(ResolvedFolderPath, SelectedPaths);
 }
 
-static void LogValidationMessage(const EMessageSeverity::Type Severity, const FText& Message)
+static EMessageSeverity::Type RuleSeverityToMessageSeverity(EConventionRuleSeverity RuleSeverity)
+{
+	return RuleSeverity == EConventionRuleSeverity::Warning ? EMessageSeverity::Warning : EMessageSeverity::Error;
+}
+
+static void LogRuleMessage(EMessageSeverity::Type Severity, const FText& Message, const FString* PathForLink = nullptr, const FText& Suffix = FText())
 {
 	if (IsRunningCommandlet())
 	{
-		const FString Text = Message.ToString();
+		FString Text = Message.ToString();
+		if (PathForLink && !PathForLink->IsEmpty())
+		{
+			Text += *PathForLink;
+		}
+		if (!Suffix.IsEmpty())
+		{
+			Text += Suffix.ToString();
+		}
 		switch (Severity)
 		{
 		case EMessageSeverity::Error:
@@ -83,14 +99,36 @@ static void LogValidationMessage(const EMessageSeverity::Type Severity, const FT
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *Text);
 			break;
 		default:
-			UE_LOG(LogTemp, Display, TEXT("%s"), *Text);
+			UE_LOG(LogTemp, Log, TEXT("%s"), *Text);
 			break;
 		}
 	}
 	else
 	{
-		FMessageLog MyMessageLog = FMessageLog(TEXT("ConventionKeeper"));
-		MyMessageLog.Message(Severity, Message);
+		if (PathForLink && !PathForLink->IsEmpty())
+		{
+			FString AssetPath = PathForLink->Replace(TEXT("\\"), TEXT("/"));
+			if (AssetPath.StartsWith(TEXT("Content/")))
+			{
+				AssetPath = FString(TEXT("/Game/")) + AssetPath.Mid(8);
+			}
+			else if (!AssetPath.StartsWith(TEXT("/")))
+			{
+				AssetPath = FString(TEXT("/Game/")) + AssetPath;
+			}
+			TSharedRef<FTokenizedMessage> TokenizedMessage = FTokenizedMessage::Create(Severity);
+			TokenizedMessage->AddToken(FTextToken::Create(Message));
+			TokenizedMessage->AddToken(FAssetNameToken::Create(AssetPath, FText::FromString(*PathForLink)));
+			if (!Suffix.IsEmpty())
+			{
+				TokenizedMessage->AddToken(FTextToken::Create(Suffix));
+			}
+			FMessageLog(TEXT("ConventionKeeper")).AddMessage(TokenizedMessage);
+		}
+		else
+		{
+			FMessageLog(TEXT("ConventionKeeper")).Message(Severity, Message);
+		}
 	}
 }
 
@@ -101,52 +139,82 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 		return;
 	}
 
-	TSet<FString> DiscoveredTemplates = UConventionKeeperConvention::ExtractTemplatesFromPath(FolderPath.Path, Placeholders);
-	for (const FString& TemplateName : DiscoveredTemplates)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Found template: %s"), *TemplateName);
-	}
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	const bool bDebug = Settings && Settings->bDebug;
+	const EMessageSeverity::Type FailureSeverity = RuleSeverityToMessageSeverity(Severity);
 
-	const bool bExists = DoesDirectoryExist(FolderPath.Path, Placeholders);
-	LogValidationMessage(
-		bExists ? EMessageSeverity::Type::Info : EMessageSeverity::Type::Error,
-		FText::Format(LOCTEXT("ConventionKeeperEditor","Path {0} exists? {1}"), FText::FromString(FolderPath.Path), bExists)
-	);
+	const FString ResolvedBasePath = ResolvePlaceholdersForPath(FolderPath.Path, Placeholders);
+
+	{
+		const bool bExists = DoesDirectoryExist(FolderPath.Path, Placeholders);
+		if (!bExists)
+		{
+			LogRuleMessage(FailureSeverity, FText::Format(
+				LOCTEXT("FolderMissing", "[{0}] Required folder is missing: "),
+				FText::FromName(RuleId)),
+				&ResolvedBasePath);
+		}
+		else if (bDebug)
+		{
+			LogRuleMessage(EMessageSeverity::Info, FText::Format(
+				LOCTEXT("FolderExists", "[{0}] Folder exists: "),
+				FText::FromName(RuleId)),
+				&ResolvedBasePath, FText::FromString(TEXT(" — OK")));
+		}
+	}
 
 	for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 	{
-		const bool bRequiredFOlderExists = DoesDirectoryExist(RequiredFolder.Path, Placeholders);
-		LogValidationMessage(
-			bRequiredFOlderExists ? EMessageSeverity::Type::Info : EMessageSeverity::Type::Error,
-			FText::Format(LOCTEXT("ConventionKeeperEditor","Path {0} exists? {1}"), FText::FromString(RequiredFolder.Path), bRequiredFOlderExists)
-		);
+		const bool bRequiredFolderExists = DoesDirectoryExist(RequiredFolder.Path, Placeholders);
+		const FString ResolvedRequired = ResolvePlaceholdersForPath(RequiredFolder.Path, Placeholders);
+		if (!bRequiredFolderExists)
+		{
+			LogRuleMessage(FailureSeverity, FText::Format(
+				LOCTEXT("RequiredSubfolderMissing", "[{0}] Required folder is missing: "),
+				FText::FromName(RuleId)),
+				&ResolvedRequired, FText::Format(LOCTEXT("RequiredSubfolderMissingSuffix", " (under {0})"), FText::FromString(ResolvedBasePath)));
+		}
+		else if (bDebug)
+		{
+			LogRuleMessage(EMessageSeverity::Info, FText::Format(
+				LOCTEXT("RequiredSubfolderExists", "[{0}] Required folder exists: "),
+				FText::FromName(RuleId)),
+				&ResolvedRequired, FText::FromString(TEXT(" — OK")));
+		}
 	}
 
 	if (bOtherFoldersNotAllowed)
 	{
-		TArray<FString> AllFoldersInThisPath = {};
+		TArray<FString> AllFoldersInThisPath;
 		UConventionKeeperBlueprintLibrary::GetDiskFoldersRelativeToRoot(FolderPath.Path, AllFoldersInThisPath);
 
 		for (const FString& Folder : AllFoldersInThisPath)
 		{
-			bool bFolderAlreadyInRequiredFolders = false;
+			bool bFolderAllowed = false;
 			for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 			{
-				const bool bIsSameFolder = FPaths::IsSamePath(Folder, RequiredFolder.Path);
-				if (bIsSameFolder)
+				if (FPaths::IsSamePath(Folder, RequiredFolder.Path))
 				{
-					bFolderAlreadyInRequiredFolders = true;
+					bFolderAllowed = true;
 					break;
 				}
 			}
 
-			if (!bFolderAlreadyInRequiredFolders)
+			if (!bFolderAllowed)
 			{
-				LogValidationMessage(
-					EMessageSeverity::Error,
-					FText::Format(LOCTEXT("ConventionKeeperEditor","Other folders not allowed in {0}"), FText::FromString(FolderPath.Path))
-				);
+				LogRuleMessage(FailureSeverity, FText::Format(
+					LOCTEXT("DisallowedFolder", "[{0}] Folder not allowed in "),
+					FText::FromName(RuleId)),
+					&ResolvedBasePath, FText::Format(LOCTEXT("DisallowedFolderSuffix", ": {0}"), FText::FromString(Folder)));
 			}
+		}
+
+		if (bDebug && AllFoldersInThisPath.Num() == 0)
+		{
+			LogRuleMessage(EMessageSeverity::Info, FText::Format(
+				LOCTEXT("NoExtraFolders", "[{0}] No disallowed folders in "),
+				FText::FromName(RuleId)),
+				&ResolvedBasePath, FText::FromString(TEXT(" — OK")));
 		}
 	}
 }

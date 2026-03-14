@@ -6,6 +6,13 @@
 #include "UObject/Object.h"
 #include "ConventionKeeperRule.generated.h"
 
+UENUM(BlueprintType)
+enum class EConventionRuleSeverity : uint8
+{
+	Error,
+	Warning
+};
+
 UCLASS(Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule : public UObject
 {
@@ -19,6 +26,10 @@ public:
 	/** What this rule checks; shown in editor and docs. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (MultiLine = true))
 	FText Description;
+
+	/** Severity when this rule fails (Error or Warning). */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	EConventionRuleSeverity Severity = EConventionRuleSeverity::Error;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool CanValidate(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const;
