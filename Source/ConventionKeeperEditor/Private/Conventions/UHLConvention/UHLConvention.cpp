@@ -1,9 +1,10 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
-
+#include "Animation/AnimSequence.h"
 #include "Conventions/UHLConvention/UHLConvention.h"
 #include "Internationalization/Text.h"
 #include "NamingConventions/PascalCaseNamingConvention.h"
+#include "Rules/ConventionKeeperRule_AssetNaming.h"
 #include "Rules/ConventionKeeperRule_FolderStructure.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UHLConvention)
@@ -73,6 +74,17 @@ UUHLConvention::UUHLConvention()
 		Rule->RuleId = FName(TEXT("folder-core-ai"));
 		Rule->Description = FText::FromString(TEXT("Content/{ProjectName}/Core/AI/ must exist."));
 		Rule->FolderPath = CoreFolderPath;
+		Rules.Add(Rule);
+	}
+
+	{
+		UConventionKeeperRule_AssetNaming* Rule = CreateDefaultSubobject<UConventionKeeperRule_AssetNaming>(TEXT("Rule_CharacterAnimNaming"));
+		Rule->RuleId = FName(TEXT("asset-naming-character-animations"));
+		Rule->Description = FText::FromString(TEXT("Animations in Content/{ProjectName}/Characters/{CharacterName}/Animations must be named AS_{CharacterName}_* with optional zero-padded number suffix (e.g. AS_Zombie_Jump_01)."));
+		Rule->FolderPathPattern.Path = TEXT("Content/{ProjectName}/Characters/{CharacterName}/Animations");
+		Rule->AssetClasses = { UAnimSequence::StaticClass() };
+		Rule->NamingTemplate = TEXT("AS_{CharacterName}_");
+		Rule->NumberPaddingDigits = 2;
 		Rules.Add(Rule);
 	}
 }
