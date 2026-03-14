@@ -51,6 +51,7 @@ public class ConventionKeeperEditor : ModuleRules
 				"DeveloperSettings", 
 				"EditorWidgets",
 				"MessageLog",
+				"AssetTools",
 				// ... add private dependencies that you statically link with here ...
 			}
 			);

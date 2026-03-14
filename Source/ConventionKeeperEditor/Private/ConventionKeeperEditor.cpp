@@ -8,6 +8,9 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Developer/MessageLog/Public/MessageLogModule.h"
 #include "Development/ConventionKeeperSettings.h"
+#include "AssetToolsModule.h"
+#include "AssetTypeActions/ConventionAssetTypeActions.h"
+#include "Styling/AppStyle.h"
 
 DEFINE_LOG_CATEGORY(LogConventionKeeper);
 
@@ -44,6 +47,7 @@ void FConventionKeeperEditorModule::StartupModule()
 	// *Also* immediately inject & refresh so you don’t depend on the callback timing:
 	RegisterMenus();
 	UToolMenus::Get()->RefreshAllWidgets();
+	RegisterAssetTypeActions();
 }
 
 void FConventionKeeperEditorModule::ShutdownModule()
@@ -57,22 +61,29 @@ void FConventionKeeperEditorModule::ShutdownModule()
 
 	FConventionKeeperEditorStyle::Shutdown();
 	FConventionKeeperEditorCommands::Unregister();
+
+	UnregisterAssetTypeActions();
 }
 
 void FConventionKeeperEditorModule::PluginButtonClicked()
 {
 	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
+	if (!ConventionKeeperSettings)
+	{
+		return;
+	}
+
 	if (!ConventionKeeperSettings->Convention.Get())
 	{
 		return;
 	}
-	
+
 	UConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
 	if (Convention)
 	{
 		Convention->ValidateFolderStructures();
 	}
-	
+
 	// FText DialogText = FText::Format(
 	// 						LOCTEXT("PluginButtonDialogText", "Path exists {0}"),
 	// 						bExists);
@@ -113,16 +124,63 @@ void FConventionKeeperEditorModule::RegisterMenus()
 	if (Menu)
 	{
 		FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
-		Section.AddMenuEntryWithCommandList(FConventionKeeperEditorCommands::Get().PluginAction, PluginCommands);	
+		Section.AddMenuEntryWithCommandList(FConventionKeeperEditorCommands::Get().PluginAction, PluginCommands);
 	}
 
-	if (UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar"))
+	UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar");
+	if (!ToolbarMenu)
 	{
-		FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
-		FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FConventionKeeperEditorCommands::Get().PluginAction));
-		Entry.SetCommandList(PluginCommands);
+		return;
 	}
+
+	FToolMenuSection& Section = ToolbarMenu->AddSection(
+		"ConventionKeeperExtensions",
+		TAttribute<FText>(),
+		FToolMenuInsert("Play", EToolMenuInsertType::Default)
+	);
+
+	FToolMenuEntry Entry = FToolMenuEntry::InitToolBarButton(FConventionKeeperEditorCommands::Get().PluginAction);
+	Entry.SetCommandList(PluginCommands);
+	Entry.Label = LOCTEXT("ConventionKeeperToolbarLabel", "ConventionKeeper");
+	Entry.ToolTip = LOCTEXT("ConventionKeeperToolbarTooltip", "Validate convention folders");
+	Entry.Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Tools");
+	Entry.StyleNameOverride = "CalloutToolbar";
+
+	Section.AddEntry(Entry);
 }
+
+void FConventionKeeperEditorModule::RegisterAssetTypeActions()
+{
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	IAssetTools& AssetTools = AssetToolsModule.Get();
+
+	TSharedRef<IAssetTypeActions> ConventionActions = MakeShareable(new FConventionTypeActions());
+	AssetTools.RegisterAssetTypeActions(ConventionActions);
+	RegisteredAssetTypeActions.Add(ConventionActions);
+}
+
+void FConventionKeeperEditorModule::UnregisterAssetTypeActions()
+{
+	if (!FModuleManager::Get().IsModuleLoaded("AssetTools"))
+	{
+		RegisteredAssetTypeActions.Empty();
+		return;
+	}
+
+	FAssetToolsModule& AssetToolsModule = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools");
+	IAssetTools& AssetTools = AssetToolsModule.Get();
+
+	for (const TSharedPtr<IAssetTypeActions>& Action : RegisteredAssetTypeActions)
+	{
+		if (Action.IsValid())
+		{
+			AssetTools.UnregisterAssetTypeActions(Action.ToSharedRef());
+		}
+	}
+
+	RegisteredAssetTypeActions.Empty();
+}
+
 
 #undef LOCTEXT_NAMESPACE
 

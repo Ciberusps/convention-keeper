@@ -33,7 +33,7 @@ class CONVENTIONKEEPEREDITOR_API UConventionKeeperSettings : public UDeveloperSe
 public:
 	UPROPERTY(Config, EditAnywhere)
 	FString ProjectNameFolder = FApp::GetProjectName();
-	
+
 	UPROPERTY(Config, EditAnywhere)
 	TSubclassOf<UConvention> Convention = UUHLConvention::StaticClass();
 
@@ -48,10 +48,10 @@ public:
 	//~End of UDeveloperSettings interface
 
 	TMap<FString, FString> GetPlaceholders() const;
-	
+
 protected:
 	// for explicitly added placeholders
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite)
 	TMap<FString, FString> Placeholders = {};
-	
+
 };

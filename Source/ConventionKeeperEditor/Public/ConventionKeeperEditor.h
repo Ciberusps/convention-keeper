@@ -9,6 +9,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogConventionKeeper, Log, All);
 
 class FToolBarBuilder;
 class FMenuBuilder;
+class IAssetTypeActions;
 
 class FConventionKeeperEditorModule : public IModuleInterface
 {
@@ -26,7 +27,10 @@ private:
 
 	bool CheckAssetPathExists(const FString& PackagePath);
 
+	void RegisterAssetTypeActions();
+	void UnregisterAssetTypeActions();
 
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;
+	TArray<TSharedPtr<class IAssetTypeActions>> RegisteredAssetTypeActions;
 };
