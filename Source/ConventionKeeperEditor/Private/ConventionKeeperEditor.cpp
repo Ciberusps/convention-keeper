@@ -7,6 +7,7 @@
 #include "ToolMenus.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Developer/MessageLog/Public/MessageLogModule.h"
+#include "Logging/MessageLog.h"
 #include "MessageLogInitializationOptions.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "AssetToolsModule.h"
@@ -80,19 +81,27 @@ void FConventionKeeperEditorModule::PluginButtonClicked()
 	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
 	if (!ConventionKeeperSettings)
 	{
+		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoSettings", "Convention Keeper: Project Settings not found."));
+		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
 		return;
 	}
 
 	if (!ConventionKeeperSettings->Convention.Get())
 	{
+		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoConvention", "Convention Keeper: Convention is not set. Set it in Project Settings → Convention Keeper."));
+		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
 		return;
 	}
 
 	UConventionKeeperConvention* Convention = ConventionKeeperSettings->Convention.GetDefaultObject();
-	if (Convention)
+	if (!Convention)
 	{
-		Convention->ValidateFolderStructures();
+		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoConventionCDO", "Convention Keeper: Failed to get Convention instance."));
+		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
+		return;
 	}
+
+	Convention->ValidateFolderStructures();
 
 	// FText DialogText = FText::Format(
 	// 						LOCTEXT("PluginButtonDialogText", "Path exists {0}"),

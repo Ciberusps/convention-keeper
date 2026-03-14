@@ -2,6 +2,7 @@
 
 
 #include "Conventions/UHLConvention.h"
+#include "Internationalization/Text.h"
 #include "NamingConventions/PascalCaseNamingConvention.h"
 #include "Rules/ConventionKeeperRule_FolderStructure.h"
 
@@ -23,6 +24,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Content"));
 		Rule->RuleId = FName(TEXT("folder-content"));
+		Rule->Description = FText::FromString(TEXT("Root Content folder must contain 3rdParty, {ProjectName}, FMOD, Movies."));
 		Rule->FolderPath = ContentFolderPath;
 		Rule->RequiredFolders = ContentRequiredFolders;
 		Rules.Add(Rule);
@@ -40,6 +42,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_ProjectName"));
 		Rule->RuleId = FName(TEXT("folder-project-name"));
+		Rule->Description = FText::FromString(TEXT("Under Content/{ProjectName}/ require Characters, Maps, Core, SFX, VFX, AI."));
 		Rule->FolderPath = ProjectNameFolderPath;
 		Rule->RequiredFolders = ProjectNameRequiredFolders;
 		Rules.Add(Rule);
@@ -58,6 +61,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Character"));
 		Rule->RuleId = FName(TEXT("folder-character"));
+		Rule->Description = FText::FromString(TEXT("Each character folder must have AI, Projectiles, Animations, Gyms, Data, Abilities, Materials."));
 		Rule->FolderPath = CharacterFolderPath;
 		Rule->RequiredFolders = CharacterRequiredFolders;
 		Rules.Add(Rule);
@@ -67,6 +71,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_CoreAI"));
 		Rule->RuleId = FName(TEXT("folder-core-ai"));
+		Rule->Description = FText::FromString(TEXT("Content/{ProjectName}/Core/AI/ must exist."));
 		Rule->FolderPath = CoreFolderPath;
 		Rules.Add(Rule);
 	}

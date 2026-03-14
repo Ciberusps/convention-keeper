@@ -16,6 +16,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName RuleId;
 
+	/** What this rule checks; shown in editor and docs. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (MultiLine = true))
+	FText Description;
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool CanValidate(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const;
 	virtual bool CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const;

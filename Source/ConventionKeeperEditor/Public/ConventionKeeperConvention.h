@@ -30,6 +30,11 @@ struct CONVENTIONKEEPEREDITOR_API FRuleOverride
 	TObjectPtr<UConventionKeeperRule> ReplacementRule = nullptr;
 };
 
+/**
+ * Convention: set of rules for validation (folder structure, naming, etc.).
+ * Extend only via ExtendsConvention (ESLint-style), not by subclassing.
+ * Chained extends are supported: MyConvention extends GodreaperConvention extends UHLConvention.
+ */
 UCLASS(Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperConvention : public UObject
 {
