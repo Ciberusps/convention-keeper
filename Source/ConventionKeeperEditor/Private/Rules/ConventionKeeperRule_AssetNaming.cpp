@@ -184,11 +184,12 @@ bool UConventionKeeperRule_AssetNaming::IsNumberSuffixValid(const FString& Asset
 	{
 		--i;
 	}
-	if (i < 0 || AssetName[i] != '_')
+	const int32 SuffixStart = i + 1;
+	if (SuffixStart >= AssetName.Len())
 	{
 		return true;
 	}
-	FString Suffix = AssetName.Mid(i + 1);
+	FString Suffix = AssetName.Mid(SuffixStart);
 	return Suffix.Len() == PaddingDigits;
 }
 
@@ -203,18 +204,24 @@ FString UConventionKeeperRule_AssetNaming::SuggestZeroPaddedName(const FString& 
 	{
 		--i;
 	}
-	if (i < 0 || AssetName[i] != '_')
+	const int32 SuffixStart = i + 1;
+	if (SuffixStart >= AssetName.Len())
 	{
 		return AssetName;
 	}
-	FString NumPart = AssetName.Mid(i + 1);
+	FString NumPart = AssetName.Mid(SuffixStart);
 	int32 Val = 0;
 	for (TCHAR c : NumPart)
 	{
 		Val = Val * 10 + (c - TEXT('0'));
 	}
 	FString Padded = FString::Printf(TEXT("%0*d"), PaddingDigits, Val);
-	return AssetName.Left(i + 1) + Padded;
+	const FString Prefix = AssetName.Left(SuffixStart);
+	if (SuffixStart > 0 && AssetName[SuffixStart - 1] == '_')
+	{
+		return Prefix + Padded;
+	}
+	return Prefix + TEXT("_") + Padded;
 }
 
 bool UConventionKeeperRule_AssetNaming::CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const

@@ -68,6 +68,12 @@ void ConventionKeeperRule_AssetNamingSpec::Define()
 			TestFalse(TEXT("AS_Zombie_Jump_1"), UConventionKeeperRule_AssetNaming::IsNumberSuffixValid(TEXT("AS_Zombie_Jump_1"), 2));
 		});
 
+		It("rejects trailing digit without underscore (e.g. Grenade2) when padding is 2", [this]()
+		{
+			TestFalse(TEXT("AS_Player_Toss_Grenade2"), UConventionKeeperRule_AssetNaming::IsNumberSuffixValid(TEXT("AS_Player_Toss_Grenade2"), 2));
+			TestFalse(TEXT("Grenade2"), UConventionKeeperRule_AssetNaming::IsNumberSuffixValid(TEXT("Grenade2"), 2));
+		});
+
 		It("rejects three-digit suffix when padding is 2", [this]()
 		{
 			TestFalse(TEXT("AS_Zombie_Jump_100"), UConventionKeeperRule_AssetNaming::IsNumberSuffixValid(TEXT("AS_Zombie_Jump_100"), 2));
@@ -103,6 +109,14 @@ void ConventionKeeperRule_AssetNamingSpec::Define()
 		{
 			FString Result = UConventionKeeperRule_AssetNaming::SuggestZeroPaddedName(TEXT("AS_Zombie_Jump"), 2);
 			TestEqual(TEXT("AS_Zombie_Jump"), Result, FString(TEXT("AS_Zombie_Jump")));
+		});
+
+		It("inserts underscore and pads when trailing digit has no underscore (Grenade2 -> Grenade_02)", [this]()
+		{
+			FString Result = UConventionKeeperRule_AssetNaming::SuggestZeroPaddedName(TEXT("AS_Player_Toss_Grenade2"), 2);
+			TestEqual(TEXT("AS_Player_Toss_Grenade_02"), Result, FString(TEXT("AS_Player_Toss_Grenade_02")));
+			Result = UConventionKeeperRule_AssetNaming::SuggestZeroPaddedName(TEXT("Grenade2"), 2);
+			TestEqual(TEXT("Grenade_02"), Result, FString(TEXT("Grenade_02")));
 		});
 	});
 
