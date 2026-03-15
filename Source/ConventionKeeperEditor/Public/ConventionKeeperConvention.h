@@ -88,6 +88,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<UConventionKeeperRule*> GetEffectiveRules() const;
 
+	/** Localized description for a rule. Override in subclasses to provide per-Convention, per-language texts. */
+	virtual FText GetLocalizedRuleDescription(FName RuleId) const;
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ValidateFolderStructures();
 	void ValidateFolderStructures_Implementation();

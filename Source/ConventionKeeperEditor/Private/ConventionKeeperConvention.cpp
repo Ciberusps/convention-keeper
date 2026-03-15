@@ -10,6 +10,11 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperConvention)
 
+FText UConventionKeeperConvention::GetLocalizedRuleDescription(FName RuleId) const
+{
+	return FText();
+}
+
 void UConventionKeeperConvention::SyncExtendsConventionAssetFlag()
 {
 	bExtendsConventionAssetIsSet = !ExtendsConventionAsset.IsNull();

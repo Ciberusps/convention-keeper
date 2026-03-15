@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "ConventionKeeperRule.generated.h"
 
+class UConventionKeeperConvention;
+
 UENUM(BlueprintType)
 enum class EConventionRuleSeverity : uint8
 {
@@ -31,8 +33,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "false", EditConditionHides))
 	FName DescriptionKey;
 
-	/** Returns localized description when DescriptionKey is set, otherwise Description. */
-	FText GetDisplayDescription() const;
+	/** Returns localized description. Prefers Convention->GetLocalizedRuleDescription when Convention is set; else DescriptionKey (global loc) or Description. */
+	FText GetDisplayDescription(const UConventionKeeperConvention* Convention = nullptr) const;
 
 	/** Severity when this rule fails (Error or Warning). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

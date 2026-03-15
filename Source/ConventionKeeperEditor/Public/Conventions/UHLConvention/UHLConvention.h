@@ -14,4 +14,6 @@ class CONVENTIONKEEPEREDITOR_API UUHLConvention : public UConventionKeeperConven
 
 public:
 	UUHLConvention();
+
+	virtual FText GetLocalizedRuleDescription(FName RuleId) const override;
 };

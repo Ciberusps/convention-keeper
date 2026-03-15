@@ -14,6 +14,14 @@ enum class EConventionKeeperLanguage : uint8
 	Russian UMETA(DisplayName = "Russian")
 };
 
+UENUM(BlueprintType)
+enum class EConventionKeeperLanguageOverride : uint8
+{
+	UseProjectDefault UMETA(DisplayName = "Use project default"),
+	English           UMETA(DisplayName = "English"),
+	Russian           UMETA(DisplayName = "Russian")
+};
+
 // USTRUCT(BlueprintType)
 // struct UHLCONVENTIONKEEPEREDITOR_API FUHECustomClassIconDescription
 // {
@@ -65,11 +73,11 @@ public:
     UPROPERTY(Config, EditAnywhere)
     bool bDebug = false;
 
-	/** Language for rule descriptions and validation messages. Auto = use system/editor language (ru if Russian, else en). */
-	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Language"))
-	EConventionKeeperLanguage Language = EConventionKeeperLanguage::Auto;
+	/** Default language for the project. Used when no local override is set. Auto = use system/editor language. */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Default Language"))
+	EConventionKeeperLanguage DefaultLanguage = EConventionKeeperLanguage::Auto;
 
-	/** Resolved language code for localization: "en" or "ru". When Auto, derived from system/editor language. */
+	/** Resolved language code for localization: "en" or "ru". Uses local override if set, else project default (Auto → system). */
 	FString GetEffectiveLanguageCode() const;
 
 	//~UDeveloperSettings interface
@@ -88,4 +96,20 @@ protected:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite)
 	TMap<FString, FString> Placeholders = {};
 
+};
+
+/**
+ * Per-user language override. Stored in Saved/Config (not in project). When "Use project default", project Default Language is used.
+ */
+UCLASS(Config = "EditorPerProjectUserSettings", DefaultConfig, meta = (DisplayName = "Convention Keeper (Local)"))
+class CONVENTIONKEEPEREDITOR_API UConventionKeeperLocalSettings : public UDeveloperSettings
+{
+	GENERATED_BODY()
+
+public:
+	/** Override language for this user. Use project default to follow project Default Language. */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Local Override Language"))
+	EConventionKeeperLanguageOverride LocalOverrideLanguage = EConventionKeeperLanguageOverride::UseProjectDefault;
+
+	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }
 };
