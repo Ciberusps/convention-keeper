@@ -6,9 +6,8 @@
 #include "ConventionKeeperConvention.h"
 #include "UHLConvention.generated.h"
 
-
 UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
-class CONVENTIONKEEPEREDITOR_API UUHLConvention : public UConventionKeeperConvention
+class CONVENTIONKEEPERCONVENTIONS_API UUHLConvention : public UConventionKeeperConvention
 {
 	GENERATED_BODY()
 

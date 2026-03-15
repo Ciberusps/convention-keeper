@@ -25,6 +25,14 @@
 			]
 		},
 		{
+			"Name": "ConventionKeeperConventions",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"PlatformAllowList": [
+				"Win64"
+			]
+		},
+		{
 			"Name": "ConventionKeeperTests",
 			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit",

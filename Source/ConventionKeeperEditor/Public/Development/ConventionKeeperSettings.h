@@ -65,13 +65,13 @@ public:
 	/** Returns the Convention to use: ConventionAsset if set, otherwise Convention class CDO. */
 	UConventionKeeperConvention* GetResolvedConvention() const;
 
+    /** When enabled, convention (including Asset Naming rules) is validated after saving an asset. Disabled during autosave. */
+    UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
+    bool bValidateAssetNamingOnSave = true;
+
 	/** Folder paths (trailing slash) and/or asset paths (no trailing slash) in Content/ form. */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
 	TArray<FString> Exclusions = {};
-
-	/** When enabled, convention (including Asset Naming rules) is validated after saving an asset. Disabled during autosave. */
-	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
-	bool bValidateAssetNamingOnSave = true;
 
     /** When enabled, every check is logged: failures as Error/Warning, passed checks as Info. */
     UPROPERTY(Config, EditAnywhere, AdvancedDisplay)

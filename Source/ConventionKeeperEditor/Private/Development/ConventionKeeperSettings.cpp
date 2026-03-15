@@ -2,7 +2,6 @@
 
 #include "Development/ConventionKeeperSettings.h"
 
-#include "Conventions/UHLConvention/UHLConvention.h"
 #include "Internationalization/Culture.h"
 #include "Internationalization/Internationalization.h"
 #include "UObject/UnrealType.h"
@@ -11,7 +10,7 @@
 
 UConventionKeeperSettings::UConventionKeeperSettings()
 {
-	Convention = UUHLConvention::StaticClass();
+	Convention = nullptr;
 }
 
 void UConventionKeeperSettings::PostLoad()

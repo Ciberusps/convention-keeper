@@ -122,12 +122,13 @@ void UConventionKeeperRule::RefreshDocumentationFields()
 		return;
 	}
 
-	FString RelPath = DocPathOverride.IsEmpty()
-		? Settings->DocsRulePathTemplate.Replace(TEXT("{RuleId}"), *RuleId.ToString())
-		: DocPathOverride;
-	FString LocalPath = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), RelPath));
-	if (!FPaths::FileExists(LocalPath))
+	auto ResolveDocPath = [](const FString& RelPath, FString& OutAbsolutePath) -> bool
 	{
+		OutAbsolutePath = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), RelPath));
+		if (FPaths::FileExists(OutAbsolutePath))
+		{
+			return true;
+		}
 		for (const FString& PluginName : { TEXT("ConventionKeeper"), TEXT("convention-keeper") })
 		{
 			if (TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(PluginName))
@@ -135,10 +136,35 @@ void UConventionKeeperRule::RefreshDocumentationFields()
 				FString PluginPath = FPaths::ConvertRelativePathToFull(FPaths::Combine(Plugin->GetBaseDir(), RelPath));
 				if (FPaths::FileExists(PluginPath))
 				{
-					LocalPath = MoveTemp(PluginPath);
-					break;
+					OutAbsolutePath = MoveTemp(PluginPath);
+					return true;
 				}
 			}
+		}
+		return false;
+	};
+
+	FString RelPathBase = DocPathOverride.IsEmpty()
+		? Settings->DocsRulePathTemplate.Replace(TEXT("{RuleId}"), *RuleId.ToString())
+		: DocPathOverride;
+	const FString Dir = FPaths::GetPath(RelPathBase);
+	const FString BaseName = FPaths::GetBaseFilename(RelPathBase, true);
+	const FString Ext = FPaths::GetExtension(RelPathBase, true);
+	const FString Lang = Settings->GetEffectiveLanguageCode();
+
+	TArray<FString> PathsToTry;
+	if (!Lang.IsEmpty())
+	{
+		PathsToTry.Add(FPaths::Combine(Dir, Lang, BaseName + Ext));
+	}
+	PathsToTry.Add(RelPathBase);
+
+	FString LocalPath;
+	for (const FString& RelPath : PathsToTry)
+	{
+		if (ResolveDocPath(RelPath, LocalPath))
+		{
+			break;
 		}
 	}
 	if (!FPaths::FileExists(LocalPath))
