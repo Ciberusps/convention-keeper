@@ -93,18 +93,10 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Con
 
 ## Features TODO:
 
-- [ue5-style-guide](https://github.com/Allar/ue5-style-guide) convention
-- localization
 - folderstructure rules should have severity warn mostly, except root folder rule, make it warn by default
 - take settings/good practices from https://github.com/TheEmidee/UENamingConventionValidation
-
-## Rules TODO:
-
-- GameplayTags Rule
 - BP Rules (vars naming, etc.)
-- StateTree
-- AbilitySystem
-- DamageBehaviors
+
 
 ## 🤝 Contributing
 
