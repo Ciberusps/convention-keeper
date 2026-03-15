@@ -14,18 +14,30 @@ class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_FolderStructure : public 
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Base folder path (with placeholders, e.g. Content/{ProjectName}). This path must exist; under it RequiredFolders are checked and BannedFolders must not exist.
+	 * If the path contains templates (e.g. {CharacterName}), validation runs for each resolved instance.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FDirectoryPath FolderPath = {};
 
-	// should be relative to FolderPath
+	/**
+	 * Folders that must exist under FolderPath. Paths are relative to FolderPath and can use the same placeholders.
+	 * Example: FolderPath = "Content/{ProjectName}", RequiredFolders = ["Characters", "Maps", "Core"] → Content/Game/Characters, Content/Game/Maps, Content/Game/Core must exist.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
 	TArray<FDirectoryPath> RequiredFolders = {};
 
-	// should not exist
+	/**
+	 * Folders that must not exist under FolderPath. If any of these paths exist, validation fails.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
 	TArray<FDirectoryPath> BannedFolders = {};
 
-    // means folders other than RequiredFolders will throw error
+	/**
+	 * When true, only the folders listed in RequiredFolders are allowed under FolderPath; any other subfolder causes an error.
+	 * When false, RequiredFolders are only checked for existence; extra folders are allowed.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bOtherFoldersNotAllowed = false;
 

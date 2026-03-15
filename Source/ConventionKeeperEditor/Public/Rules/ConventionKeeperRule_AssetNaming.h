@@ -6,6 +6,7 @@
 #include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperRule_AssetNaming.generated.h"
 
+/** One scope to validate: QueryPath is the folder to scan; OnlyAssetPaths, when non-empty, restricts to those assets (e.g. when user selected a single asset). */
 USTRUCT(BlueprintType)
 struct CONVENTIONKEEPEREDITOR_API FAssetNamingScopeEntry
 {
@@ -29,31 +30,37 @@ class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_AssetNaming : public UCon
 	GENERATED_BODY()
 
 public:
-	/** Folder path pattern with placeholders (e.g. Content/{ProjectName}/Characters/{CharacterName}/Animations). */
+	/**
+	 * Folder path pattern with placeholders (e.g. Content/{ProjectName}/Characters/{CharacterName}/Animations).
+	 * Only assets in folders matching this path (after resolving placeholders) are validated. Placeholders in the path can be used in NamingTemplate.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (RelativePath))
 	FDirectoryPath FolderPathPattern;
 
-	/** Asset classes to validate (e.g. AnimSequence, AnimMontage). Only these classes in the folder are checked. */
+	/**
+	 * If non-empty, only assets of these classes are checked (e.g. AnimSequence, AnimMontage). Empty = all asset classes in the folder.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowedClasses = "/Script/CoreUObject.Object"))
 	TArray<TSubclassOf<UObject>> AssetClasses;
 
 	/**
-	 * Naming template. Placeholders like {CharacterName} are replaced from the folder path.
-	 * Example: "AS_{CharacterName}_" → in folder .../Zombie/Animations required prefix is "AS_Zombie_".
-	 * If the asset name ends with _<digits>, that suffix must be zero-padded to NumberPaddingDigits (e.g. _01 not _1).
+	 * Naming template: required prefix for asset names. Placeholders like {CharacterName} are filled from the folder path.
+	 * Example: "AS_{CharacterName}_" in folder .../Zombie/Animations → required prefix "AS_Zombie_". Name may have a trailing _NN (zero-padded to NumberPaddingDigits).
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString NamingTemplate;
 
-	/** When the name has a trailing numeric suffix, it must be zero-padded to this many digits (e.g. 2 → 01, 02). */
+	/**
+	 * When the asset name ends with _<digits>, that part must be zero-padded to this many digits. Example: 2 → AS_Zombie_Jump_01 allowed, AS_Zombie_Jump_1 fails.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 NumberPaddingDigits = 2;
 
-	/** Optional fixed prefix (applied if non-empty; can be used instead of or with NamingTemplate). */
+	/** If non-empty, asset names must start with this exact string. Can be used alone or together with NamingTemplate (both are enforced). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Prefix;
 
-	/** Optional fixed suffix (applied if non-empty). */
+	/** If non-empty, asset names must end with this exact string (e.g. "_Physics"). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Suffix;
 

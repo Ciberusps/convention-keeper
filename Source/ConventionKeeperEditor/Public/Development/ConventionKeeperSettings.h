@@ -6,6 +6,7 @@
 #include "ConventionKeeperConvention.h"
 #include "ConventionKeeperSettings.generated.h"
 
+/** Project default language for rule descriptions and message log. */
 UENUM(BlueprintType)
 enum class EConventionKeeperLanguage : uint8
 {
@@ -14,6 +15,7 @@ enum class EConventionKeeperLanguage : uint8
 	Russian UMETA(DisplayName = "Russian")
 };
 
+/** Per-user language override (Saved/Config). Overrides project Default Language when not UseProjectDefault. */
 UENUM(BlueprintType)
 enum class EConventionKeeperLanguageOverride : uint8
 {
@@ -37,7 +39,8 @@ enum class EConventionKeeperLanguageOverride : uint8
 // };
 
 /**
- *
+ * Project settings for Convention Keeper. Stored in Config/DefaultEditor.ini (project).
+ * Defines which convention is used, exclusions, documentation URLs, and placeholders for rule paths.
  */
 UCLASS(Config="Editor", DefaultConfig, meta = (DisplayName="ConventionKeeper"))
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperSettings : public UDeveloperSettings
@@ -45,54 +48,81 @@ class CONVENTIONKEEPEREDITOR_API UConventionKeeperSettings : public UDeveloperSe
 	GENERATED_BODY()
 
 public:
-    UConventionKeeperSettings();
+	UConventionKeeperSettings();
 
+	/**
+	 * Value for the {ProjectName} placeholder in rule paths (e.g. Content/{ProjectName}/...).
+	 * Defaults to the current project name (FApp::GetProjectName()). Change if your Content root uses another folder name.
+	 */
 	UPROPERTY(Config, EditAnywhere)
 	FString ProjectNameFolder = FApp::GetProjectName();
 
-	/** Class to use when Convention Asset is not set (Blueprint or native class; uses CDO). Disabled when Convention Asset is set. */
+	/**
+	 * Convention class used for validation when Convention Asset is not set. The class's default object (CDO) is used.
+	 * When Convention Asset is set, this field is ignored and the asset is used instead (so you can have a class in source and override with an instance in content).
+	 */
 	UPROPERTY(Config, EditAnywhere, meta = (AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention", EditCondition = "!bConventionAssetIsSet"))
 	TSubclassOf<UConventionKeeperConvention> Convention;
 
-	/** Optional: specific Convention asset (e.g. created via Asset Actions). When set, this is used instead of Convention class CDO. */
+	/**
+	 * Optional: a Convention asset (e.g. created via Asset Actions). When set, this asset is used for all validation instead of Convention class CDO.
+	 * Use when you need to edit the convention in the editor (Rules, RuleOverrides) without changing code.
+	 */
 	UPROPERTY(Config, EditAnywhere, meta = (AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention"))
 	TSoftObjectPtr<UConventionKeeperConvention> ConventionAsset;
 
-	/** Used by EditCondition only; true when ConventionAsset is set so Convention is disabled. */
+	/** Internal: true when ConventionAsset is set; used to hide Convention (class) in the editor. */
 	UPROPERTY(Transient, meta = (EditCondition = "false", EditConditionHides, NoResetToDefault))
 	bool bConventionAssetIsSet = false;
 
-	/** Returns the Convention to use: ConventionAsset if set, otherwise Convention class CDO. */
+	/** Returns the convention used for validation: ConventionAsset if set, otherwise the CDO of Convention. */
 	UConventionKeeperConvention* GetResolvedConvention() const;
 
-    /** When enabled, convention (including Asset Naming rules) is validated after saving an asset. Disabled during autosave. */
-    UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
-    bool bValidateAssetNamingOnSave = true;
+	/**
+	 * When true, after saving an asset the convention is validated (including Asset Naming rules for that path).
+	 * Disabled automatically during autosave. Turn off if you want validation only from the menu/commandlet.
+	 */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
+	bool bValidateAssetNamingOnSave = true;
 
-	/** Folder paths (trailing slash) and/or asset paths (no trailing slash) in Content/ form. */
+	/**
+	 * Paths that are skipped by all rules. Entries can be folders (with trailing slash) or assets (no trailing slash), in Content/ form.
+	 * Example: "Content/Developers/", "Content/Game/TestMap" — those paths are not validated. Placeholders like {ProjectName} are resolved using GetPlaceholders().
+	 */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
 	TArray<FString> Exclusions = {};
 
-    /** When enabled, every check is logged: failures as Error/Warning, passed checks as Info. */
-    UPROPERTY(Config, EditAnywhere, AdvancedDisplay)
-    bool bDebug = false;
+	/**
+	 * When true, every rule check is logged: failures as Error/Warning, passed checks as Info. Useful to see which paths were validated.
+	 */
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay)
+	bool bDebug = false;
 
-	/** Default language for the project. Used when no local override is set. Auto = use system/editor language. */
+	/**
+	 * Default language for rule descriptions and message log. Auto = use editor/system language; English/Russian = force that language.
+	 * Can be overridden per user via Convention Keeper (Local) → Local Override Language.
+	 */
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Default Language"))
 	EConventionKeeperLanguage DefaultLanguage = EConventionKeeperLanguage::Auto;
 
-	/** Resolved language code for localization: "en" or "ru". Uses local override if set, else project default (Auto → system). */
+	/** Returns the effective language code ("en" or "ru") for localization: respects Local Override, then Default Language, then system. */
 	FString GetEffectiveLanguageCode() const;
 
-	/** Base URL for rule documentation. Used to build links like {Url}/blob/{Branch}/{DocPathTemplate}. Default: upstream plugin repo. */
+	/**
+	 * Base URL of the repository where rule docs live. Used to build clickable links in the Message Log: {Url}/blob/{Branch}/{DocPathTemplate with RuleId}.
+	 * Default points to the upstream plugin repo; set to your fork if you host docs there.
+	 */
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Documentation repository URL"))
 	FString DocsRepositoryUrl = TEXT("https://github.com/Ciberusps/convention-keeper");
 
-	/** Branch or tag for doc links (e.g. main, master). */
+	/** Git branch or tag used in doc links (e.g. main, master). Must match the branch where your Docs/Rules/*.md files exist. */
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Documentation branch"))
 	FString DocsBranch = TEXT("main");
 
-	/** Path template relative to repo; {RuleId} is replaced by the rule id (e.g. docs/rules/{RuleId}.md for repo root). */
+	/**
+	 * Path template for rule documentation, relative to the repo root. {RuleId} is replaced by the rule's RuleId (e.g. folder-structure-content).
+	 * Example: "Docs/Rules/{RuleId}.md" → Docs/Rules/folder-structure-content.md. Localized docs are looked up under Docs/Rules/{Lang}/{RuleId}.md (e.g. ru).
+	 */
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Rule doc path template"))
 	FString DocsRulePathTemplate = TEXT("Docs/Rules/{RuleId}.md");
 
@@ -105,17 +135,21 @@ public:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 	//~End of UObject interface
 
+	/** Returns placeholders for rule paths: {ProjectName} = ProjectNameFolder, plus any entries from Placeholders. Keys use braces, e.g. "{ProjectName}". */
 	TMap<FString, FString> GetPlaceholders() const;
 
 protected:
-	// for explicitly added placeholders
+	/**
+	 * Extra placeholders for path templates. Merged with {ProjectName} in GetPlaceholders().
+	 * Example: "CharacterName" -> "Zombie" (use keys with or without braces; they are normalized when resolving paths).
+	 */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite)
 	TMap<FString, FString> Placeholders = {};
 
 };
 
 /**
- * Per-user language override. Stored in Saved/Config (not in project). When "Use project default", project Default Language is used.
+ * Per-user Convention Keeper settings. Stored in Saved/Config/ (not in project), so each developer can choose language without changing project config.
  */
 UCLASS(Config = "EditorPerProjectUserSettings", DefaultConfig, meta = (DisplayName = "Convention Keeper (Local)"))
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperLocalSettings : public UDeveloperSettings
@@ -123,7 +157,10 @@ class CONVENTIONKEEPEREDITOR_API UConventionKeeperLocalSettings : public UDevelo
 	GENERATED_BODY()
 
 public:
-	/** Override language for this user. Use project default to follow project Default Language. */
+	/**
+	 * Override the language for rule descriptions and message log for this machine. Use project default to follow the project's Default Language (Settings).
+	 * English/Russian = force that language regardless of project or system.
+	 */
 	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Local Override Language"))
 	EConventionKeeperLanguageOverride LocalOverrideLanguage = EConventionKeeperLanguageOverride::UseProjectDefault;
 
