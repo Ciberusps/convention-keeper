@@ -49,7 +49,8 @@ public class ConventionKeeperEditor : ModuleRules
 				"UnrealEd",
 				"ToolMenus",
 				
-				"DeveloperSettings", 
+				"DeveloperSettings",
+				"HTTP",
 				"EditorWidgets",
 				"MessageLog",
 				"AssetTools",

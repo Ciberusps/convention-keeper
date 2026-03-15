@@ -45,8 +45,6 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet
 UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Content/GameCode;Content/Shared"
 ```
 
-Код выхода: `0` — успех, `1` — ошибка.
-
 ## 📖 Documentation
 
 

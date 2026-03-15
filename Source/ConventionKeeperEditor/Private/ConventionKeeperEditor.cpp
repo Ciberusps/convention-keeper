@@ -6,8 +6,6 @@
 #include "Commandlets/ConventionKeeperCommandlet.h"
 #include "ConventionKeeperConvention.h"
 #include "Development/ConventionKeeperSettings.h"
-#include "Details/ConventionKeeperRuleDetailsCustomization.h"
-#include "PropertyEditorModule.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -68,13 +66,6 @@ void FConventionKeeperEditorModule::StartupModule()
 	RegisterContentBrowserExtenders();
 
 #if WITH_EDITOR
-	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	PropertyModule.RegisterCustomClassLayout(
-		UConventionKeeperRule::StaticClass()->GetFName(),
-		FOnGetDetailCustomizationInstance::CreateStatic(&FConventionKeeperRuleDetailsCustomization::MakeInstance));
-#endif
-
-#if WITH_EDITOR
 	PackageSavedDelegateHandle = UPackage::PackageSavedWithContextEvent.AddLambda(
 		[this](const FString& FileName, UPackage* Pkg, const FObjectPostSaveContext& Ctx) { OnPackageSaved(FileName, Pkg, Ctx); });
 #endif
@@ -96,10 +87,6 @@ void FConventionKeeperEditorModule::ShutdownModule()
 	UnregisterContentBrowserExtenders();
 
 #if WITH_EDITOR
-	if (FPropertyEditorModule* PropertyModule = FModuleManager::Get().GetModulePtr<FPropertyEditorModule>("PropertyEditor"))
-	{
-		PropertyModule->UnregisterCustomClassLayout(UConventionKeeperRule::StaticClass()->GetFName());
-	}
 	if (PackageSavedDelegateHandle.IsValid())
 	{
 		UPackage::PackageSavedWithContextEvent.Remove(PackageSavedDelegateHandle);

@@ -3,6 +3,7 @@
 #include "ConventionKeeperConvention.h"
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
+#include "Rules/ConventionKeeperRule.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Logging/MessageLog.h"
 #include "Misc/Paths.h"
@@ -41,6 +42,15 @@ void UConventionKeeperConvention::PostLoad()
 	Super::PostLoad();
 	SyncExtendsConventionAssetFlag();
 	RefreshExtendedRules();
+#if WITH_EDITOR
+	for (UConventionKeeperRule* Rule : Rules)
+	{
+		if (Rule)
+		{
+			Rule->RefreshDocumentationFields();
+		}
+	}
+#endif
 }
 
 void UConventionKeeperConvention::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

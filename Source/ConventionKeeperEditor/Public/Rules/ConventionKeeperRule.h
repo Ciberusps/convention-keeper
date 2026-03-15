@@ -40,8 +40,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (DisplayName = "Doc path override"))
 	FString DocPathOverride;
 
-	/** Full URL to the rule documentation (GitHub blob or raw). Empty if DocsRepositoryUrl not set. */
+	/** Full URL to the rule documentation (GitHub). Read-only; click to open in browser. */
+	UPROPERTY(Transient, VisibleAnywhere, meta = (DisplayName = "Documentation URL", ReadOnly))
+	FString DocumentationUrl;
+
+	/** Markdown content loaded from repo (read-only, expandable). Fetched when rule is loaded or URL changes. */
+	UPROPERTY(Transient, VisibleAnywhere, meta = (DisplayName = "Documentation (markdown)", ReadOnly, MultiLine = true))
+	FString DocumentationContent;
+
+	/** Full URL to the rule documentation (GitHub blob). Empty if DocsRepositoryUrl not set. */
 	FString GetDocumentationUrl() const;
+
+	/** Raw URL to fetch markdown content (e.g. raw.githubusercontent.com). Empty if no doc URL. */
+	FString GetDocumentationRawUrl() const;
 
 	/** Severity when this rule fails (Error or Warning). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -57,4 +68,10 @@ public:
 
 	/** Normalized project-relative path: forward slashes, trailing slash. Shared by FolderStructure and AssetNaming. */
 	static FString NormalizeRelativePath(const FString& InPath);
+
+#if WITH_EDITOR
+	virtual void PostLoad() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	void RefreshDocumentationFields();
+#endif
 };

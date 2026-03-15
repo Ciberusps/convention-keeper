@@ -92,9 +92,9 @@ public:
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Documentation branch"))
 	FString DocsBranch = TEXT("main");
 
-	/** Path template relative to repo; {RuleId} is replaced by the rule id (e.g. Plugins/convention-keeper/docs/rules/{RuleId}.md). */
+	/** Path template relative to repo; {RuleId} is replaced by the rule id (e.g. docs/rules/{RuleId}.md for repo root). */
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Rule doc path template"))
-	FString DocsRulePathTemplate = TEXT("Plugins/convention-keeper/docs/rules/{RuleId}.md");
+	FString DocsRulePathTemplate = TEXT("Docs/Rules/{RuleId}.md");
 
 	//~UDeveloperSettings interface
 	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }
