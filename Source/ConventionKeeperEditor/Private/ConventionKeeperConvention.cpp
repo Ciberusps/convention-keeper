@@ -73,6 +73,24 @@ UConventionKeeperConvention const* UConventionKeeperConvention::GetResolvedExten
 	return nullptr;
 }
 
+TArray<FString> UConventionKeeperConvention::GetAvailableRuleIds() const
+{
+	TArray<FString> Out;
+	UConventionKeeperConvention const* Base = GetResolvedExtendsConvention();
+	if (!Base)
+	{
+		return Out;
+	}
+	for (UConventionKeeperRule* Rule : Base->GetEffectiveRules())
+	{
+		if (Rule && !Rule->RuleId.IsNone())
+		{
+			Out.AddUnique(Rule->RuleId.ToString());
+		}
+	}
+	return Out;
+}
+
 TArray<UConventionKeeperRule*> UConventionKeeperConvention::GetEffectiveRules() const
 {
 	UConventionKeeperConvention const* Base = GetResolvedExtendsConvention();

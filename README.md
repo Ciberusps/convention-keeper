@@ -9,6 +9,9 @@ Support: `all your concerns sweetie 🥰`
 - Conventions
 - Naming conventions
 - FolderStructure conventions
+- Exclusions
+- Localization
+- TODO: Auto-fix
 - and all kinds of shitty conventions
 
 ## 🚀 Install & ⬆️ Update

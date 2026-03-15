@@ -20,7 +20,8 @@ struct CONVENTIONKEEPEREDITOR_API FRuleOverride
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	/** Rule to override; options come from the extended convention's rules. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (GetOptions = "GetAvailableRuleIds"))
 	FName RuleId;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -102,6 +103,10 @@ public:
 
 	/** Returns the base convention: ExtendsConventionAsset if set, else ExtendsConvention class CDO. */
 	UConventionKeeperConvention const* GetResolvedExtendsConvention() const;
+
+	/** Used by RuleOverride.RuleId dropdown: returns RuleIds from the extended convention's effective rules. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Convention Keeper")
+	TArray<FString> GetAvailableRuleIds() const;
 
 	//~UObject interface
 	virtual void PostLoad() override;
