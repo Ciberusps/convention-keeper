@@ -293,7 +293,29 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 		}
 	}
 
-	TArray<FString> BasePathsToValidate;
+	TMap<FString, TArray<FString>> ScopeMap;
+	auto AddScope = [&ScopeMap](const FString& QueryPath, TArray<FString> OnlyAssetPaths)
+	{
+		if (TArray<FString>* Existing = ScopeMap.Find(QueryPath))
+		{
+			if (OnlyAssetPaths.IsEmpty())
+			{
+				Existing->Empty();
+			}
+			else
+			{
+				for (const FString& A : OnlyAssetPaths)
+				{
+					Existing->AddUnique(A);
+				}
+			}
+		}
+		else
+		{
+			ScopeMap.Add(QueryPath, MoveTemp(OnlyAssetPaths));
+		}
+	};
+
 	for (const FString& ResolvedPathWithSlash : ResolvedPaths)
 	{
 		FString ResolvedPath = ResolvedPathWithSlash;
@@ -309,20 +331,39 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 		const FString Norm = NormalizeRelativePath(ResolvedPath);
 		if (SelectedPaths.IsEmpty())
 		{
-			BasePathsToValidate.AddUnique(Norm);
+			AddScope(Norm, TArray<FString>());
 			continue;
 		}
 		for (const FString& SelectedPath : SelectedPaths)
 		{
 			const FString NormSelected = NamingConventionPathHelpers::SelectedPathAsContentForm(SelectedPath);
+			const bool bSelectedIsFolder = SelectedPath.EndsWith(TEXT("/"));
 			if (NormSelected.StartsWith(Norm))
 			{
-				BasePathsToValidate.AddUnique(Norm);
+				if (bSelectedIsFolder)
+				{
+					AddScope(NormSelected, TArray<FString>());
+				}
+				else
+				{
+					const FString AssetPathNoSlash = NormSelected.LeftChop(1);
+					int32 LastSlash = INDEX_NONE;
+					for (int32 i = AssetPathNoSlash.Len() - 1; i >= 0; --i)
+					{
+						if (AssetPathNoSlash[i] == TEXT('/'))
+						{
+							LastSlash = i;
+							break;
+						}
+					}
+					const FString ParentPath = LastSlash >= 0 ? AssetPathNoSlash.Left(LastSlash + 1) : Norm;
+					AddScope(ParentPath, TArray<FString>{AssetPathNoSlash});
+				}
 				break;
 			}
 			if (Norm.StartsWith(NormSelected))
 			{
-				BasePathsToValidate.AddUnique(NormSelected);
+				AddScope(NormSelected, TArray<FString>());
 				break;
 			}
 		}
@@ -330,8 +371,12 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 
 	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
 
-	for (const FString& BasePath : BasePathsToValidate)
+	for (const TTuple<FString, TArray<FString>>& ScopePair : ScopeMap)
 	{
+		const FString BasePath = ScopePair.Key;
+		const TArray<FString>& OnlyAssetPaths = ScopePair.Value;
+		const bool bFilterToSpecificAssets = OnlyAssetPaths.Num() > 0;
+
 		if (Settings && IsPathUnderExcluded(BasePath, Settings->Exclusions, PlaceholdersWithBraces))
 		{
 			continue;
@@ -376,27 +421,30 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 			}
 		};
 
-		int32 BasePathLastSlash = INDEX_NONE;
-		for (int32 i = BasePath.Len() - 1; i >= 0; --i)
+		if (!bFilterToSpecificAssets)
 		{
-			if (BasePath[i] == TEXT('/'))
+			int32 BasePathLastSlash = INDEX_NONE;
+			for (int32 i = BasePath.Len() - 1; i >= 0; --i)
 			{
-				BasePathLastSlash = i;
-				break;
+				if (BasePath[i] == TEXT('/'))
+				{
+					BasePathLastSlash = i;
+					break;
+				}
 			}
-		}
-		const FString BaseSegmentName = BasePathLastSlash >= 0 ? BasePath.Mid(BasePathLastSlash + 1) : BasePath;
-		if (!BaseSegmentName.IsEmpty() && !IsNameValidForFolder(BaseSegmentName))
-		{
-			NamingConventionRuleHelpers::LogMessage(FailureSeverity,
-				FText::Format(
-					ConventionKeeperLoc::GetText(FName(TEXT("NamingConventionFolder"))),
-					FText::FromName(RuleId),
-					FText::FromString(BaseSegmentName)),
-				&BasePath);
-		}
+			const FString BaseSegmentName = BasePathLastSlash >= 0 ? BasePath.Mid(BasePathLastSlash + 1) : BasePath;
+			if (!BaseSegmentName.IsEmpty() && !IsNameValidForFolder(BaseSegmentName))
+			{
+				NamingConventionRuleHelpers::LogMessage(FailureSeverity,
+					FText::Format(
+						ConventionKeeperLoc::GetText(FName(TEXT("NamingConventionFolder"))),
+						FText::FromName(RuleId),
+						FText::FromString(BaseSegmentName)),
+					&BasePath);
+			}
 
-		ValidateFolderNameRecursive(BasePath, ValidateFolderNameRecursive);
+			ValidateFolderNameRecursive(BasePath, ValidateFolderNameRecursive);
+		}
 
 		FString PackagePath = FString(TEXT("/Game/")) + BasePath.Mid(8);
 		if (PackagePath.EndsWith(TEXT("/")))
@@ -411,6 +459,8 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 		TArray<FAssetData> AssetDataList;
 		AssetRegistry.GetAssets(Filter, AssetDataList);
 
+		TSet<FString> OnlyAssetSet(OnlyAssetPaths);
+
 		for (const FAssetData& AssetData : AssetDataList)
 		{
 			FString AssetName = AssetData.AssetName.ToString();
@@ -421,6 +471,10 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 				RelativePath = FString(TEXT("Content/")) + RelativePath.Mid(6);
 			}
 			RelativePath.ReplaceInline(TEXT("/"), TEXT("/"));
+			if (bFilterToSpecificAssets && !OnlyAssetSet.Contains(RelativePath))
+			{
+				continue;
+			}
 			if (Settings && IsPathUnderExcluded(RelativePath, Settings->Exclusions, PlaceholdersWithBraces))
 			{
 				continue;

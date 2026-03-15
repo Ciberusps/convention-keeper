@@ -21,12 +21,23 @@ bool UConventionKeeperRule_NamingConvention_PascalCase::IsPascalCaseName(const F
 		return false;
 	}
 	TArray<FString> Segments;
-	Name.ParseIntoArray(Segments, TEXT("_"), true);
+	Name.ParseIntoArray(Segments, TEXT("_"), false);
 	for (const FString& Segment : Segments)
 	{
 		if (Segment.IsEmpty())
 		{
 			return false;
+		}
+		if (FChar::IsDigit(Segment[0]))
+		{
+			for (int32 i = 0; i < Segment.Len(); ++i)
+			{
+				if (!FChar::IsDigit(Segment[i]))
+				{
+					return false;
+				}
+			}
+			continue;
 		}
 		if (!FChar::IsUpper(Segment[0]))
 		{
