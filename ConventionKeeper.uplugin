@@ -15,10 +15,6 @@
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"EnabledByDefault": true,
-	"Plugins": [
-		{ "Name": "Paper2D", "Enabled": true },
-		{ "Name": "ControlRig", "Enabled": true }
-	],
 	"Modules": [
 		{
 			"Name": "ConventionKeeperEditor",

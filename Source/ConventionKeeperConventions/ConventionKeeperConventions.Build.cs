@@ -14,10 +14,6 @@ public class ConventionKeeperConventions : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"LevelSequence",
-				"Paper2D",
-				"ControlRig",
-				"ControlRigDeveloper",
 			}
 		);
 

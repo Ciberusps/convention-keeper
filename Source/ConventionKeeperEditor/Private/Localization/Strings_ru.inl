@@ -30,7 +30,7 @@
 { FName(TEXT("RuleDesc_asset-naming-level-sequence")), TEXT("Ассеты Level Sequence должны иметь префикс LS_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("RuleDesc_asset-naming-morph-target")), TEXT("Ассеты Morph Target должны иметь префикс MT_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("RuleDesc_asset-naming-paper-flipbook")), TEXT("Ассеты Paper Flipbook должны иметь префикс PFB_ (UE5 Style Guide 1.2.2).") },
-{ FName(TEXT("RuleDesc_asset-naming-control-rig")), TEXT("Ассеты Control Rig должны иметь префикс CR_ (UE5 Style Guide 1.2.2).") },
+{ FName(TEXT("RuleDesc_asset-naming-control-rig")), TEXT("Ассеты Control Rig / Rig должны иметь префикс CR_ или Rig_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("RuleDesc_asset-naming-skeletal-mesh")), TEXT("Ассеты Skeletal Mesh должны иметь префикс SK_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("RuleDesc_asset-naming-skeleton")), TEXT("Ассеты Skeleton должны иметь префикс SKEL_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("PascalCaseHintPrefix")), TEXT("Используйте PascalCase. {0}") },

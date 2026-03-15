@@ -33,7 +33,7 @@
 { FName(TEXT("RuleDesc_asset-naming-level-sequence")), TEXT("Level Sequence assets must use prefix LS_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("RuleDesc_asset-naming-morph-target")), TEXT("Morph Target assets must use prefix MT_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("RuleDesc_asset-naming-paper-flipbook")), TEXT("Paper Flipbook assets must use prefix PFB_ (UE5 Style Guide 1.2.2).") },
-{ FName(TEXT("RuleDesc_asset-naming-control-rig")), TEXT("Control Rig assets must use prefix CR_ (UE5 Style Guide 1.2.2).") },
+{ FName(TEXT("RuleDesc_asset-naming-control-rig")), TEXT("Control Rig / Rig assets must use prefix CR_ or Rig_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("RuleDesc_asset-naming-skeletal-mesh")), TEXT("Skeletal Mesh assets must use prefix SK_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("RuleDesc_asset-naming-skeleton")), TEXT("Skeleton assets must use prefix SKEL_ (UE5 Style Guide 1.2.2).") },
 { FName(TEXT("PascalCaseHintPrefix")), TEXT("Use PascalCase. {0}") },

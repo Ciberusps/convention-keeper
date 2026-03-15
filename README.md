@@ -32,6 +32,11 @@ TODO how to setup in project
 - language override for the project (Project Settings)
 - language override for the user (Editor Settings)
 
+## Conventions already implemented
+
+- ConventionKeeper convention (recommended) - default convention, you can create your own conventions by extending it (inherits from ue5-style-guide convention with overrides/additions)
+- [ue5-style-guide](https://github.com/Allar/ue5-style-guide) convention - 1 to 1 implementation of the UE5 Style Guide
+
 ## 🌐 Localization & languages
 
 Rule descriptions, validation messages in the Message Log, and the “ConventionKeeper offline” message are localized.

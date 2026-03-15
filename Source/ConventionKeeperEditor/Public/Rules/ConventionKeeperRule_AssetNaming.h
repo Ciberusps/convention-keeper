@@ -44,6 +44,12 @@ public:
 	TArray<TSubclassOf<UObject>> AssetClasses;
 
 	/**
+	 * Optional class paths (e.g. "/Script/ControlRigDeveloper.ControlRigBlueprint") resolved at runtime. Use instead of AssetClasses when the class lives in an optional module to avoid hard dependencies.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Asset Class Paths (optional modules)"))
+	TArray<FString> AssetClassPaths;
+
+	/**
 	 * Naming template: required prefix for asset names. Placeholders like {CharacterName} are filled from the folder path.
 	 * Example: "AS_{CharacterName}_" in folder .../Zombie/Animations → required prefix "AS_Zombie_". Name may have a trailing _NN (zero-padded to NumberPaddingDigits).
 	 */
@@ -59,6 +65,10 @@ public:
 	/** If non-empty, asset names must start with this exact string. Can be used alone or together with NamingTemplate (both are enforced). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Prefix;
+
+	/** When non-empty, asset names must start with one of these (e.g. CR_, Rig_). Takes precedence over Prefix for the prefix check when set. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FString> AllowedPrefixes;
 
 	/** If non-empty, asset names must end with this exact string (e.g. "_Physics"). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

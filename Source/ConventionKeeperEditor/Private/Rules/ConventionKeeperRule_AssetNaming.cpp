@@ -3,6 +3,7 @@
 #include "Rules/ConventionKeeperRule_AssetNaming.h"
 
 #include "AssetRegistry/ARFilter.h"
+#include "UObject/Class.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -512,10 +513,18 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 			continue;
 		}
 
+		TArray<FString> AllowedPrefixesResolved;
+		if (AllowedPrefixes.Num() > 0)
+		{
+			for (const FString& P : AllowedPrefixes)
+			{
+				AllowedPrefixesResolved.Add(ResolveNamingTemplate(P, PathPlaceholders));
+			}
+		}
 		FString RequiredPrefix = NamingTemplate.IsEmpty()
 			? (Prefix.IsEmpty() ? FString() : ResolveNamingTemplate(Prefix, PathPlaceholders))
 			: ResolveNamingTemplate(NamingTemplate, PathPlaceholders);
-		if (RequiredPrefix.IsEmpty())
+		if (RequiredPrefix.IsEmpty() && AllowedPrefixesResolved.Num() == 0)
 		{
 			continue;
 		}
@@ -528,6 +537,14 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 			if (Class.Get())
 			{
 				Filter.ClassPaths.Add(FTopLevelAssetPath(Class.Get()));
+			}
+		}
+		for (const FString& ClassPath : AssetClassPaths)
+		{
+			if (ClassPath.IsEmpty()) continue;
+			if (UClass* LoadedClass = UClass::TryFindTypeSlow<UClass>(*ClassPath, EFindFirstObjectOptions::ExactClass))
+			{
+				Filter.ClassPaths.Add(FTopLevelAssetPath(LoadedClass));
 			}
 		}
 		if (Filter.ClassPaths.IsEmpty())
@@ -560,7 +577,25 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 				continue;
 			}
 
-			bool bPrefixOk = RequiredPrefix.IsEmpty() || AssetName.StartsWith(RequiredPrefix);
+			bool bPrefixOk = false;
+			FString ExpectedPrefixForMessage;
+			if (AllowedPrefixesResolved.Num() > 0)
+			{
+				for (const FString& P : AllowedPrefixesResolved)
+				{
+					if (AssetName.StartsWith(P))
+					{
+						bPrefixOk = true;
+						break;
+					}
+				}
+				ExpectedPrefixForMessage = FString::Join(AllowedPrefixesResolved, TEXT(", "));
+			}
+			else
+			{
+				bPrefixOk = RequiredPrefix.IsEmpty() || AssetName.StartsWith(RequiredPrefix);
+				ExpectedPrefixForMessage = RequiredPrefix;
+			}
 			bool bSuffixOk = Suffix.IsEmpty() || AssetName.EndsWith(Suffix);
 			bool bNumberOk = IsNumberSuffixValid(AssetName, NumberPaddingDigits);
 
@@ -568,7 +603,7 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 			{
 				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 					ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefix"))),
-					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefixSuffix"))), FText::FromString(RequiredPrefix)));
+					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefixSuffix"))), FText::FromString(ExpectedPrefixForMessage)));
 			}
 			else if (!bSuffixOk)
 			{
