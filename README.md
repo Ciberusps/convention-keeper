@@ -45,15 +45,15 @@ Rule descriptions, validation messages in the Message Log, and the “Convention
 
 **Where to set**
 
-- **Project (default):** Project Settings → Convention Keeper → **Default Language**  
+- **Project (default):** Project Settings → Convention Keeper → **Default Language**
   - *Auto (system)* — use editor/system language; *English* / *Russian* — force that language.
-- **Per user:** Project Settings → **Convention Keeper (Local)** → **Local Override Language**  
+- **Per user:** Project Settings → **Convention Keeper (Local)** → **Local Override Language**
   - Stored in `Saved/Config/` (not in project). *Use project default* / *English* / *Russian*.
 
 **Rule docs**
 
 - English: `Docs/Rules/{RuleId}.md`
-- Other languages: `Docs/Rules/{Lang}/{RuleId}.md` (e.g. `Docs/Rules/ru/folder-structure-content.md`).  
+- Other languages: `Docs/Rules/{Lang}/{RuleId}.md` (e.g. `Docs/Rules/ru/folder-structure-content.md`).
 - If a localized file exists, the clickable rule link in the Message Log opens that version; otherwise the English doc is used.
 
 ## 🤔 How it works
@@ -75,16 +75,20 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Con
 
 ## 📖 Documentation
 
+## Features TODO:
 
-## TODO:
-
-- GameplayTags Rule
-- BP Rules (vars naming, etc.)
 - [ue5-style-guide](https://github.com/Allar/ue5-style-guide) convention
 - localization
 - auto-fix in MessageLog with Are you sure window to confirm changes
 - rules should work for plugins content as well
 
+## Rules TODO:
+
+- GameplayTags Rule
+- BP Rules (vars naming, etc.)
+- StateTree
+- AbilitySystem
+- DamageBehaviors
 
 ## 🤝 Contributing
 
