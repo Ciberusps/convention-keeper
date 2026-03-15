@@ -14,8 +14,9 @@ public class ConventionKeeperConventions : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"PhysicsCore",
 			}
-		);
+			);
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]

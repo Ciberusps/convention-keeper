@@ -525,10 +525,6 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 		FString RequiredPrefix = NamingTemplate.IsEmpty()
 			? (Prefix.IsEmpty() ? FString() : ResolveNamingTemplate(Prefix, PathPlaceholders))
 			: ResolveNamingTemplate(NamingTemplate, PathPlaceholders);
-		if (RequiredPrefix.IsEmpty() && AllowedPrefixesResolved.Num() == 0)
-		{
-			continue;
-		}
 
 		FARFilter Filter;
 		Filter.PackagePaths.Add(FName(*PackagePath));
@@ -624,10 +620,20 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 			{
 				continue;
 			}
+			if (!ShouldValidateAsset(AssetData))
+			{
+				continue;
+			}
 
 			bool bPrefixOk = false;
 			FString ExpectedPrefixForMessage;
-			if (AllowedPrefixesResolved.Num() > 0)
+			FString PerAssetPrefix;
+			if (GetRequiredPrefixForAsset(AssetData, PerAssetPrefix))
+			{
+				bPrefixOk = AssetName.StartsWith(PerAssetPrefix);
+				ExpectedPrefixForMessage = PerAssetPrefix;
+			}
+			else if (AllowedPrefixesResolved.Num() > 0)
 			{
 				for (const FString& P : AllowedPrefixesResolved)
 				{

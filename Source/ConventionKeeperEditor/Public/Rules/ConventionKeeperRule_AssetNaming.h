@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AssetRegistry/AssetData.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperRule_AssetNaming.generated.h"
 
@@ -82,6 +83,19 @@ public:
 
 	virtual bool CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const override;
 	virtual void Validate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) override;
+
+	/**
+	 * Override to skip assets that do not belong to this rule (e.g. Decal rule only validates assets that are actually decals).
+	 * When returns false, the asset is not validated by this rule. Default: true.
+	 */
+	virtual bool ShouldValidateAsset(const FAssetData& AssetData) const { return true; }
+
+	/**
+	 * Override to supply a per-asset required prefix (e.g. M_ vs PP_ for materials by domain).
+	 * When returns true, OutPrefix is used for this asset's prefix check instead of Prefix/AllowedPrefixes.
+	 * When returns false, the rule uses the normal Prefix or AllowedPrefixes.
+	 */
+	virtual bool GetRequiredPrefixForAsset(const FAssetData& AssetData, FString& OutPrefix) const { return false; }
 
 	/** Returns the required prefix for an asset name given path placeholder values (e.g. CharacterName=Zombie). */
 	static FString ResolveNamingTemplate(const FString& Template, const TMap<FString, FString>& PathPlaceholders);

@@ -22,6 +22,13 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BTTask.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_EnvQuery.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_EnvQueryContext.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Material.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MaterialFunction.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MaterialInstance.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MaterialParameterCollection.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SubsurfaceProfile.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_PhysicalMaterial.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Decal.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideConvention)
 
@@ -49,4 +56,11 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BTTask>(TEXT("Rule_AssetNaming_BTTask")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_EnvQuery>(TEXT("Rule_AssetNaming_EnvQuery")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_EnvQueryContext>(TEXT("Rule_AssetNaming_EnvQueryContext")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Material>(TEXT("Rule_AssetNaming_Material")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MaterialFunction>(TEXT("Rule_AssetNaming_MaterialFunction")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MaterialInstance>(TEXT("Rule_AssetNaming_MaterialInstance")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MaterialParameterCollection>(TEXT("Rule_AssetNaming_MaterialParameterCollection")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SubsurfaceProfile>(TEXT("Rule_AssetNaming_SubsurfaceProfile")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_PhysicalMaterial>(TEXT("Rule_AssetNaming_PhysicalMaterial")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Decal>(TEXT("Rule_AssetNaming_Decal")));
 }

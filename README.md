@@ -95,8 +95,6 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Con
 
 - [ue5-style-guide](https://github.com/Allar/ue5-style-guide) convention
 - localization
-- auto-fix in MessageLog with Are you sure window to confirm changes
-- rules should work for plugins content as well
 - folderstructure rules should have severity warn mostly, except root folder rule, make it warn by default
 - take settings/good practices from https://github.com/TheEmidee/UENamingConventionValidation
 
