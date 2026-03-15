@@ -33,16 +33,13 @@ In UI the user sees **only base rule types** (no clutter). Concrete rules = thin
 ```
                     UConventionKeeperRule (abstract)
                               │
-         ┌────────────────────┼────────────────────┐
-         ▼                    ▼                    ▼
-  Rule_AssetNaming    Rule_FolderStructure    Rule_* (other bases)
-         │                    │
+         ┌────────────────────┼────────────────────┬────────────────────┐
+         ▼                    ▼                      ▼                    ▼
+  Rule_AssetNaming    Rule_FolderStructure    Rule_NamingConvention   Rule_* (other bases)
+         │                    │                      │
          │  "Concrete" rules = thin subclasses, only set defaults:
-         │
-         ├── Rule_AssetNaming_CharacterAnimations   (.h only: RuleId, severity, description)
-         ├── Rule_AssetNaming_Textures
-         ├── Rule_FolderStructure_Content
-         └── Rule_FolderStructure_CoreAI
+         │                    │                      │
+         ├── ...              ├── ...                └── Rule_NamingConvention_PascalCase
 ```
 
 - **Class picker / "New rule"**: only `Rule_AssetNaming`, `Rule_FolderStructure`, … (3–5 base classes).
@@ -60,7 +57,9 @@ Plugins/convention-keeper/Source/
 │   └── Rules/
 │       ├── ConventionKeeperRule.h
 │       ├── ConventionKeeperRule_AssetNaming.h/.cpp
-│       └── ConventionKeeperRule_FolderStructure.h/.cpp
+│       ├── ConventionKeeperRule_FolderStructure.h/.cpp
+│       ├── ConventionKeeperRule_NamingConvention.h/.cpp
+│       └── ConventionKeeperRule_NamingConvention_PascalCase.h/.cpp
 │
 ├── ConventionKeeperConventions/        ← пресеты + их rules в одной папке на конвенцию
 │   ├── UHLConvention/
@@ -107,3 +106,21 @@ Plugins/convention-keeper/
 │               ├── Rule_FolderContent.h/.cpp
 │               └── ...
 ```
+
+## Checklist для новых Rule'ов (кроме BaseRule)
+
+Для **каждого нового конкретного правила** (не для абстрактного `UConventionKeeperRule`):
+
+1. **Документация**
+   - `Docs/Rules/{RuleId}.md` — описание правила, примеры, rationale.
+   - Ссылки на [UE5 Style Guide (v2)](https://github.com/Allar/ue5-style-guide/tree/v2?tab=readme-ov-file) в разделе **References**, если правило соотносится со стиль-гайдом (указывать конкретный якорь, напр. `#21-folder-names`).
+   - `Docs/Rules/ru/{RuleId}.md` — перевод того же текста.
+
+2. **Локализация**
+   - В конструкторе правила: `DescriptionKey = FName(TEXT("RuleDesc_{RuleId}"));`
+   - `Source/ConventionKeeperEditor/Private/Localization/Strings_en.inl`: запись `{ FName(TEXT("RuleDesc_{RuleId}")), TEXT("...") }` с описанием правила на английском.
+   - `Source/ConventionKeeperEditor/Private/Localization/Strings_ru.inl`: то же на русском.
+   - Любые новые сообщения валидации (ошибки/предупреждения) — отдельные ключи в обоих .inl.
+
+3. **Путь к доку**
+   - По умолчанию используется шаблон из Settings (`DocsRulePathTemplate` = `Docs/Rules/{RuleId}.md`). Если файл лежит там, переопределение не нужно. Иначе задать `DocPathOverride` в правиле.

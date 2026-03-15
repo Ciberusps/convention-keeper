@@ -17,3 +17,6 @@
 { FName(TEXT("AssetNamingSuggest")), TEXT(" (e.g. use \"{0}\")") },
 { FName(TEXT("AssetNamingOk")), TEXT("[{0}] Asset name OK: ") },
 { FName(TEXT("ConventionValidationPage")), TEXT("Convention validation") },
+{ FName(TEXT("NamingConventionFolder")), TEXT("[{0}] Folder name violates naming convention: {1}") },
+{ FName(TEXT("NamingConventionAsset")), TEXT("[{0}] Asset name violates naming convention: {1}") },
+{ FName(TEXT("RuleDesc_naming-convention-pascalcase")), TEXT("Folder and asset names must be PascalCase (each segment after underscore: leading uppercase, rest alphanumeric).") },

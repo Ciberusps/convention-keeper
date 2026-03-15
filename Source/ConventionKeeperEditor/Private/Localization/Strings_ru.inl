@@ -17,3 +17,6 @@
 { FName(TEXT("AssetNamingSuggest")), TEXT(" (напр. используйте \"{0}\")") },
 { FName(TEXT("AssetNamingOk")), TEXT("[{0}] Имя ассета OK: ") },
 { FName(TEXT("ConventionValidationPage")), TEXT("Проверка конвенции") },
+{ FName(TEXT("NamingConventionFolder")), TEXT("[{0}] Имя папки нарушает конвенцию: {1}") },
+{ FName(TEXT("NamingConventionAsset")), TEXT("[{0}] Имя ассета нарушает конвенцию: {1}") },
+{ FName(TEXT("RuleDesc_naming-convention-pascalcase")), TEXT("Имена папок и ассетов в PascalCase (каждый сегмент после подчёркивания: первая буква заглавная, остальное буквы и цифры).") },
