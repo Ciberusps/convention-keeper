@@ -25,8 +25,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
 	TArray<FDirectoryPath> BannedFolders = {};
 
+    // means folders other than RequiredFolders will throw error
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bOtherFoldersNotAllowed = true;
+	bool bOtherFoldersNotAllowed = false;
 
 	virtual bool CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const override;
 	virtual void Validate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) override;
@@ -45,7 +46,14 @@ public:
 private:
 	void ConvertAllPathsToRelativePaths();
 	static FString ResolvePlaceholdersForPath(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders);
-	static FString NormalizeRelativePath(const FString& InPath);
+	static FString GetRequiredFolderProjectRelative(
+		const FString& ResolvedBasePath,
+		const FString& RequiredFolderPath,
+		const TMap<FString, FString>& MergedPlaceholders);
+	static FString GetAbsolutePathForRequiredSubfolder(
+		const FString& ResolvedBasePath,
+		const FString& RequiredFolderPath,
+		const TMap<FString, FString>& MergedPlaceholders);
 	static TArray<FString> GetConcreteBasePathsForFolderRule(const FString& FolderPathPath, const TMap<FString, FString>& Placeholders, const UConventionKeeperSettings* Settings, const TArray<FString>& SelectedPaths);
 	static bool DoesDirectoryExist(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders);
 };

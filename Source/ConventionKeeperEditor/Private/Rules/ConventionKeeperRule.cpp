@@ -12,3 +12,14 @@ bool UConventionKeeperRule::CanValidate_Implementation(const TArray<FString>& /*
 void UConventionKeeperRule::Validate_Implementation(const TArray<FString>& /*SelectedPaths*/, const TMap<FString, FString>& /*Placeholders*/)
 {
 }
+
+FString UConventionKeeperRule::NormalizeRelativePath(const FString& InPath)
+{
+	FString Result = InPath;
+	Result.ReplaceInline(TEXT("\\"), TEXT("/"));
+	if (!Result.EndsWith(TEXT("/")))
+	{
+		Result += TEXT("/");
+	}
+	return Result;
+}

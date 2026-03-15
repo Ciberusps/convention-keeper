@@ -38,4 +38,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Validate(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders);
 	virtual void Validate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders);
+
+	/** Normalized project-relative path: forward slashes, trailing slash. Shared by FolderStructure and AssetNaming. */
+	static FString NormalizeRelativePath(const FString& InPath);
 };

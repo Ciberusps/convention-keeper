@@ -20,7 +20,9 @@ UUHLConvention::UUHLConvention()
 		FDirectoryPath("Content/3rdParty/"),
 		FDirectoryPath("Content/{ProjectName}/"),
 		FDirectoryPath("Content/FMOD/"),
-		FDirectoryPath("Content/Movies/")
+		FDirectoryPath("Content/Movies/"),
+	    FDirectoryPath("Content/Developers/"),
+	    FDirectoryPath("Content/Splash/"),
 	};
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Content"));
@@ -28,6 +30,7 @@ UUHLConvention::UUHLConvention()
 		Rule->Description = FText::FromString(TEXT("Root Content folder must contain 3rdParty, {ProjectName}, FMOD, Movies."));
 		Rule->FolderPath = ContentFolderPath;
 		Rule->RequiredFolders = ContentRequiredFolders;
+	    Rule->bOtherFoldersNotAllowed = true;
 		Rules.Add(Rule);
 	}
 

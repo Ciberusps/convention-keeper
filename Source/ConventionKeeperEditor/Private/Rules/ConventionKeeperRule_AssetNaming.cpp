@@ -3,6 +3,7 @@
 #include "Rules/ConventionKeeperRule_AssetNaming.h"
 
 #include "AssetRegistry/ARFilter.h"
+#include "Rules/ConventionKeeperRule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
@@ -17,13 +18,7 @@
 
 FString UConventionKeeperRule_AssetNaming::NormalizeRelativePath(const FString& InPath)
 {
-	FString Result = InPath;
-	Result.ReplaceInline(TEXT("\\"), TEXT("/"));
-	if (!Result.EndsWith(TEXT("/")))
-	{
-		Result += TEXT("/");
-	}
-	return Result;
+	return UConventionKeeperRule::NormalizeRelativePath(InPath);
 }
 
 namespace AssetNamingPathHelpers

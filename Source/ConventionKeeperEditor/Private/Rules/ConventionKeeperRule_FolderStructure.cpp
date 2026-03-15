@@ -3,6 +3,7 @@
 #include "Rules/ConventionKeeperRule_FolderStructure.h"
 
 #include "ConventionKeeperBlueprintLibrary.h"
+#include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperConvention.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Logging/MessageLog.h"
@@ -23,15 +24,43 @@ FString UConventionKeeperRule_FolderStructure::ResolvePlaceholdersForPath(const 
 	return ResultPath;
 }
 
-FString UConventionKeeperRule_FolderStructure::NormalizeRelativePath(const FString& InPath)
+FString UConventionKeeperRule_FolderStructure::GetRequiredFolderProjectRelative(
+	const FString& ResolvedBasePath,
+	const FString& RequiredFolderPath,
+	const TMap<FString, FString>& MergedPlaceholders)
 {
-	FString Result = InPath;
-	Result.ReplaceInline(TEXT("\\"), TEXT("/"));
-	if (!Result.EndsWith(TEXT("/")))
+	FString R = ResolvePlaceholdersForPath(RequiredFolderPath, MergedPlaceholders);
+	R.ReplaceInline(TEXT("\\"), TEXT("/"));
+	R.TrimStartAndEndInline();
+	while (R.StartsWith(TEXT("/")))
 	{
-		Result += TEXT("/");
+		R.RemoveFromStart(TEXT("/"));
 	}
-	return Result;
+	if (R.StartsWith(TEXT("Content/"), ESearchCase::IgnoreCase))
+	{
+		return R;
+	}
+	return UConventionKeeperRule::NormalizeRelativePath(ResolvedBasePath) + R;
+}
+
+FString UConventionKeeperRule_FolderStructure::GetAbsolutePathForRequiredSubfolder(
+	const FString& ResolvedBasePath,
+	const FString& RequiredFolderPath,
+	const TMap<FString, FString>& MergedPlaceholders)
+{
+	FString R = ResolvePlaceholdersForPath(RequiredFolderPath, MergedPlaceholders);
+	R.ReplaceInline(TEXT("\\"), TEXT("/"));
+	R.TrimStartAndEndInline();
+	while (R.StartsWith(TEXT("/")))
+	{
+		R.RemoveFromStart(TEXT("/"));
+	}
+	const FString ProjectDir = FPaths::ProjectDir();
+	if (R.StartsWith(TEXT("Content/"), ESearchCase::IgnoreCase))
+	{
+		return FPaths::ConvertRelativePathToFull(ProjectDir / R);
+	}
+	return FPaths::ConvertRelativePathToFull(ProjectDir / ResolvedBasePath / R);
 }
 
 namespace FolderStructurePathHelpers
@@ -110,7 +139,7 @@ FString SelectedPathAsContentForm(const FString& InPath)
 
 bool UConventionKeeperRule_FolderStructure::IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths)
 {
-	return IsRelevantPath(TArray<FString>{NormalizeRelativePath(ResolvedPath)}, SelectedPaths);
+	return IsRelevantPath(TArray<FString>{UConventionKeeperRule::NormalizeRelativePath(ResolvedPath)}, SelectedPaths);
 }
 
 bool UConventionKeeperRule_FolderStructure::IsRelevantPath(const TArray<FString>& ResolvedPathsToCheck, const TArray<FString>& SelectedPaths)
@@ -121,7 +150,7 @@ bool UConventionKeeperRule_FolderStructure::IsRelevantPath(const TArray<FString>
 	}
 	for (const FString& ResolvedPath : ResolvedPathsToCheck)
 	{
-		const FString NormalizedResolvedPath = NormalizeRelativePath(ResolvedPath);
+		const FString NormalizedResolvedPath = UConventionKeeperRule::NormalizeRelativePath(ResolvedPath);
 		for (const FString& SelectedPath : SelectedPaths)
 		{
 			const FString NormalizedSelectedPath = FolderStructurePathHelpers::SelectedPathAsContentForm(SelectedPath);
@@ -136,7 +165,7 @@ bool UConventionKeeperRule_FolderStructure::IsRelevantPath(const TArray<FString>
 
 bool UConventionKeeperRule_FolderStructure::IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& Exclusions, const TMap<FString, FString>& Placeholders)
 {
-	const FString NormalizedPath = NormalizeRelativePath(ResolvedPath);
+	const FString NormalizedPath = UConventionKeeperRule::NormalizeRelativePath(ResolvedPath);
 	for (const FString& Exclusion : Exclusions)
 	{
 		const FString ResolvedExclude = ResolvePlaceholdersForPath(Exclusion, Placeholders);
@@ -146,7 +175,7 @@ bool UConventionKeeperRule_FolderStructure::IsPathUnderExcluded(const FString& R
 		const bool bExclusionIsFolder = NormalizedExclude.EndsWith(TEXT("/"));
 		if (bExclusionIsFolder)
 		{
-			NormalizedExclude = NormalizeRelativePath(ResolvedExclude);
+			NormalizedExclude = UConventionKeeperRule::NormalizeRelativePath(ResolvedExclude);
 			if (NormalizedPath.StartsWith(NormalizedExclude) || NormalizedExclude.StartsWith(NormalizedPath))
 			{
 				return true;
@@ -206,12 +235,12 @@ bool UConventionKeeperRule_FolderStructure::CanValidate_Implementation(const TAr
 			{
 				P.RemoveFromStart(TEXT("/"));
 			}
-			PathsToCheck.Add(NormalizeRelativePath(P));
+			PathsToCheck.Add(UConventionKeeperRule::NormalizeRelativePath(P));
 		}
 	}
 	else
 	{
-		PathsToCheck.Add(NormalizeRelativePath(ResolvedFolderPath));
+		PathsToCheck.Add(UConventionKeeperRule::NormalizeRelativePath(ResolvedFolderPath));
 	}
 	return IsRelevantPath(PathsToCheck, SelectedPaths);
 }
@@ -305,12 +334,12 @@ TArray<FString> UConventionKeeperRule_FolderStructure::GetConcreteBasePathsForFo
 			{
 				P.RemoveFromStart(TEXT("/"));
 			}
-			PathsToCheck.Add(NormalizeRelativePath(P));
+			PathsToCheck.Add(UConventionKeeperRule::NormalizeRelativePath(P));
 		}
 	}
 	else
 	{
-		PathsToCheck.Add(NormalizeRelativePath(ResolvedFolderPath));
+		PathsToCheck.Add(UConventionKeeperRule::NormalizeRelativePath(ResolvedFolderPath));
 	}
 	if (SelectedPaths.IsEmpty())
 	{
@@ -399,22 +428,22 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 
 		for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 		{
-			const FString ResolvedRequired = ResolvePlaceholdersForPath(RequiredFolder.Path, MergedPlaceholders);
-			const FString AbsoluteRequired = FPaths::ProjectDir() / ResolvedRequired;
+			const FString AbsoluteRequired = GetAbsolutePathForRequiredSubfolder(ResolvedBasePath, RequiredFolder.Path, MergedPlaceholders);
+			const FString ResolvedRequiredForLog = ResolvePlaceholdersForPath(RequiredFolder.Path, MergedPlaceholders);
 			const bool bRequiredExists = FPaths::DirectoryExists(AbsoluteRequired);
 			if (!bRequiredExists)
 			{
 				LogRuleMessage(FailureSeverity, FText::Format(
 					LOCTEXT("RequiredSubfolderMissing", "[{0}] Required folder is missing: "),
 					FText::FromName(RuleId)),
-					&ResolvedRequired, FText::Format(LOCTEXT("RequiredSubfolderMissingSuffix", " (under {0})"), FText::FromString(ResolvedBasePath)));
+					&ResolvedRequiredForLog, FText::Format(LOCTEXT("RequiredSubfolderMissingSuffix", " (under {0})"), FText::FromString(ResolvedBasePath)));
 			}
 			else if (bDebug)
 			{
 				LogRuleMessage(EMessageSeverity::Info, FText::Format(
 					LOCTEXT("RequiredSubfolderExists", "[{0}] Required folder exists: "),
 					FText::FromName(RuleId)),
-					&ResolvedRequired, FText::FromString(TEXT(" — OK")));
+					&ResolvedRequiredForLog, FText::FromString(TEXT(" — OK")));
 			}
 		}
 
@@ -430,11 +459,13 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 					continue;
 				}
 
+				const FString DiskNorm = UConventionKeeperRule::NormalizeRelativePath(Folder);
 				bool bFolderAllowed = false;
 				for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 				{
-					const FString ResolvedRequired = ResolvePlaceholdersForPath(RequiredFolder.Path, MergedPlaceholders);
-					if (FPaths::IsSamePath(Folder, ResolvedRequired))
+					const FString RequiredProjectRelative = GetRequiredFolderProjectRelative(ResolvedBasePath, RequiredFolder.Path, MergedPlaceholders);
+					const FString RequiredNorm = UConventionKeeperRule::NormalizeRelativePath(RequiredProjectRelative);
+					if (DiskNorm.Equals(RequiredNorm, ESearchCase::IgnoreCase))
 					{
 						bFolderAllowed = true;
 						break;
