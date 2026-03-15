@@ -4,7 +4,7 @@
 
 UUHLRule_FolderCharacter::UUHLRule_FolderCharacter()
 {
-	RuleId = FName(TEXT("folder-character"));
+	RuleId = FName(TEXT("folder-structure-character"));
 	Description = FText::FromString(TEXT("Each character folder must have AI, Projectiles, Animations, Gyms, Data, Abilities, Materials."));
 	FolderPath = FDirectoryPath(TEXT("Content/{ProjectName}/Characters/{CharacterName}/"));
 	RequiredFolders = {

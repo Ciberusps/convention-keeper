@@ -1,4 +1,4 @@
-# folder-character
+# folder-structure-character
 
 В каждой папке персонажа `Content/{ProjectName}/Characters/{CharacterName}/` должны быть: **AI**, **Projectiles**, **Animations**, **Gyms**, **Data**, **Abilities**, **Materials**.
 

@@ -1,4 +1,4 @@
-# folder-core-ai
+# folder-structure-core-ai
 
 Папка `Content/{ProjectName}/Core/AI/` должна существовать.
 

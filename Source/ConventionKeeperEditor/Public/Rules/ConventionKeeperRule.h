@@ -27,7 +27,7 @@ class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule : public UObject
 	GENERATED_BODY()
 
 public:
-	/** Stable id for extend/override (e.g. folder-content); empty = no override key. */
+	/** Stable id for extend/override (e.g. folder-structure-content); empty = no override key. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName RuleId;
 

@@ -90,13 +90,13 @@ YourGame/Source/YourGame/
 Plugins/convention-keeper/
 ├── Docs/
 │   ├── Rules/                    ← оригиналы (дефолтный язык)
-│   │   ├── folder-content.md
-│   │   ├── folder-core-ai.md
+│   │   ├── folder-structure-content.md
+│   │   ├── folder-structure-core-ai.md
 │   │   ├── ru/                   ← переводы: та же структура имён
-│   │   │   ├── folder-content.md
-│   │   │   └── folder-core-ai.md
+│   │   │   ├── folder-structure-content.md
+│   │   │   └── folder-structure-core-ai.md
 │   │   └── fr/
-│   │       ├── folder-content.md
+│   │       ├── folder-structure-content.md
 │   │       └── ...
 │   └── RuleOverrideSystem.md
 ├── Source/

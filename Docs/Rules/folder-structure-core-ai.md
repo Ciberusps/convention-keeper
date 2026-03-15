@@ -1,10 +1,10 @@
-# folder-core-ai
+# folder-structure-core-ai
 
 The folder `Content/{ProjectName}/Core/AI/` must exist.
 
 ## Rationale
 
-Core AI assets (behavior trees, blackboards, services) are kept in a single place under the project’s Core folder, separate from per-character AI.
+Core AI assets (behavior trees, blackboards, services) are kept in a single place under the project's Core folder, separate from per-character AI.
 
 ## References
 

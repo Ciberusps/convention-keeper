@@ -4,7 +4,7 @@
 
 UUHLRule_FolderProjectName::UUHLRule_FolderProjectName()
 {
-	RuleId = FName(TEXT("folder-project-name"));
+	RuleId = FName(TEXT("folder-structure-project-name"));
 	Description = FText::FromString(TEXT("Under Content/{ProjectName}/ require Characters, Maps, Core, SFX, VFX, AI."));
 	FolderPath = FDirectoryPath(TEXT("Content/{ProjectName}/"));
 	RequiredFolders = {

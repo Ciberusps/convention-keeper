@@ -43,7 +43,7 @@
 
 1. **UConventionKeeperRule** (базовый класс правил):
    - **Стабильный идентификатор**: `UPROPERTY(EditDefaultsOnly) FName RuleId;`  
-   - В UHL для правил FolderStructure задавать id с префиксом и через тире, например: `folder-content`, `folder-project-name`, `folder-character`, `folder-core-ai`.
+   - В UHL для правил FolderStructure задавать id с префиксом и через тире, например: `folder-structure-content`, `folder-structure-project-name`, `folder-structure-character`, `folder-structure-core-ai`.
 
 2. **UConventionKeeperConvention**:
    - `UPROPERTY(EditAnywhere) TSubclassOf<UConventionKeeperConvention> ExtendsConvention;` — опционально, если не задан — это «корневая» конвенция.
@@ -107,7 +107,7 @@ struct FRuleOverride
 
 - В редакторе пользователь выбирает свой Blueprint конвенции (наследник UHLConvention).
 - В Blueprint задаёт `ExtendsConvention = UUHLConvention` (или оставляет родительский класс и тогда extends = родитель).
-- В `RuleOverrides` отключает или заменяет правила по `RuleId` (например `folder-character`, `folder-core-ai`).
+- В `RuleOverrides` отключает или заменяет правила по `RuleId` (например `folder-structure-character`, `folder-structure-core-ai`).
 - При необходимости добавляет свои правила в `AdditionalRules` (для них RuleId может быть пустым или игнорироваться при мерже).
 
 При добавлении нового правила в UHL (новый `RuleId`, новый элемент в `Rules`) все конвенции, у которых ExtendsConvention = UHL, автоматически получают это правило через `GetEffectiveRules()`.
@@ -126,7 +126,7 @@ struct FRuleOverride
 
 ## Краткий чеклист внедрения (вариант 1)
 
-1. В `UConventionKeeperRule` поле `FName RuleId`; в UHL для FolderStructure правил — id с префиксом и тире: `folder-content`, `folder-project-name`, `folder-character`, `folder-core-ai`.
+1. В `UConventionKeeperRule` поле `FName RuleId`; в UHL для FolderStructure правил — id с префиксом и тире: `folder-structure-content`, `folder-structure-project-name`, `folder-structure-character`, `folder-structure-core-ai`.
 2. Ввести `FRuleOverride` и поля `ExtendsConvention`, `RuleOverrides`, `AdditionalRules` в `UConventionKeeperConvention`.
 3. Реализовать `GetEffectiveRules()` с мержем от базы и применением overrides.
 4. Заменить использование `Rules` на `GetEffectiveRules()` в валидации (ValidateFolderStructures, ValidateFolderStructuresForPaths и т.д.).

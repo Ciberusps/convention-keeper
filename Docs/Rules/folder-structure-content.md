@@ -1,4 +1,4 @@
-# folder-content
+# folder-structure-content
 
 Root Content folder must contain: **3rdParty**, **{ProjectName}**, **FMOD**, **Movies**, **Developers**, **Splash**.
 

@@ -1,4 +1,4 @@
-# folder-project-name
+# folder-structure-project-name
 
 В `Content/{ProjectName}/` обязательны папки: **Characters**, **Maps**, **Core**, **SFX**, **VFX**, **AI**.
 

@@ -4,7 +4,7 @@
 
 UUHLRule_FolderCoreAI::UUHLRule_FolderCoreAI()
 {
-	RuleId = FName(TEXT("folder-core-ai"));
+	RuleId = FName(TEXT("folder-structure-core-ai"));
 	Description = FText::FromString(TEXT("Content/{ProjectName}/Core/AI/ must exist."));
 	FolderPath = FDirectoryPath(TEXT("Content/{ProjectName}/Core/AI/"));
 }

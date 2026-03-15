@@ -1,4 +1,4 @@
-# folder-content
+# folder-structure-content
 
 В корне `Content/` должны быть папки: **3rdParty**, **{ProjectName}**, **FMOD**, **Movies**, **Developers**, **Splash**.
 

@@ -4,7 +4,7 @@
 
 UUHLRule_FolderContent::UUHLRule_FolderContent()
 {
-	RuleId = FName(TEXT("folder-content"));
+	RuleId = FName(TEXT("folder-structure-content"));
 	Description = FText::FromString(TEXT("Root Content folder must contain 3rdParty, {ProjectName}, FMOD, Movies."));
 	FolderPath = FDirectoryPath(TEXT("Content/"));
 	RequiredFolders = {

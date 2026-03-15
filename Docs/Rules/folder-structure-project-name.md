@@ -1,4 +1,4 @@
-# folder-project-name
+# folder-structure-project-name
 
 Under `Content/{ProjectName}/` the following folders are **required**: **Characters**, **Maps**, **Core**, **SFX**, **VFX**, **AI**.
 

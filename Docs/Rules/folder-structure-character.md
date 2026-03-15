@@ -1,4 +1,4 @@
-# folder-character
+# folder-structure-character
 
 Each character folder under `Content/{ProjectName}/Characters/{CharacterName}/` must have: **AI**, **Projectiles**, **Animations**, **Gyms**, **Data**, **Abilities**, **Materials**.
 
