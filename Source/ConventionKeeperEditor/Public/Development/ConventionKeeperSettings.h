@@ -69,20 +69,32 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, meta=(RelativePath))
 	TArray<FString> Exclusions = {};
 
-    /** When enabled, every check is logged: failures as Error/Warning, passed checks as Info. */
-    UPROPERTY(Config, EditAnywhere)
-    bool bDebug = false;
-
 	/** When enabled, convention (including Asset Naming rules) is validated after saving an asset. Disabled during autosave. */
 	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
 	bool bValidateAssetNamingOnSave = true;
 
+    /** When enabled, every check is logged: failures as Error/Warning, passed checks as Info. */
+    UPROPERTY(Config, EditAnywhere, AdvancedDisplay)
+    bool bDebug = false;
+
 	/** Default language for the project. Used when no local override is set. Auto = use system/editor language. */
-	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Default Language"))
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Default Language"))
 	EConventionKeeperLanguage DefaultLanguage = EConventionKeeperLanguage::Auto;
 
 	/** Resolved language code for localization: "en" or "ru". Uses local override if set, else project default (Auto → system). */
 	FString GetEffectiveLanguageCode() const;
+
+	/** Base URL for rule documentation. Used to build links like {Url}/blob/{Branch}/{DocPathTemplate}. Default: upstream plugin repo. */
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Documentation repository URL"))
+	FString DocsRepositoryUrl = TEXT("https://github.com/Ciberusps/convention-keeper");
+
+	/** Branch or tag for doc links (e.g. main, master). */
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Documentation branch"))
+	FString DocsBranch = TEXT("main");
+
+	/** Path template relative to repo; {RuleId} is replaced by the rule id (e.g. Plugins/convention-keeper/docs/rules/{RuleId}.md). */
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Rule doc path template"))
+	FString DocsRulePathTemplate = TEXT("Plugins/convention-keeper/docs/rules/{RuleId}.md");
 
 	//~UDeveloperSettings interface
 	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }

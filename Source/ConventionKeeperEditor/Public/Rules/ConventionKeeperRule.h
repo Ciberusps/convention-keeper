@@ -36,6 +36,13 @@ public:
 	/** Returns localized description. Prefers Convention->GetLocalizedRuleDescription when Convention is set; else DescriptionKey (global loc) or Description. */
 	FText GetDisplayDescription(const UConventionKeeperConvention* Convention = nullptr) const;
 
+	/** Optional override for doc path (e.g. docs/rules/custom-name.md). If empty, path is built from Settings template and RuleId. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (DisplayName = "Doc path override"))
+	FString DocPathOverride;
+
+	/** Full URL to the rule documentation (GitHub blob or raw). Empty if DocsRepositoryUrl not set. */
+	FString GetDocumentationUrl() const;
+
 	/** Severity when this rule fails (Error or Warning). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EConventionRuleSeverity Severity = EConventionRuleSeverity::Error;
