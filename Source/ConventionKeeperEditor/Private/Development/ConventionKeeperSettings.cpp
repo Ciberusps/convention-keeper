@@ -5,7 +5,6 @@
 #include "Conventions/UHLConvention/UHLConvention.h"
 #include "Internationalization/Culture.h"
 #include "Internationalization/Internationalization.h"
-#include "Misc/ConfigCacheIni.h"
 #include "UObject/UnrealType.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperSettings)
@@ -19,23 +18,6 @@ void UConventionKeeperSettings::PostLoad()
 {
 	Super::PostLoad();
 	bConventionAssetIsSet = !ConventionAsset.IsNull();
-	int32 LegacyLanguage = -1;
-	const FString ConfigFilename = GetDefaultConfigFilename();
-	if (GConfig->GetInt(*GetClass()->GetPathName(), TEXT("Language"), LegacyLanguage, ConfigFilename) && LegacyLanguage >= 0 && LegacyLanguage <= 2)
-	{
-		DefaultLanguage = static_cast<EConventionKeeperLanguage>(LegacyLanguage);
-		SaveConfig(CPF_Config);
-		GConfig->RemoveKey(*GetClass()->GetPathName(), TEXT("Language"), ConfigFilename);
-	}
-	if (Exclusions.Num() == 0)
-	{
-		TArray<FString> LegacyExcludeFolders;
-		if (GConfig->GetArray(*GetClass()->GetPathName(), TEXT("ExcludeFolders"), LegacyExcludeFolders, ConfigFilename) && LegacyExcludeFolders.Num() > 0)
-		{
-			Exclusions = MoveTemp(LegacyExcludeFolders);
-			SaveConfig(CPF_Config);
-		}
-	}
 }
 
 void UConventionKeeperSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
