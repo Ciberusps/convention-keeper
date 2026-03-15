@@ -28,9 +28,33 @@ git submodule update --remote`
 
 TODO how to setup in project
 
-- set project name folder (Project Settings) - your main folder name in Content/
+- set project name folder (Project Settings) - your main folder name in Content/ (defaults to the project name)
 - language override for the project (Project Settings)
 - language override for the user (Editor Settings)
+
+## 🌐 Localization & languages
+
+Rule descriptions, validation messages in the Message Log, and the “ConventionKeeper offline” message are localized.
+
+**Supported languages**
+
+| Code | Language |
+|------|----------|
+| `en` | English (default) |
+| `ru` | Russian |
+
+**Where to set**
+
+- **Project (default):** Project Settings → Convention Keeper → **Default Language**  
+  - *Auto (system)* — use editor/system language; *English* / *Russian* — force that language.
+- **Per user:** Project Settings → **Convention Keeper (Local)** → **Local Override Language**  
+  - Stored in `Saved/Config/` (not in project). *Use project default* / *English* / *Russian*.
+
+**Rule docs**
+
+- English: `Docs/Rules/{RuleId}.md`
+- Other languages: `Docs/Rules/{Lang}/{RuleId}.md` (e.g. `Docs/Rules/ru/folder-structure-content.md`).  
+- If a localized file exists, the clickable rule link in the Message Log opens that version; otherwise the English doc is used.
 
 ## 🤔 How it works
 
