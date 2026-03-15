@@ -27,6 +27,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Content"));
 		Rule->RuleId = FName(TEXT("folder-content"));
+		Rule->DescriptionKey = FName(TEXT("Desc_folder_content"));
 		Rule->Description = FText::FromString(TEXT("Root Content folder must contain 3rdParty, {ProjectName}, FMOD, Movies."));
 		Rule->FolderPath = ContentFolderPath;
 		Rule->RequiredFolders = ContentRequiredFolders;
@@ -46,6 +47,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_ProjectName"));
 		Rule->RuleId = FName(TEXT("folder-project-name"));
+		Rule->DescriptionKey = FName(TEXT("Desc_folder_project_name"));
 		Rule->Description = FText::FromString(TEXT("Under Content/{ProjectName}/ require Characters, Maps, Core, SFX, VFX, AI."));
 		Rule->FolderPath = ProjectNameFolderPath;
 		Rule->RequiredFolders = ProjectNameRequiredFolders;
@@ -65,6 +67,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_Character"));
 		Rule->RuleId = FName(TEXT("folder-character"));
+		Rule->DescriptionKey = FName(TEXT("Desc_folder_character"));
 		Rule->Description = FText::FromString(TEXT("Each character folder must have AI, Projectiles, Animations, Gyms, Data, Abilities, Materials."));
 		Rule->FolderPath = CharacterFolderPath;
 		Rule->RequiredFolders = CharacterRequiredFolders;
@@ -75,6 +78,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_FolderStructure* Rule = CreateDefaultSubobject<UConventionKeeperRule_FolderStructure>(TEXT("Rule_CoreAI"));
 		Rule->RuleId = FName(TEXT("folder-core-ai"));
+		Rule->DescriptionKey = FName(TEXT("Desc_folder_core_ai"));
 		Rule->Description = FText::FromString(TEXT("Content/{ProjectName}/Core/AI/ must exist."));
 		Rule->FolderPath = CoreFolderPath;
 		Rules.Add(Rule);
@@ -83,6 +87,7 @@ UUHLConvention::UUHLConvention()
 	{
 		UConventionKeeperRule_AssetNaming* Rule = CreateDefaultSubobject<UConventionKeeperRule_AssetNaming>(TEXT("Rule_CharacterAnimNaming"));
 		Rule->RuleId = FName(TEXT("asset-naming-character-animations"));
+		Rule->DescriptionKey = FName(TEXT("Desc_asset_naming_character_animations"));
 		Rule->Description = FText::FromString(TEXT("Animations in Content/{ProjectName}/Characters/{CharacterName}/Animations must be named AS_{CharacterName}_* with optional zero-padded number suffix (e.g. AS_Zombie_Jump_01)."));
 		Rule->FolderPathPattern.Path = TEXT("Content/{ProjectName}/Characters/{CharacterName}/Animations");
 		Rule->AssetClasses = { UAnimSequence::StaticClass() };

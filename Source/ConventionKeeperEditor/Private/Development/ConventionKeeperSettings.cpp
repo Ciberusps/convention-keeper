@@ -3,6 +3,8 @@
 #include "Development/ConventionKeeperSettings.h"
 
 #include "Conventions/UHLConvention/UHLConvention.h"
+#include "Internationalization/Culture.h"
+#include "Internationalization/Internationalization.h"
 #include "Misc/ConfigCacheIni.h"
 #include "UObject/UnrealType.h"
 
@@ -58,4 +60,24 @@ TMap<FString, FString> UConventionKeeperSettings::GetPlaceholders() const
 	};
 	InternalPlaceholders.Append(Placeholders);
 	return InternalPlaceholders;
+}
+
+FString UConventionKeeperSettings::GetEffectiveLanguageCode() const
+{
+	switch (Language)
+	{
+	case EConventionKeeperLanguage::English:
+		return TEXT("en");
+	case EConventionKeeperLanguage::Russian:
+		return TEXT("ru");
+	case EConventionKeeperLanguage::Auto:
+	default:
+		break;
+	}
+	FString Current = FInternationalization::Get().GetCurrentLanguage()->GetName();
+	if (Current.StartsWith(TEXT("ru"), ESearchCase::IgnoreCase))
+	{
+		return TEXT("ru");  
+	}
+	return TEXT("en");
 }

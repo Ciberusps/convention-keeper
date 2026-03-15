@@ -3,6 +3,7 @@
 #include "ConventionKeeperConvention.h"
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
+#include "Localization/ConventionKeeperLocalization.h"
 #include "Logging/MessageLog.h"
 #include "Misc/Paths.h"
 #include "UObject/UnrealType.h"
@@ -159,7 +160,7 @@ void UConventionKeeperConvention::ValidateFolderStructuresForPaths(const TArray<
 
 	if (!IsRunningCommandlet())
 	{
-		FMessageLog(TEXT("ConventionKeeper")).NewPage(FText::FromString(TEXT("Convention validation")));
+		FMessageLog(TEXT("ConventionKeeper")).NewPage(ConventionKeeperLoc::GetText(FName(TEXT("ConventionValidationPage"))));
 	}
 
 	const TArray<UConventionKeeperRule*> EffectiveRules = GetEffectiveRules();

@@ -3,6 +3,7 @@
 #include "Rules/ConventionKeeperRule_AssetNaming.h"
 
 #include "AssetRegistry/ARFilter.h"
+#include "Localization/ConventionKeeperLocalization.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "ConventionKeeperBlueprintLibrary.h"
@@ -11,8 +12,6 @@
 #include "Logging/TokenizedMessage.h"
 #include "Misc/Paths.h"
 #include "Misc/PackageName.h"
-
-#define LOCTEXT_NAMESPACE "ConventionKeeperRule_AssetNaming"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule_AssetNaming)
 
@@ -632,36 +631,34 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 			if (!bPrefixOk)
 			{
 				AssetNamingRule::LogRuleMessage(FailureSeverity,
-					FText::Format(LOCTEXT("AssetNamingPrefix", "[{0}] Asset must start with prefix: "),
+					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefix"))),
 						FText::FromName(RuleId)),
-					&RelativePath, FText::Format(LOCTEXT("AssetNamingPrefixSuffix", " (expected \"{0}\")"), FText::FromString(RequiredPrefix)));
+					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefixSuffix"))), FText::FromString(RequiredPrefix)));
 			}
 			else if (!bSuffixOk)
 			{
 				AssetNamingRule::LogRuleMessage(FailureSeverity,
-					FText::Format(LOCTEXT("AssetNamingSuffix", "[{0}] Asset must end with suffix: "),
+					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffix"))),
 						FText::FromName(RuleId)),
-					&RelativePath, FText::Format(LOCTEXT("AssetNamingSuffixVal", " (expected \"{0}\")"), FText::FromString(Suffix)));
+					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffixVal"))), FText::FromString(Suffix)));
 			}
 			else if (!bNumberOk)
 			{
 				FString Suggested = SuggestZeroPaddedName(AssetName, NumberPaddingDigits);
 				AssetNamingRule::LogRuleMessage(FailureSeverity,
-					FText::Format(LOCTEXT("AssetNamingNumber", "[{0}] Numeric suffix must be zero-padded to {1} digits: "),
+					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingNumber"))),
 						FText::FromName(RuleId), FText::AsNumber(NumberPaddingDigits)),
-					&RelativePath, FText::Format(LOCTEXT("AssetNamingSuggest", " (e.g. use \"{0}\")"), FText::FromString(Suggested)));
+					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuggest"))), FText::FromString(Suggested)));
 			}
 			else if (bDebug)
 			{
 				AssetNamingRule::LogRuleMessage(EMessageSeverity::Info,
-					FText::Format(LOCTEXT("AssetNamingOk", "[{0}] Asset name OK: "), FText::FromName(RuleId)),
+					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingOk"))), FText::FromName(RuleId)),
 					&RelativePath, FText::FromString(TEXT("")));
 			}
 		}
 	}
 }
-
-#undef LOCTEXT_NAMESPACE
 
 #if WITH_EDITOR
 void UConventionKeeperRule_AssetNaming::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

@@ -6,6 +6,13 @@
 #include "ConventionKeeperConvention.h"
 #include "ConventionKeeperSettings.generated.h"
 
+UENUM(BlueprintType)
+enum class EConventionKeeperLanguage : uint8
+{
+	Auto    UMETA(DisplayName = "Auto (system)"),
+	English UMETA(DisplayName = "English"),
+	Russian UMETA(DisplayName = "Russian")
+};
 
 // USTRUCT(BlueprintType)
 // struct UHLCONVENTIONKEEPEREDITOR_API FUHECustomClassIconDescription
@@ -57,6 +64,13 @@ public:
     /** When enabled, every check is logged: failures as Error/Warning, passed checks as Info. */
     UPROPERTY(Config, EditAnywhere)
     bool bDebug = false;
+
+	/** Language for rule descriptions and validation messages. Auto = use system/editor language (ru if Russian, else en). */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Language"))
+	EConventionKeeperLanguage Language = EConventionKeeperLanguage::Auto;
+
+	/** Resolved language code for localization: "en" or "ru". When Auto, derived from system/editor language. */
+	FString GetEffectiveLanguageCode() const;
 
 	//~UDeveloperSettings interface
 	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }

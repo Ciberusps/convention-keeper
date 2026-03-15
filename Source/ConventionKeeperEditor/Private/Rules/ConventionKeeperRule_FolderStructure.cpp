@@ -3,14 +3,13 @@
 #include "Rules/ConventionKeeperRule_FolderStructure.h"
 
 #include "ConventionKeeperBlueprintLibrary.h"
+#include "Localization/ConventionKeeperLocalization.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperConvention.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Logging/MessageLog.h"
 #include "Logging/TokenizedMessage.h"
 #include "Misc/Paths.h"
-
-#define LOCTEXT_NAMESPACE "ConventionKeeperRule_FolderStructure"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule_FolderStructure)
 
@@ -402,7 +401,7 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 		if (!bExists)
 		{
 			LogRuleMessage(FailureSeverity, FText::Format(
-				LOCTEXT("FolderMissing", "[{0}] Required folder is missing: "),
+				ConventionKeeperLoc::GetText(FName(TEXT("FolderMissing"))),
 				FText::FromName(RuleId)),
 				&ResolvedBasePath);
 			continue;
@@ -410,9 +409,9 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 		if (bDebug)
 		{
 			LogRuleMessage(EMessageSeverity::Info, FText::Format(
-				LOCTEXT("FolderExists", "[{0}] Folder exists: "),
+				ConventionKeeperLoc::GetText(FName(TEXT("FolderExists"))),
 				FText::FromName(RuleId)),
-				&ResolvedBasePath, FText::FromString(TEXT(" — OK")));
+				&ResolvedBasePath, ConventionKeeperLoc::GetText(FName(TEXT("FolderOkSuffix"))));
 		}
 
 		TMap<FString, FString> PathPlaceholders;
@@ -434,16 +433,16 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 			if (!bRequiredExists)
 			{
 				LogRuleMessage(FailureSeverity, FText::Format(
-					LOCTEXT("RequiredSubfolderMissing", "[{0}] Required folder is missing: "),
+					ConventionKeeperLoc::GetText(FName(TEXT("RequiredSubfolderMissing"))),
 					FText::FromName(RuleId)),
-					&ResolvedRequiredForLog, FText::Format(LOCTEXT("RequiredSubfolderMissingSuffix", " (under {0})"), FText::FromString(ResolvedBasePath)));
+					&ResolvedRequiredForLog, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("RequiredSubfolderMissingSuffix"))), FText::FromString(ResolvedBasePath)));
 			}
 			else if (bDebug)
 			{
 				LogRuleMessage(EMessageSeverity::Info, FText::Format(
-					LOCTEXT("RequiredSubfolderExists", "[{0}] Required folder exists: "),
+					ConventionKeeperLoc::GetText(FName(TEXT("RequiredSubfolderExists"))),
 					FText::FromName(RuleId)),
-					&ResolvedRequiredForLog, FText::FromString(TEXT(" — OK")));
+					&ResolvedRequiredForLog, ConventionKeeperLoc::GetText(FName(TEXT("FolderOkSuffix"))));
 			}
 		}
 
@@ -475,24 +474,22 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 				if (!bFolderAllowed)
 				{
 					LogRuleMessage(FailureSeverity, FText::Format(
-						LOCTEXT("DisallowedFolder", "[{0}] Folder not allowed in "),
+						ConventionKeeperLoc::GetText(FName(TEXT("DisallowedFolder"))),
 						FText::FromName(RuleId)),
-						&ResolvedBasePath, FText::Format(LOCTEXT("DisallowedFolderSuffix", ": {0}"), FText::FromString(Folder)));
+						&ResolvedBasePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("DisallowedFolderSuffix"))), FText::FromString(Folder)));
 				}
 			}
 
 			if (bDebug && AllFoldersInThisPath.Num() == 0)
 			{
 				LogRuleMessage(EMessageSeverity::Info, FText::Format(
-					LOCTEXT("NoExtraFolders", "[{0}] No disallowed folders in "),
+					ConventionKeeperLoc::GetText(FName(TEXT("NoExtraFolders"))),
 					FText::FromName(RuleId)),
-					&ResolvedBasePath, FText::FromString(TEXT(" — OK")));
+					&ResolvedBasePath, ConventionKeeperLoc::GetText(FName(TEXT("FolderOkSuffix"))));
 			}
 		}
 	}
 }
-
-#undef LOCTEXT_NAMESPACE
 
 #if WITH_EDITOR
 void UConventionKeeperRule_FolderStructure::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

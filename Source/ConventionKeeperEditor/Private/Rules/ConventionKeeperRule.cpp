@@ -2,7 +2,17 @@
 
 #include "Rules/ConventionKeeperRule.h"
 
+#include "Localization/ConventionKeeperLocalization.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule)
+
+FText UConventionKeeperRule::GetDisplayDescription() const
+{
+	if (!DescriptionKey.IsNone())
+	{
+		return ConventionKeeperLoc::GetText(DescriptionKey);
+	}
+	return Description;
+}
 
 bool UConventionKeeperRule::CanValidate_Implementation(const TArray<FString>& /*SelectedPaths*/, const TMap<FString, FString>& /*Placeholders*/) const
 {

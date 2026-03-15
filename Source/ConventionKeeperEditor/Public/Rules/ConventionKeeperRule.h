@@ -27,6 +27,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (MultiLine = true))
 	FText Description;
 
+	/** If set, localized description is used (Settings → Language). Otherwise Description is shown. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "false", EditConditionHides))
+	FName DescriptionKey;
+
+	/** Returns localized description when DescriptionKey is set, otherwise Description. */
+	FText GetDisplayDescription() const;
+
 	/** Severity when this rule fails (Error or Warning). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EConventionRuleSeverity Severity = EConventionRuleSeverity::Error;
