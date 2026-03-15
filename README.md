@@ -53,7 +53,7 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Con
 - GameplayTags Rule
 - [ue5-style-guide](https://github.com/Allar/ue5-style-guide)
 - localization
-- auto-fix
+- auto-fix in MessageLog with Are you sure window to confirm changes
 
 
 ## 🤝 Contributing

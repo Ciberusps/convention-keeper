@@ -50,6 +50,13 @@ void UConventionKeeperConvention::PostLoad()
 			Rule->RefreshDocumentationFields();
 		}
 	}
+	for (UConventionKeeperRule* Rule : ExtendedRules)
+	{
+		if (Rule)
+		{
+			Rule->RefreshDocumentationFields();
+		}
+	}
 #endif
 }
 
@@ -65,6 +72,15 @@ void UConventionKeeperConvention::PostEditChangeProperty(FPropertyChangedEvent& 
 		|| PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConventionAsset))
 	{
 		RefreshExtendedRules();
+#if WITH_EDITOR
+		for (UConventionKeeperRule* Rule : ExtendedRules)
+		{
+			if (Rule)
+			{
+				Rule->RefreshDocumentationFields();
+			}
+		}
+#endif
 	}
 }
 

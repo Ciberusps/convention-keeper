@@ -50,7 +50,6 @@ public class ConventionKeeperEditor : ModuleRules
 				"ToolMenus",
 				
 				"DeveloperSettings",
-				"HTTP",
 				"EditorWidgets",
 				"MessageLog",
 				"AssetTools",

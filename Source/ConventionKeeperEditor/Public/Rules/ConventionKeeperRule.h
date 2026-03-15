@@ -33,6 +33,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "false", EditConditionHides))
 	FName DescriptionKey;
 
+    /** Severity when this rule fails (Error or Warning). */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    EConventionRuleSeverity Severity = EConventionRuleSeverity::Error;
+
 	/** Returns localized description. Prefers Convention->GetLocalizedRuleDescription when Convention is set; else DescriptionKey (global loc) or Description. */
 	FText GetDisplayDescription(const UConventionKeeperConvention* Convention = nullptr) const;
 
@@ -40,11 +44,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (DisplayName = "Doc path override"))
 	FString DocPathOverride;
 
-	/** Full URL to the rule documentation (GitHub). Read-only; click to open in browser. */
+	/** URL to the rule documentation (GitHub). Read-only. Copy and open in browser; editor has no built-in URL type with open button. */
 	UPROPERTY(Transient, VisibleAnywhere, meta = (DisplayName = "Documentation URL", ReadOnly))
 	FString DocumentationUrl;
 
-	/** Markdown content loaded from repo (read-only, expandable). Fetched when rule is loaded or URL changes. */
+	/** Markdown from local file only (docs path from Settings). If file is missing, shows «View at link only.» */
 	UPROPERTY(Transient, VisibleAnywhere, meta = (DisplayName = "Documentation (markdown)", ReadOnly, MultiLine = true))
 	FString DocumentationContent;
 
@@ -54,9 +58,6 @@ public:
 	/** Raw URL to fetch markdown content (e.g. raw.githubusercontent.com). Empty if no doc URL. */
 	FString GetDocumentationRawUrl() const;
 
-	/** Severity when this rule fails (Error or Warning). */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	EConventionRuleSeverity Severity = EConventionRuleSeverity::Error;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool CanValidate(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const;

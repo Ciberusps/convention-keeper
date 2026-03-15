@@ -4,11 +4,10 @@
 
 #include "ConventionKeeperConvention.h"
 #include "Development/ConventionKeeperSettings.h"
-#include "HttpModule.h"
-#include "Interfaces/IHttpRequest.h"
-#include "Interfaces/IHttpResponse.h"
 #include "Localization/ConventionKeeperLocalization.h"
-#include "Async/Async.h"
+#include "Interfaces/IPluginManager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule)
 
 FText UConventionKeeperRule::GetDisplayDescription(const UConventionKeeperConvention* Convention) const
@@ -114,36 +113,48 @@ void UConventionKeeperRule::PostEditChangeProperty(FPropertyChangedEvent& Proper
 void UConventionKeeperRule::RefreshDocumentationFields()
 {
 	DocumentationUrl = GetDocumentationUrl();
-	const FString RawUrl = GetDocumentationRawUrl();
-	if (RawUrl.IsEmpty())
+	DocumentationContent.Empty();
+
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	if (!Settings || RuleId.IsNone())
 	{
-		DocumentationContent = TEXT("—");
+		DocumentationContent = TEXT("View at link only.");
 		return;
 	}
-	TWeakObjectPtr<UConventionKeeperRule> WeakThis(this);
-	TSharedPtr<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
-	Request->SetURL(RawUrl);
-	Request->SetVerb(TEXT("GET"));
-	Request->OnProcessRequestComplete().BindLambda(
-		[WeakThis](FHttpRequestPtr, FHttpResponsePtr Response, bool bSuccess)
+
+	FString RelPath = DocPathOverride.IsEmpty()
+		? Settings->DocsRulePathTemplate.Replace(TEXT("{RuleId}"), *RuleId.ToString())
+		: DocPathOverride;
+	FString LocalPath = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), RelPath));
+	if (!FPaths::FileExists(LocalPath))
+	{
+		for (const FString& PluginName : { TEXT("ConventionKeeper"), TEXT("convention-keeper") })
 		{
-			FString Content;
-			if (bSuccess && Response.IsValid() && Response->GetResponseCode() == 200)
+			if (TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(PluginName))
 			{
-				Content = Response->GetContentAsString();
-			}
-			else
-			{
-				Content = TEXT("Could not load. Open the URL above in a browser.");
-			}
-			AsyncTask(ENamedThreads::GameThread, [WeakThis, Content]()
-			{
-				if (UConventionKeeperRule* Rule = WeakThis.Get())
+				FString PluginPath = FPaths::ConvertRelativePathToFull(FPaths::Combine(Plugin->GetBaseDir(), RelPath));
+				if (FPaths::FileExists(PluginPath))
 				{
-					Rule->DocumentationContent = Content;
+					LocalPath = MoveTemp(PluginPath);
+					break;
 				}
-			});
-		});
-	Request->ProcessRequest();
+			}
+		}
+	}
+	if (!FPaths::FileExists(LocalPath))
+	{
+		DocumentationContent = TEXT("View at link only.");
+		return;
+	}
+
+	FString Content;
+	if (FFileHelper::LoadFileToString(Content, *LocalPath))
+	{
+		DocumentationContent = MoveTemp(Content);
+	}
+	else
+	{
+		DocumentationContent = TEXT("View at link only.");
+	}
 }
 #endif
