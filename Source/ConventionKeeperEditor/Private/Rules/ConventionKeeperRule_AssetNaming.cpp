@@ -3,6 +3,7 @@
 #include "Rules/ConventionKeeperRule_AssetNaming.h"
 
 #include "AssetRegistry/ARFilter.h"
+#include "AssetRegistry/AssetRegistryHelpers.h"
 #include "UObject/Class.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Rules/ConventionKeeperRule.h"
@@ -570,15 +571,35 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 				}
 				if (ParentClassPath.IsEmpty())
 				{
-					continue;
+					if (UClass* NativeClass = UAssetRegistryHelpers::FindAssetNativeClass(AssetData))
+					{
+						ParentClassPath = NativeClass->GetPathName();
+					}
+					if (ParentClassPath.IsEmpty())
+					{
+						continue;
+					}
 				}
+				FString NormalizedParent = ParentClassPath;
+				NormalizedParent.ReplaceInline(TEXT("Class'"), TEXT(""));
+				NormalizedParent.ReplaceInline(TEXT("'"), TEXT(""));
 				bool bMatch = false;
 				for (const FString& AllowedParent : BlueprintParentClassPaths)
 				{
-					if (ParentClassPath == AllowedParent || ParentClassPath.StartsWith(AllowedParent + TEXT(".")))
+					if (NormalizedParent == AllowedParent || NormalizedParent.StartsWith(AllowedParent + TEXT(".")))
 					{
 						bMatch = true;
 						break;
+					}
+					int32 DotIdx = INDEX_NONE;
+					if (AllowedParent.FindLastChar(TEXT('.'), DotIdx) && DotIdx >= 0)
+					{
+						const FString AllowedClassName = AllowedParent.Mid(DotIdx + 1);
+						if (NormalizedParent.Contains(AllowedClassName))
+						{
+							bMatch = true;
+							break;
+						}
 					}
 				}
 				if (!bMatch)

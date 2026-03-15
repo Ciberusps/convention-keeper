@@ -28,9 +28,13 @@ git submodule update --remote`
 
 TODO how to setup in project
 
-- set project name folder (Project Settings) - your main folder name in Content/ (defaults to the project name)
+- open Project Settings
+- set project name folder - your main folder name in Content/ (defaults to the project name)
 - language override for the project (Project Settings)
 - language override for the user (Editor Settings)
+- go to Convention Keeper
+- set the convention you want to use
+- set the rules you want to use
 
 ## 🛡️ Conventions already implemented
 
@@ -65,6 +69,13 @@ Rule descriptions, validation messages in the Message Log, and the “Convention
 
 - Conventions - are sets of rules that are used to validate the structure of the project
 - Rules - are used to validate project assets/folders/etc.
+
+## 📖 How to use
+
+- use RMB -> Batch Rename to rename assets/folders/etc.
+- use Auto-Fix where possible
+- set the excluded directories you want to use
+- set the excluded classes you want to use
 
 ## ▶️ Commandlet (CI / CLI)
 
