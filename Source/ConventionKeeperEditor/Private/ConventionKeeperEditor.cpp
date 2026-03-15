@@ -3,22 +3,30 @@
 #include "ConventionKeeperEditor.h"
 #include "ConventionKeeperEditorStyle.h"
 #include "ConventionKeeperEditorCommands.h"
-#include "Misc/MessageDialog.h"
-#include "ToolMenus.h"
+#include "Commandlets/ConventionKeeperCommandlet.h"
+#include "ConventionKeeperConvention.h"
+#include "Development/ConventionKeeperSettings.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "Developer/MessageLog/Public/MessageLogModule.h"
-#include "Logging/MessageLog.h"
-#include "MessageLogInitializationOptions.h"
-#include "Development/ConventionKeeperSettings.h"
 #include "AssetToolsModule.h"
 #include "AssetTypeActions/ConventionAssetTypeActions.h"
-#include "Styling/AppStyle.h"
 #include "ContentBrowserModule.h"
 #include "ContentBrowserDelegates.h"
-#include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Developer/MessageLog/Public/MessageLogModule.h"
 #include "Framework/Application/SlateApplication.h"
-#include "Commandlets/ConventionKeeperCommandlet.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Logging/MessageLog.h"
+#include "MessageLogInitializationOptions.h"
+#include "Misc/MessageDialog.h"
+#include "Styling/AppStyle.h"
+#include "ToolMenus.h"
+#include "UObject/ObjectSaveContext.h"
+#include "UObject/Package.h"
+
+#if WITH_EDITOR
+#include "Editor.h"
+#include "TimerManager.h"
+#endif
 
 DEFINE_LOG_CATEGORY(LogConventionKeeper);
 
@@ -55,6 +63,11 @@ void FConventionKeeperEditorModule::StartupModule()
 	UToolMenus::Get()->RefreshAllWidgets();
 	RegisterAssetTypeActions();
 	RegisterContentBrowserExtenders();
+
+#if WITH_EDITOR
+	PackageSavedDelegateHandle = UPackage::PackageSavedWithContextEvent.AddLambda(
+		[this](const FString& FileName, UPackage* Pkg, const FObjectPostSaveContext& Ctx) { OnPackageSaved(FileName, Pkg, Ctx); });
+#endif
 }
 
 void FConventionKeeperEditorModule::ShutdownModule()
@@ -71,6 +84,14 @@ void FConventionKeeperEditorModule::ShutdownModule()
 
 	UnregisterAssetTypeActions();
 	UnregisterContentBrowserExtenders();
+
+#if WITH_EDITOR
+	if (PackageSavedDelegateHandle.IsValid())
+	{
+		UPackage::PackageSavedWithContextEvent.Remove(PackageSavedDelegateHandle);
+		PackageSavedDelegateHandle.Reset();
+	}
+#endif
 }
 
 void FConventionKeeperEditorModule::PluginButtonClicked()
@@ -350,6 +371,61 @@ void FConventionKeeperEditorModule::UnregisterContentBrowserExtenders()
 	}
 }
 
+#if WITH_EDITOR
+void FConventionKeeperEditorModule::OnPackageSaved(const FString& PackageFileName, UPackage* Package, const FObjectPostSaveContext& SaveContext)
+{
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	if (!Settings || !Settings->bValidateAssetNamingOnSave || !Package)
+	{
+		return;
+	}
+	if (GEditor && GEditor->IsAutosaving())
+	{
+		return;
+	}
+	FString PackagePath = Package->GetPathName();
+	if (PackagePath.IsEmpty() || !PackagePath.StartsWith(TEXT("/Game/")))
+	{
+		return;
+	}
+	SavedPackagePathsToValidate.AddUnique(PackagePath);
+	GEditor->GetTimerManager()->SetTimerForNextTick(FTimerDelegate::CreateLambda([this]() { ValidateSavedPackages(); }));
+}
+
+void FConventionKeeperEditorModule::ValidateSavedPackages()
+{
+	if (SavedPackagePathsToValidate.Num() == 0)
+	{
+		return;
+	}
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	UConventionKeeperConvention* Convention = Settings ? Settings->GetResolvedConvention() : nullptr;
+	if (!Convention)
+	{
+		SavedPackagePathsToValidate.Empty();
+		return;
+	}
+	TArray<FString> PathsToValidate;
+	for (const FString& PackagePath : SavedPackagePathsToValidate)
+	{
+		FString Relative = UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(PackagePath, false);
+		if (Relative.IsEmpty())
+		{
+			continue;
+		}
+		if (Settings->Exclusions.Contains(Relative))
+		{
+			continue;
+		}
+		PathsToValidate.Add(PackagePath);
+	}
+	SavedPackagePathsToValidate.Empty();
+	if (PathsToValidate.Num() > 0)
+	{
+		UConventionKeeperCommandlet::ValidateData(PathsToValidate, true);
+	}
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE
 

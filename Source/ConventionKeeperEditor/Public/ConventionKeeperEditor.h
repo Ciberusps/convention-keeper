@@ -7,6 +7,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogConventionKeeper, Log, All);
 
+class FObjectPostSaveContext;
+class UPackage;
 class FToolBarBuilder;
 class FMenuBuilder;
 class IAssetTypeActions;
@@ -34,9 +36,15 @@ private:
 	void RegisterContentBrowserExtenders();
 	void UnregisterContentBrowserExtenders();
 
+	void OnPackageSaved(const FString& PackageFileName, UPackage* Package, const FObjectPostSaveContext& SaveContext);
+	void ValidateSavedPackages();
+
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class IAssetTypeActions>> RegisteredAssetTypeActions;
 	FDelegateHandle ContentBrowserPathExtenderDelegateHandle;
 	FDelegateHandle ContentBrowserAssetExtenderDelegateHandle;
+	FDelegateHandle PackageSavedDelegateHandle;
+
+	TArray<FString> SavedPackagePathsToValidate;
 };

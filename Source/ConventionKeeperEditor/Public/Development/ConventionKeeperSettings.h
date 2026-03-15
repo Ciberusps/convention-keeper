@@ -73,6 +73,10 @@ public:
     UPROPERTY(Config, EditAnywhere)
     bool bDebug = false;
 
+	/** When enabled, convention (including Asset Naming rules) is validated after saving an asset. Disabled during autosave. */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
+	bool bValidateAssetNamingOnSave = true;
+
 	/** Default language for the project. Used when no local override is set. Auto = use system/editor language. */
 	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Default Language"))
 	EConventionKeeperLanguage DefaultLanguage = EConventionKeeperLanguage::Auto;
