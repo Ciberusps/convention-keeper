@@ -50,6 +50,12 @@ public:
 	TArray<FString> AssetClassPaths;
 
 	/**
+	 * When non-empty, only Blueprint assets whose parent class path matches one of these are validated (e.g. /Script/Engine.AIController). Used with AssetClassPaths = ["/Script/Engine.Blueprint"].
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Blueprint Parent Class Paths"))
+	TArray<FString> BlueprintParentClassPaths;
+
+	/**
 	 * Naming template: required prefix for asset names. Placeholders like {CharacterName} are filled from the folder path.
 	 * Example: "AS_{CharacterName}_" in folder .../Zombie/Animations → required prefix "AS_Zombie_". Name may have a trailing _NN (zero-padded to NumberPaddingDigits).
 	 */

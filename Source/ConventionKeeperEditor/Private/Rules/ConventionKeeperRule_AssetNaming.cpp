@@ -560,6 +560,33 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 
 		for (const FAssetData& AssetData : AssetDataList)
 		{
+			if (BlueprintParentClassPaths.Num() > 0)
+			{
+				FString ParentClassPath;
+				AssetData.GetTagValue(FName("ParentClass"), ParentClassPath);
+				if (ParentClassPath.IsEmpty())
+				{
+					AssetData.GetTagValue(FName("NativeParentClass"), ParentClassPath);
+				}
+				if (ParentClassPath.IsEmpty())
+				{
+					continue;
+				}
+				bool bMatch = false;
+				for (const FString& AllowedParent : BlueprintParentClassPaths)
+				{
+					if (ParentClassPath == AllowedParent || ParentClassPath.StartsWith(AllowedParent + TEXT(".")))
+					{
+						bMatch = true;
+						break;
+					}
+				}
+				if (!bMatch)
+				{
+					continue;
+				}
+			}
+
 			FString AssetName = AssetData.AssetName.ToString();
 			FString PackageName = AssetData.PackageName.ToString();
 			FString RelativePath = PackageName;

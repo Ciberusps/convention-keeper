@@ -32,7 +32,7 @@ TODO how to setup in project
 - language override for the project (Project Settings)
 - language override for the user (Editor Settings)
 
-## Conventions already implemented
+## 🛡️ Conventions already implemented
 
 - ConventionKeeper convention (recommended) - default convention, you can create your own conventions by extending it (inherits from ue5-style-guide convention with overrides/additions)
 - [ue5-style-guide](https://github.com/Allar/ue5-style-guide) convention - 1 to 1 implementation of the UE5 Style Guide
@@ -86,6 +86,8 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Con
 - localization
 - auto-fix in MessageLog with Are you sure window to confirm changes
 - rules should work for plugins content as well
+- folderstructure rules should have severity warn mostly, except root folder rule, make it warn by default
+- take settings/good practices from https://github.com/TheEmidee/UENamingConventionValidation
 
 ## Rules TODO:
 

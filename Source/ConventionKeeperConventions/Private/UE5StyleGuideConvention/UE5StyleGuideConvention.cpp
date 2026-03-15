@@ -14,6 +14,14 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ControlRig.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SkeletalMesh.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Skeleton.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_AIController.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BehaviorTree.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Blackboard.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BTDecorator.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BTService.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BTTask.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_EnvQuery.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_EnvQueryContext.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideConvention)
 
@@ -33,4 +41,12 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ControlRig>(TEXT("Rule_AssetNaming_ControlRig")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SkeletalMesh>(TEXT("Rule_AssetNaming_SkeletalMesh")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Skeleton>(TEXT("Rule_AssetNaming_Skeleton")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_AIController>(TEXT("Rule_AssetNaming_AIController")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BehaviorTree>(TEXT("Rule_AssetNaming_BehaviorTree")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Blackboard>(TEXT("Rule_AssetNaming_Blackboard")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BTDecorator>(TEXT("Rule_AssetNaming_BTDecorator")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BTService>(TEXT("Rule_AssetNaming_BTService")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BTTask>(TEXT("Rule_AssetNaming_BTTask")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_EnvQuery>(TEXT("Rule_AssetNaming_EnvQuery")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_EnvQueryContext>(TEXT("Rule_AssetNaming_EnvQueryContext")));
 }
