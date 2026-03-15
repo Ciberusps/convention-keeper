@@ -28,6 +28,10 @@ git submodule update --remote`
 
 TODO how to setup in project
 
+- set project name folder (Project Settings) - your main folder name in Content/
+- language override for the project (Project Settings)
+- language override for the user (Editor Settings)
+
 ## 🤔 How it works
 
 - Conventions - are sets of rules that are used to validate the structure of the project
