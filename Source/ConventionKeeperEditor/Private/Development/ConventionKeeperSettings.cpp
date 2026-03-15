@@ -11,12 +11,17 @@
 UConventionKeeperSettings::UConventionKeeperSettings()
 {
 	Convention = nullptr;
+	ProjectNameFolder = FApp::GetProjectName();
 }
 
 void UConventionKeeperSettings::PostLoad()
 {
 	Super::PostLoad();
 	bConventionAssetIsSet = !ConventionAsset.IsNull();
+	if (ProjectNameFolder.IsEmpty())
+	{
+		ProjectNameFolder = FApp::GetProjectName();
+	}
 }
 
 void UConventionKeeperSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -39,6 +44,16 @@ UConventionKeeperConvention* UConventionKeeperSettings::GetResolvedConvention() 
 		return Convention->GetDefaultObject<UConventionKeeperConvention>();
 	}
 	return nullptr;
+}
+
+bool UConventionKeeperSettings::GetEffectiveValidationEnabled() const
+{
+	const UConventionKeeperLocalSettings* LocalSettings = GetDefault<UConventionKeeperLocalSettings>();
+	if (LocalSettings && LocalSettings->LocalOverrideValidation != EConventionKeeperValidationOverride::UseProjectDefault)
+	{
+		return LocalSettings->LocalOverrideValidation == EConventionKeeperValidationOverride::Enabled;
+	}
+	return bValidationEnabled;
 }
 
 TMap<FString, FString> UConventionKeeperSettings::GetPlaceholders() const

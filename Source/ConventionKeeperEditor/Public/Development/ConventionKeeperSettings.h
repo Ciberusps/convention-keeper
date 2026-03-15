@@ -24,6 +24,15 @@ enum class EConventionKeeperLanguageOverride : uint8
 	Russian           UMETA(DisplayName = "Russian")
 };
 
+/** Per-user validation override (Saved/Config). Overrides project Enable validation when not UseProjectDefault. */
+UENUM(BlueprintType)
+enum class EConventionKeeperValidationOverride : uint8
+{
+	UseProjectDefault UMETA(DisplayName = "Use project default"),
+	Enabled           UMETA(DisplayName = "Enabled"),
+	Disabled          UMETA(DisplayName = "Disabled")
+};
+
 // USTRUCT(BlueprintType)
 // struct UHLCONVENTIONKEEPEREDITOR_API FUHECustomClassIconDescription
 // {
@@ -77,6 +86,21 @@ public:
 
 	/** Returns the convention used for validation: ConventionAsset if set, otherwise the CDO of Convention. */
 	UConventionKeeperConvention* GetResolvedConvention() const;
+
+	/**
+	 * Project default: master switch for all validations. When false, no rules run (menu, context menu, on save, commandlet).
+	 * Can be overridden per user in Convention Keeper (Local) → Local Override Validation (Saved/Config).
+	 * Running validation while off shows one message in the Message Log (or commandlet log), e.g. "ConventionKeeper is offline. Enable in Project Settings → Convention Keeper."
+	 * Message text is in Localization (ValidationDisabled); alternative punchlines you can use there:
+	 * - "ConventionKeeper AFK. Wake it up in Project Settings → Convention Keeper."
+	 * - "ConventionKeeper went for coffee. Enable in settings when you're back."
+	 * - "ConventionKeeper is taking a nap. Enable validation in Project Settings → Convention Keeper."
+	 */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Enable validation"))
+	bool bValidationEnabled = true;
+
+	/** Returns whether validation runs: respects Local Override (Convention Keeper (Local)) first, then this project setting. */
+	bool GetEffectiveValidationEnabled() const;
 
 	/**
 	 * When true, after saving an asset the convention is validated (including Asset Naming rules for that path).
@@ -163,6 +187,13 @@ public:
 	 */
 	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Local Override Language"))
 	EConventionKeeperLanguageOverride LocalOverrideLanguage = EConventionKeeperLanguageOverride::UseProjectDefault;
+
+	/**
+	 * Override whether validation runs for this user. Use project default to follow project Enable validation.
+	 * Enabled/Disabled = force on or off for this machine (Saved/Config, not in project).
+	 */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Local Override Validation"))
+	EConventionKeeperValidationOverride LocalOverrideValidation = EConventionKeeperValidationOverride::UseProjectDefault;
 
 	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }
 };

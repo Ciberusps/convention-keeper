@@ -1,5 +1,6 @@
 // Shared validation messages — Russian. Edit this file to change Russian texts.
 
+{ FName(TEXT("ValidationDisabled")), TEXT("ConventionKeeper выключен. Включите в настройках проекта → Convention Keeper.") },
 { FName(TEXT("FolderMissing")), TEXT("Требуемая папка отсутствует: ") },
 { FName(TEXT("FolderExists")), TEXT("Папка найдена: ") },
 { FName(TEXT("RequiredSubfolderMissing")), TEXT("Требуемая папка отсутствует: ") },

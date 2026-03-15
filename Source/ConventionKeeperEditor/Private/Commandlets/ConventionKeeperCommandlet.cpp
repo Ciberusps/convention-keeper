@@ -2,6 +2,8 @@
 
 #include "Commandlets/ConventionKeeperCommandlet.h"
 #include "Development/ConventionKeeperSettings.h"
+#include "Localization/ConventionKeeperLocalization.h"
+#include "Logging/MessageLog.h"
 #include "Misc/PackageName.h"
 #include "Misc/Paths.h"
 
@@ -118,6 +120,20 @@ FString UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(const FSt
 bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, bool bAssetPaths)
 {
 	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
+	if (ConventionKeeperSettings && !ConventionKeeperSettings->GetEffectiveValidationEnabled())
+	{
+		FText Msg = ConventionKeeperLoc::GetText(FName(TEXT("ValidationDisabled")));
+		if (IsRunningCommandlet())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ConventionKeeper: %s"), *Msg.ToString());
+		}
+		else
+		{
+			FMessageLog(TEXT("ConventionKeeper")).Info(Msg);
+			FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Info, true);
+		}
+		return true;
+	}
 	UConventionKeeperConvention* Convention = ConventionKeeperSettings ? ConventionKeeperSettings->GetResolvedConvention() : nullptr;
 	if (!Convention)
 	{

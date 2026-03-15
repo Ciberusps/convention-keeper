@@ -6,6 +6,7 @@
 #include "Commandlets/ConventionKeeperCommandlet.h"
 #include "ConventionKeeperConvention.h"
 #include "Development/ConventionKeeperSettings.h"
+#include "Localization/ConventionKeeperLocalization.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -102,6 +103,13 @@ void FConventionKeeperEditorModule::PluginButtonClicked()
 	{
 		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoSettings", "Convention Keeper: Project Settings not found."));
 		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
+		return;
+	}
+
+	if (!ConventionKeeperSettings->GetEffectiveValidationEnabled())
+	{
+		FMessageLog(TEXT("ConventionKeeper")).Info(ConventionKeeperLoc::GetText(FName(TEXT("ValidationDisabled"))));
+		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Info, true);
 		return;
 	}
 
@@ -376,7 +384,7 @@ void FConventionKeeperEditorModule::UnregisterContentBrowserExtenders()
 void FConventionKeeperEditorModule::OnPackageSaved(const FString& PackageFileName, UPackage* Package, const FObjectPostSaveContext& SaveContext)
 {
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
-	if (!Settings || !Settings->bValidateAssetNamingOnSave || !Package)
+	if (!Settings || !Settings->GetEffectiveValidationEnabled() || !Settings->bValidateAssetNamingOnSave || !Package)
 	{
 		return;
 	}
@@ -400,7 +408,12 @@ void FConventionKeeperEditorModule::ValidateSavedPackages()
 		return;
 	}
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
-	UConventionKeeperConvention* Convention = Settings ? Settings->GetResolvedConvention() : nullptr;
+	if (!Settings || !Settings->GetEffectiveValidationEnabled())
+	{
+		SavedPackagePathsToValidate.Empty();
+		return;
+	}
+	UConventionKeeperConvention* Convention = Settings->GetResolvedConvention();
 	if (!Convention)
 	{
 		SavedPackagePathsToValidate.Empty();

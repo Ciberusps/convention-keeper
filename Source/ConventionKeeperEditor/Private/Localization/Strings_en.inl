@@ -1,5 +1,9 @@
 // Shared validation messages — English. Edit this file to change English texts.
+// Offline message alternatives: "ConventionKeeper AFK. Wake it up in Project Settings → Convention Keeper."
+//   "ConventionKeeper went for coffee. Enable in settings when you're back."
+//   "ConventionKeeper is taking a nap. Enable validation in Project Settings → Convention Keeper."
 
+{ FName(TEXT("ValidationDisabled")), TEXT("ConventionKeeper is offline. Enable in Project Settings → Convention Keeper.") },
 { FName(TEXT("FolderMissing")), TEXT("Required folder is missing: ") },
 { FName(TEXT("FolderExists")), TEXT("Folder exists: ") },
 { FName(TEXT("RequiredSubfolderMissing")), TEXT("Required folder is missing: ") },
