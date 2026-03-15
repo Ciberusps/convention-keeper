@@ -55,6 +55,7 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Con
 ## TODO:
 
 - GameplayTags Rule
+- BP Rules (vars naming, etc.)
 - [ue5-style-guide](https://github.com/Allar/ue5-style-guide)
 - localization
 - auto-fix in MessageLog with Are you sure window to confirm changes
