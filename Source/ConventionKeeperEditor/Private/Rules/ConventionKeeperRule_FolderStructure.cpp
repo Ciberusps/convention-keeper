@@ -3,13 +3,11 @@
 #include "Rules/ConventionKeeperRule_FolderStructure.h"
 
 #include "ConventionKeeperBlueprintLibrary.h"
-#include "Localization/ConventionKeeperLocalization.h"
-#include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperConvention.h"
 #include "Development/ConventionKeeperSettings.h"
-#include "Logging/MessageLog.h"
-#include "Logging/TokenizedMessage.h"
+#include "Localization/ConventionKeeperLocalization.h"
 #include "Misc/Paths.h"
+#include "Rules/ConventionKeeperRule.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule_FolderStructure)
 
@@ -244,67 +242,6 @@ bool UConventionKeeperRule_FolderStructure::CanValidate_Implementation(const TAr
 	return IsRelevantPath(PathsToCheck, SelectedPaths);
 }
 
-static EMessageSeverity::Type RuleSeverityToMessageSeverity(EConventionRuleSeverity RuleSeverity)
-{
-	return RuleSeverity == EConventionRuleSeverity::Warning ? EMessageSeverity::Warning : EMessageSeverity::Error;
-}
-
-static void LogRuleMessage(EMessageSeverity::Type Severity, const FText& Message, const FString* PathForLink = nullptr, const FText& Suffix = FText())
-{
-	if (IsRunningCommandlet())
-	{
-		FString Text = Message.ToString();
-		if (PathForLink && !PathForLink->IsEmpty())
-		{
-			Text += *PathForLink;
-		}
-		if (!Suffix.IsEmpty())
-		{
-			Text += Suffix.ToString();
-		}
-		switch (Severity)
-		{
-		case EMessageSeverity::Error:
-			UE_LOG(LogTemp, Error, TEXT("%s"), *Text);
-			break;
-		case EMessageSeverity::Warning:
-		case EMessageSeverity::PerformanceWarning:
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *Text);
-			break;
-		default:
-			UE_LOG(LogTemp, Log, TEXT("%s"), *Text);
-			break;
-		}
-	}
-	else
-	{
-		if (PathForLink && !PathForLink->IsEmpty())
-		{
-			FString AssetPath = PathForLink->Replace(TEXT("\\"), TEXT("/"));
-			if (AssetPath.StartsWith(TEXT("Content/")))
-			{
-				AssetPath = FString(TEXT("/Game/")) + AssetPath.Mid(8);
-			}
-			else if (!AssetPath.StartsWith(TEXT("/")))
-			{
-				AssetPath = FString(TEXT("/Game/")) + AssetPath;
-			}
-			TSharedRef<FTokenizedMessage> TokenizedMessage = FTokenizedMessage::Create(Severity);
-			TokenizedMessage->AddToken(FTextToken::Create(Message));
-			TokenizedMessage->AddToken(FAssetNameToken::Create(AssetPath, FText::FromString(*PathForLink)));
-			if (!Suffix.IsEmpty())
-			{
-				TokenizedMessage->AddToken(FTextToken::Create(Suffix));
-			}
-			FMessageLog(TEXT("ConventionKeeper")).AddMessage(TokenizedMessage);
-		}
-		else
-		{
-			FMessageLog(TEXT("ConventionKeeper")).Message(Severity, Message);
-		}
-	}
-}
-
 TArray<FString> UConventionKeeperRule_FolderStructure::GetConcreteBasePathsForFolderRule(
 	const FString& FolderPathPath,
 	const TMap<FString, FString>& Placeholders,
@@ -374,7 +311,7 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
 	const bool bDebug = Settings && Settings->bDebug;
-	const EMessageSeverity::Type FailureSeverity = RuleSeverityToMessageSeverity(Severity);
+	const EMessageSeverity::Type FailureSeverity = ConventionKeeperRuleSeverityToMessageSeverity(Severity);
 
 	const FString ResolvedFolderPath = ResolvePlaceholdersForPath(FolderPath.Path, Placeholders);
 	TArray<FString> BasePathsToValidate = GetConcreteBasePathsForFolderRule(FolderPath.Path, Placeholders, Settings, SelectedPaths);
@@ -400,17 +337,15 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 		const bool bExists = FPaths::DirectoryExists(AbsoluteBasePath);
 		if (!bExists)
 		{
-			LogRuleMessage(FailureSeverity, FText::Format(
+			UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 				ConventionKeeperLoc::GetText(FName(TEXT("FolderMissing"))),
-				FText::FromName(RuleId)),
 				&ResolvedBasePath);
 			continue;
 		}
 		if (bDebug)
 		{
-			LogRuleMessage(EMessageSeverity::Info, FText::Format(
+			UConventionKeeperRule::LogRuleMessage(this, EMessageSeverity::Info,
 				ConventionKeeperLoc::GetText(FName(TEXT("FolderExists"))),
-				FText::FromName(RuleId)),
 				&ResolvedBasePath, ConventionKeeperLoc::GetText(FName(TEXT("FolderOkSuffix"))));
 		}
 
@@ -432,16 +367,14 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 			const bool bRequiredExists = FPaths::DirectoryExists(AbsoluteRequired);
 			if (!bRequiredExists)
 			{
-				LogRuleMessage(FailureSeverity, FText::Format(
+				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 					ConventionKeeperLoc::GetText(FName(TEXT("RequiredSubfolderMissing"))),
-					FText::FromName(RuleId)),
 					&ResolvedRequiredForLog, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("RequiredSubfolderMissingSuffix"))), FText::FromString(ResolvedBasePath)));
 			}
 			else if (bDebug)
 			{
-				LogRuleMessage(EMessageSeverity::Info, FText::Format(
+				UConventionKeeperRule::LogRuleMessage(this, EMessageSeverity::Info,
 					ConventionKeeperLoc::GetText(FName(TEXT("RequiredSubfolderExists"))),
-					FText::FromName(RuleId)),
 					&ResolvedRequiredForLog, ConventionKeeperLoc::GetText(FName(TEXT("FolderOkSuffix"))));
 			}
 		}
@@ -473,18 +406,16 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 
 				if (!bFolderAllowed)
 				{
-					LogRuleMessage(FailureSeverity, FText::Format(
+					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 						ConventionKeeperLoc::GetText(FName(TEXT("DisallowedFolder"))),
-						FText::FromName(RuleId)),
 						&ResolvedBasePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("DisallowedFolderSuffix"))), FText::FromString(Folder)));
 				}
 			}
 
 			if (bDebug && AllFoldersInThisPath.Num() == 0)
 			{
-				LogRuleMessage(EMessageSeverity::Info, FText::Format(
+				UConventionKeeperRule::LogRuleMessage(this, EMessageSeverity::Info,
 					ConventionKeeperLoc::GetText(FName(TEXT("NoExtraFolders"))),
-					FText::FromName(RuleId)),
 					&ResolvedBasePath, ConventionKeeperLoc::GetText(FName(TEXT("FolderOkSuffix"))));
 			}
 		}

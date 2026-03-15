@@ -8,8 +8,6 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
-#include "Logging/MessageLog.h"
-#include "Logging/TokenizedMessage.h"
 #include "Misc/Paths.h"
 #include "Misc/PackageName.h"
 
@@ -274,75 +272,6 @@ bool UConventionKeeperRule_AssetNaming::CanValidate_Implementation(const TArray<
 	return IsRelevantPath(ResolvedPaths, SelectedPaths);
 }
 
-namespace AssetNamingRule
-{
-	static EMessageSeverity::Type RuleSeverityToMessageSeverity(EConventionRuleSeverity RuleSeverity)
-	{
-		return RuleSeverity == EConventionRuleSeverity::Warning ? EMessageSeverity::Warning : EMessageSeverity::Error;
-	}
-
-	static void LogRuleMessage(EMessageSeverity::Type Severity, const FText& Message, const FString* PathForLink = nullptr, const FText& Suffix = FText())
-{
-	if (IsRunningCommandlet())
-	{
-		FString Text = Message.ToString();
-		if (PathForLink && !PathForLink->IsEmpty())
-		{
-			Text += *PathForLink;
-		}
-		if (!Suffix.IsEmpty())
-		{
-			Text += Suffix.ToString();
-		}
-		switch (Severity)
-		{
-		case EMessageSeverity::Error:
-			UE_LOG(LogTemp, Error, TEXT("%s"), *Text);
-			break;
-		case EMessageSeverity::Warning:
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *Text);
-			break;
-		default:
-			UE_LOG(LogTemp, Log, TEXT("%s"), *Text);
-			break;
-		}
-	}
-	else
-	{
-		if (PathForLink && !PathForLink->IsEmpty())
-		{
-			FString AssetPath = PathForLink->Replace(TEXT("\\"), TEXT("/"));
-			if (AssetPath.StartsWith(TEXT("Content/")))
-			{
-				AssetPath = FString(TEXT("/Game/")) + AssetPath.Mid(8);
-			}
-			else if (!AssetPath.StartsWith(TEXT("/")))
-			{
-				AssetPath = FString(TEXT("/Game/")) + AssetPath;
-			}
-			TSharedRef<FTokenizedMessage> TokenizedMessage = FTokenizedMessage::Create(Severity);
-			TokenizedMessage->AddToken(FTextToken::Create(Message));
-			TokenizedMessage->AddToken(FAssetNameToken::Create(AssetPath, FText::FromString(*PathForLink)));
-			if (!Suffix.IsEmpty())
-			{
-				TokenizedMessage->AddToken(FTextToken::Create(Suffix));
-			}
-			FMessageLog(TEXT("ConventionKeeper")).AddMessage(TokenizedMessage);
-		}
-		else
-		{
-			TSharedRef<FTokenizedMessage> TokenizedMessage = FTokenizedMessage::Create(Severity);
-			TokenizedMessage->AddToken(FTextToken::Create(Message));
-			if (!Suffix.IsEmpty())
-			{
-				TokenizedMessage->AddToken(FTextToken::Create(Suffix));
-			}
-			FMessageLog(TEXT("ConventionKeeper")).AddMessage(TokenizedMessage);
-		}
-	}
-}
-}
-
 TArray<FAssetNamingScopeEntry> UConventionKeeperRule_AssetNaming::GetScopesForValidation(const TArray<FString>& ResolvedPaths, const TArray<FString>& SelectedPaths)
 {
 	TArray<FAssetNamingScopeEntry> Result;
@@ -465,7 +394,7 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
 	const bool bDebug = Settings && Settings->bDebug;
-	const EMessageSeverity::Type FailureSeverity = AssetNamingRule::RuleSeverityToMessageSeverity(Severity);
+	const EMessageSeverity::Type FailureSeverity = ConventionKeeperRuleSeverityToMessageSeverity(Severity);
 
 	FString PatternPath = FolderPathPattern.Path;
 	PatternPath.ReplaceInline(TEXT("\\"), TEXT("/"));
@@ -637,31 +566,28 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 
 			if (!bPrefixOk)
 			{
-				AssetNamingRule::LogRuleMessage(FailureSeverity,
-					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefix"))),
-						FText::FromName(RuleId)),
+				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
+					ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefix"))),
 					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefixSuffix"))), FText::FromString(RequiredPrefix)));
 			}
 			else if (!bSuffixOk)
 			{
-				AssetNamingRule::LogRuleMessage(FailureSeverity,
-					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffix"))),
-						FText::FromName(RuleId)),
+				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
+					ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffix"))),
 					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffixVal"))), FText::FromString(Suffix)));
 			}
 			else if (!bNumberOk)
 			{
 				FString Suggested = SuggestZeroPaddedName(AssetName, NumberPaddingDigits);
-				AssetNamingRule::LogRuleMessage(FailureSeverity,
-					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingNumber"))),
-						FText::FromName(RuleId), FText::AsNumber(NumberPaddingDigits)),
+				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
+					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingNumber"))), FText::AsNumber(NumberPaddingDigits)),
 					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuggest"))), FText::FromString(Suggested)));
 			}
 			else if (bDebug)
 			{
-				AssetNamingRule::LogRuleMessage(EMessageSeverity::Info,
-					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingOk"))), FText::FromName(RuleId)),
-					&RelativePath, FText::FromString(TEXT("")));
+				UConventionKeeperRule::LogRuleMessage(this, EMessageSeverity::Info,
+					ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingOk"))),
+					&RelativePath, FText());
 			}
 		}
 	}

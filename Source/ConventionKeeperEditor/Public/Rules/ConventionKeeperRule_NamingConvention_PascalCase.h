@@ -21,7 +21,10 @@ public:
 
 	bool IsNameValidForFolder_Implementation(const FString& Name) const override;
 	bool IsNameValidForAsset_Implementation(const FString& Name) const override;
+	FText GetValidationErrorHint(const FString& Name, bool bIsFolder) const override;
 
-	/** Returns true if the name is valid PascalCase (each segment: [A-Z][a-z0-9]*). */
+	/** Returns true if the name is valid PascalCase (each segment: [A-Z][a-z0-9]* or all digits). */
 	static bool IsPascalCaseName(const FString& Name);
+	/** Returns a localized reason for the first violation. */
+	static FText GetFirstInvalidSegmentReason(const FString& Name);
 };

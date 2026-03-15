@@ -2,6 +2,7 @@
 
 #include "Rules/ConventionKeeperRule_NamingConvention_PascalCase.h"
 
+#include "Localization/ConventionKeeperLocalization.h"
 #include "Misc/Char.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule_NamingConvention_PascalCase)
@@ -63,4 +64,63 @@ bool UConventionKeeperRule_NamingConvention_PascalCase::IsNameValidForFolder_Imp
 bool UConventionKeeperRule_NamingConvention_PascalCase::IsNameValidForAsset_Implementation(const FString& Name) const
 {
 	return IsPascalCaseName(Name);
+}
+
+FText UConventionKeeperRule_NamingConvention_PascalCase::GetFirstInvalidSegmentReason(const FString& Name)
+{
+	if (Name.IsEmpty())
+	{
+		return ConventionKeeperLoc::GetText(FName(TEXT("PascalCaseReasonEmptyName")));
+	}
+	TArray<FString> Segments;
+	Name.ParseIntoArray(Segments, TEXT("_"), false);
+	for (const FString& Segment : Segments)
+	{
+		if (Segment.IsEmpty())
+		{
+			return ConventionKeeperLoc::GetText(FName(TEXT("PascalCaseReasonEmptySegment")));
+		}
+		if (FChar::IsDigit(Segment[0]))
+		{
+			for (int32 i = 0; i < Segment.Len(); ++i)
+			{
+				if (!FChar::IsDigit(Segment[i]))
+				{
+					return FText::Format(
+						ConventionKeeperLoc::GetText(FName(TEXT("PascalCaseReasonSegmentDigitsOrUpper"))),
+						FText::FromString(Segment));
+				}
+			}
+			continue;
+		}
+		if (!FChar::IsUpper(Segment[0]))
+		{
+			return FText::Format(
+				ConventionKeeperLoc::GetText(FName(TEXT("PascalCaseReasonSegmentStartUpper"))),
+				FText::FromString(Segment));
+		}
+		for (int32 i = 1; i < Segment.Len(); ++i)
+		{
+			const TCHAR C = Segment[i];
+			if (!FChar::IsDigit(C) && !FChar::IsLower(C) && !FChar::IsUpper(C))
+			{
+				return FText::Format(
+					ConventionKeeperLoc::GetText(FName(TEXT("PascalCaseReasonSegmentLettersDigits"))),
+					FText::FromString(Segment));
+			}
+		}
+	}
+	return FText();
+}
+
+FText UConventionKeeperRule_NamingConvention_PascalCase::GetValidationErrorHint(const FString& Name, bool bIsFolder) const
+{
+	const FText Reason = GetFirstInvalidSegmentReason(Name);
+	if (Reason.IsEmpty())
+	{
+		return FText();
+	}
+	return FText::Format(
+		ConventionKeeperLoc::GetText(FName(TEXT("PascalCaseHintPrefix"))),
+		Reason);
 }

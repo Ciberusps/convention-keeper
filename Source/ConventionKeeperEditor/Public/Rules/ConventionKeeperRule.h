@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Logging/TokenizedMessage.h"
 #include "UObject/Object.h"
 #include "ConventionKeeperRule.generated.h"
 
@@ -14,6 +15,11 @@ enum class EConventionRuleSeverity : uint8
 	Error,
 	Warning
 };
+
+inline EMessageSeverity::Type ConventionKeeperRuleSeverityToMessageSeverity(EConventionRuleSeverity RuleSeverity)
+{
+	return RuleSeverity == EConventionRuleSeverity::Warning ? EMessageSeverity::Warning : EMessageSeverity::Error;
+}
 
 UCLASS(Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule : public UObject
@@ -55,6 +61,9 @@ public:
 	/** Full URL to the rule documentation (GitHub blob). Empty if DocsRepositoryUrl not set. */
 	FString GetDocumentationUrl() const;
 
+	/** URL for message log link: localized path if that file exists, otherwise English path. English doc must always exist. */
+	FString GetDocumentationUrlForDisplay() const;
+
 	/** Raw URL to fetch markdown content (e.g. raw.githubusercontent.com). Empty if no doc URL. */
 	FString GetDocumentationRawUrl() const;
 
@@ -74,5 +83,7 @@ public:
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void RefreshDocumentationFields();
+	/** Logs to ConventionKeeper: [RuleId] as clickable doc link (localized if exists, else en), then MessageBody, optional path/suffix. Rule null = no link. */
+	static void LogRuleMessage(const UConventionKeeperRule* Rule, EMessageSeverity::Type Severity, const FText& MessageBody, const FString* PathForLink = nullptr, const FText& Suffix = FText());
 #endif
 };

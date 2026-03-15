@@ -33,6 +33,9 @@ public:
 	bool IsNameValidForAsset(const FString& Name) const;
 	virtual bool IsNameValidForAsset_Implementation(const FString& Name) const { return true; }
 
+	/** Optional hint explaining what is wrong (e.g. "Use PascalCase. Invalid segment 'x': must start with uppercase."). Shown after the generic message. */
+	virtual FText GetValidationErrorHint(const FString& Name, bool bIsFolder) const { return FText(); }
+
 	static bool IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths);
 	static bool IsRelevantPath(const TArray<FString>& ResolvedPathsToCheck, const TArray<FString>& SelectedPaths);
 	static bool IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& Exclusions, const TMap<FString, FString>& Placeholders);

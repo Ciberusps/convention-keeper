@@ -6,8 +6,6 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
-#include "Logging/MessageLog.h"
-#include "Logging/TokenizedMessage.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Misc/Paths.h"
 #include "Rules/ConventionKeeperRule.h"
@@ -133,62 +131,6 @@ bool UConventionKeeperRule_NamingConvention::IsPathUnderExcluded(const FString& 
 	return false;
 }
 
-namespace NamingConventionRuleHelpers
-{
-static EMessageSeverity::Type SeverityToMessage(EConventionRuleSeverity RuleSeverity)
-{
-	return RuleSeverity == EConventionRuleSeverity::Warning ? EMessageSeverity::Warning : EMessageSeverity::Error;
-}
-
-static void LogMessage(EMessageSeverity::Type Severity, const FText& Message, const FString* PathForLink = nullptr)
-{
-	if (IsRunningCommandlet())
-	{
-		FString Text = Message.ToString();
-		if (PathForLink && !PathForLink->IsEmpty())
-		{
-			Text += TEXT(" ");
-			Text += *PathForLink;
-		}
-		switch (Severity)
-		{
-		case EMessageSeverity::Error:
-			UE_LOG(LogTemp, Error, TEXT("%s"), *Text);
-			break;
-		case EMessageSeverity::Warning:
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *Text);
-			break;
-		default:
-			UE_LOG(LogTemp, Log, TEXT("%s"), *Text);
-			break;
-		}
-	}
-	else
-	{
-		if (PathForLink && !PathForLink->IsEmpty())
-		{
-			FString AssetPath = PathForLink->Replace(TEXT("\\"), TEXT("/"));
-			if (AssetPath.StartsWith(TEXT("Content/")))
-			{
-				AssetPath = FString(TEXT("/Game/")) + AssetPath.Mid(8);
-			}
-			else if (!AssetPath.StartsWith(TEXT("/")))
-			{
-				AssetPath = FString(TEXT("/Game/")) + AssetPath;
-			}
-			TSharedRef<FTokenizedMessage> TokenizedMessage = FTokenizedMessage::Create(Severity);
-			TokenizedMessage->AddToken(FTextToken::Create(Message));
-			TokenizedMessage->AddToken(FAssetNameToken::Create(AssetPath, FText::FromString(*AssetPath)));
-			FMessageLog(TEXT("ConventionKeeper")).AddMessage(TokenizedMessage);
-		}
-		else
-		{
-			FMessageLog(TEXT("ConventionKeeper")).Message(Severity, Message);
-		}
-	}
-}
-}
-
 bool UConventionKeeperRule_NamingConvention::CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const
 {
 	FString PatternPath = FolderPathPattern.Path;
@@ -243,7 +185,7 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 	}
 
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
-	const EMessageSeverity::Type FailureSeverity = NamingConventionRuleHelpers::SeverityToMessage(Severity);
+	const EMessageSeverity::Type FailureSeverity = ConventionKeeperRuleSeverityToMessageSeverity(Severity);
 
 	FString PatternPath = FolderPathPattern.Path;
 	PatternPath.ReplaceInline(TEXT("\\"), TEXT("/"));
@@ -410,11 +352,12 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 				}
 				if (!IsNameValidForFolder(SegmentName))
 				{
-					NamingConventionRuleHelpers::LogMessage(FailureSeverity,
+					const FText Hint = GetValidationErrorHint(SegmentName, true);
+					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 						FText::Format(
 							ConventionKeeperLoc::GetText(FName(TEXT("NamingConventionFolder"))),
-							FText::FromName(RuleId),
-							FText::FromString(SegmentName)),
+							FText::FromString(SegmentName),
+							Hint),
 						&ChildPath);
 				}
 				Self(ChildPath, Self);
@@ -435,11 +378,12 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 			const FString BaseSegmentName = BasePathLastSlash >= 0 ? BasePath.Mid(BasePathLastSlash + 1) : BasePath;
 			if (!BaseSegmentName.IsEmpty() && !IsNameValidForFolder(BaseSegmentName))
 			{
-				NamingConventionRuleHelpers::LogMessage(FailureSeverity,
+				const FText Hint = GetValidationErrorHint(BaseSegmentName, true);
+				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 					FText::Format(
 						ConventionKeeperLoc::GetText(FName(TEXT("NamingConventionFolder"))),
-						FText::FromName(RuleId),
-						FText::FromString(BaseSegmentName)),
+						FText::FromString(BaseSegmentName),
+						Hint),
 					&BasePath);
 			}
 
@@ -481,11 +425,12 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 			}
 			if (!IsNameValidForAsset(AssetName))
 			{
-				NamingConventionRuleHelpers::LogMessage(FailureSeverity,
+				const FText Hint = GetValidationErrorHint(AssetName, false);
+				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 					FText::Format(
 						ConventionKeeperLoc::GetText(FName(TEXT("NamingConventionAsset"))),
-						FText::FromName(RuleId),
-						FText::FromString(AssetName)),
+						FText::FromString(AssetName),
+						Hint),
 					&RelativePath);
 			}
 		}
