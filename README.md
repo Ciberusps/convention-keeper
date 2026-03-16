@@ -1,6 +1,7 @@
 # 🛡️ Convention Keeper (WIP, not ready for production)
 
 **Convention Keeper** - plugin for keeping your conventions, naming, folders, and all other kinds of conventions. Eslint-like system for Unreal Engine.
+Conventions allow us to make games faster not wasting time on communication to enforce rules in our teams, helps to keep the project consistent, not wasting time on cleaning up the project(how many times we were) and helping new developers to understand the project rules faster without constantly whining/bulling them 🤣 and wasting time on review.
 
 Support: `all your concerns sweetie 🥰`
 
