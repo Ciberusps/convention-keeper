@@ -4,6 +4,8 @@
 
 #include "Internationalization/Culture.h"
 #include "Internationalization/Internationalization.h"
+#include "Misc/ConfigCacheIni.h"
+#include "Misc/Paths.h"
 #include "UObject/UnrealType.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperSettings)
@@ -88,4 +90,24 @@ FString UConventionKeeperSettings::GetEffectiveLanguageCode() const
 		return TEXT("ru");
 	}
 	return TEXT("en");
+}
+
+FString UConventionKeeperLocalSettings::GetUserSettingsConfigPath()
+{
+	return FPaths::ProjectSavedDir() + TEXT("Config/ConventionKeeperUserSettings.ini");
+}
+
+void UConventionKeeperLocalSettings::PostLoad()
+{
+	Super::PostLoad();
+	const FString UserPath = GetUserSettingsConfigPath();
+	if (FPaths::FileExists(UserPath))
+	{
+		LoadConfig(GetClass(), *UserPath);
+	}
+}
+
+void UConventionKeeperLocalSettings::SaveConfig(uint64 RequiredPropertyFlags, const TCHAR* Filename, FConfigCacheIni* Config, bool bAllowCopyToDefaultObject)
+{
+	Super::SaveConfig(RequiredPropertyFlags, *GetUserSettingsConfigPath(), Config, bAllowCopyToDefaultObject);
 }

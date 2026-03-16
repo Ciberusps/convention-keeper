@@ -173,9 +173,10 @@ protected:
 };
 
 /**
- * Per-user Convention Keeper settings. Stored in Saved/Config/ (not in project), so each developer can choose language without changing project config.
+ * Per-user Convention Keeper settings. Stored in Saved/Config/ConventionKeeperUserSettings.ini (not in project),
+ * so each developer can choose language and validation override without affecting other users or project config.
  */
-UCLASS(Config = "EditorPerProjectUserSettings", DefaultConfig, meta = (DisplayName = "Convention Keeper (Local)"))
+UCLASS(Config = "ConventionKeeperUserSettings", meta = (DisplayName = "Convention Keeper (Local)"))
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperLocalSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -196,4 +197,12 @@ public:
 	EConventionKeeperValidationOverride LocalOverrideValidation = EConventionKeeperValidationOverride::UseProjectDefault;
 
 	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }
+
+	/** Path to the user-only config file in Saved/Config (never in project). */
+	static FString GetUserSettingsConfigPath();
+
+	//~UObject interface
+	virtual void PostLoad() override;
+	/** Saves to Saved/Config/ConventionKeeperUserSettings.ini (hides UObject::SaveConfig, not virtual in base). */
+	void SaveConfig(uint64 RequiredPropertyFlags = CPF_Config, const TCHAR* Filename = nullptr, FConfigCacheIni* Config = nullptr, bool bAllowCopyToDefaultObject = true);
 };
