@@ -651,6 +651,10 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 				ExpectedPrefixForMessage = RequiredPrefix;
 			}
 			bool bSuffixOk = Suffix.IsEmpty() || AssetName.EndsWith(Suffix);
+			if (GetCustomSuffixValidity(AssetName, ExpectedPrefixForMessage, bSuffixOk))
+			{
+				// bSuffixOk already set by override
+			}
 			bool bNumberOk = IsNumberSuffixValid(AssetName, NumberPaddingDigits);
 
 			if (!bPrefixOk)
@@ -661,9 +665,17 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 			}
 			else if (!bSuffixOk)
 			{
-				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
-					ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffix"))),
-					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffixVal"))), FText::FromString(Suffix)));
+				FText CustomMsg = GetCustomSuffixFailureMessage(AssetName, ExpectedPrefixForMessage);
+				if (!CustomMsg.IsEmpty())
+				{
+					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity, CustomMsg, &RelativePath, FText());
+				}
+				else
+				{
+					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
+						ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffix"))),
+						&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffixVal"))), FText::FromString(Suffix)));
+				}
 			}
 			else if (!bNumberOk)
 			{

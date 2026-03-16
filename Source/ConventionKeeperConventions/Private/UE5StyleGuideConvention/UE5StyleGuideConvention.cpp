@@ -29,6 +29,7 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SubsurfaceProfile.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_PhysicalMaterial.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Decal.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Texture.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideConvention)
 
@@ -63,4 +64,5 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SubsurfaceProfile>(TEXT("Rule_AssetNaming_SubsurfaceProfile")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_PhysicalMaterial>(TEXT("Rule_AssetNaming_PhysicalMaterial")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Decal>(TEXT("Rule_AssetNaming_Decal")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Texture>(TEXT("Rule_AssetNaming_Texture")));
 }

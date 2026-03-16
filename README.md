@@ -69,6 +69,7 @@ Rule descriptions, validation messages in the Message Log, and the “Convention
 
 - Conventions - are sets of rules that are used to validate the structure of the project
 - Rules - are used to validate project assets/folders/etc.
+- Every rule has description, localization, documentation, severity and so on
 
 ## 📖 How to use
 

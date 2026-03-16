@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AssetRegistry/AssetData.h"
+#include "Internationalization/Text.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperRule_AssetNaming.generated.h"
 
@@ -96,6 +97,18 @@ public:
 	 * When returns false, the rule uses the normal Prefix or AllowedPrefixes.
 	 */
 	virtual bool GetRequiredPrefixForAsset(const FAssetData& AssetData, FString& OutPrefix) const { return false; }
+
+	/**
+	 * Override to apply custom suffix validation (e.g. texture suffix must be _D, _N, _ERO from allowed letters).
+	 * When returns true, OutValid is used as the suffix check result instead of the default (Suffix.IsEmpty() || AssetName.EndsWith(Suffix)).
+	 * When returns false, the default suffix check is used.
+	 */
+	virtual bool GetCustomSuffixValidity(const FString& AssetName, const FString& UsedPrefix, bool& OutValid) const { return false; }
+
+	/**
+	 * When custom suffix validation fails, override to return a specific message. Empty = use default suffix message.
+	 */
+	virtual FText GetCustomSuffixFailureMessage(const FString& AssetName, const FString& UsedPrefix) const { return FText(); }
 
 	/** Returns the required prefix for an asset name given path placeholder values (e.g. CharacterName=Zombie). */
 	static FString ResolveNamingTemplate(const FString& Template, const TMap<FString, FString>& PathPlaceholders);
