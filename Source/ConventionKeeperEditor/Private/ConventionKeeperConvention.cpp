@@ -223,7 +223,11 @@ void UConventionKeeperConvention::ValidateFolderStructuresForPaths(const TArray<
 
 	if (!IsRunningCommandlet())
 	{
-		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Info, true);
+		FMessageLog Log(TEXT("ConventionKeeper"));
+		if (Log.NumMessages(EMessageSeverity::Info) > 0)
+		{
+			Log.Open(EMessageSeverity::Info, true);
+		}
 	}
 }
 
