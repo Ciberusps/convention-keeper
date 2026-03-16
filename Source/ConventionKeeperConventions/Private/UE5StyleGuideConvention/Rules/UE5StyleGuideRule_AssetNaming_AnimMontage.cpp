@@ -8,6 +8,7 @@
 UUE5StyleGuideRule_AssetNaming_AnimMontage::UUE5StyleGuideRule_AssetNaming_AnimMontage()
 {
 	RuleId = FName(TEXT("asset-naming-anim-montage"));
+	Description = FText::FromString(TEXT("Animation Montage assets must use prefix AM_ (UE5 Style Guide 1.2.2)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-anim-montage"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UAnimMontage::StaticClass() };

@@ -8,6 +8,8 @@
 UUE5StyleGuideRule_AssetNaming_MaterialFunction::UUE5StyleGuideRule_AssetNaming_MaterialFunction()
 {
 	RuleId = FName(TEXT("asset-naming-material-function"));
+	Description = FText::FromString(TEXT("Material Function assets must use prefix MF_ (UE5 Style Guide 1.2.5)."));
+	Description = FText::FromString(TEXT("Material Function assets must use prefix MF_ (UE5 Style Guide 1.2.5)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-material-function"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UMaterialFunction::StaticClass() };

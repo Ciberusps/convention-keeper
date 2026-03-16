@@ -8,6 +8,7 @@
 UUE5StyleGuideRule_AssetNaming_AnimSequence::UUE5StyleGuideRule_AssetNaming_AnimSequence()
 {
 	RuleId = FName(TEXT("asset-naming-anim-sequence"));
+	Description = FText::FromString(TEXT("Animation Sequence assets must use prefix A_ (UE5 Style Guide 1.2.2)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-anim-sequence"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UAnimSequence::StaticClass() };

@@ -8,6 +8,7 @@
 UUE5StyleGuideRule_AssetNaming_Material::UUE5StyleGuideRule_AssetNaming_Material()
 {
 	RuleId = FName(TEXT("asset-naming-material"));
+	Description = FText::FromString(TEXT("Material assets must use prefix M_ (Surface) or PP_ (Post Process) by Material Domain (UE5 Style Guide 1.2.5)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-material"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UMaterial::StaticClass() };

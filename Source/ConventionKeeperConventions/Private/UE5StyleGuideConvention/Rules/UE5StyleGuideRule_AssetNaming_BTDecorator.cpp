@@ -7,6 +7,7 @@
 UUE5StyleGuideRule_AssetNaming_BTDecorator::UUE5StyleGuideRule_AssetNaming_BTDecorator()
 {
 	RuleId = FName(TEXT("asset-naming-bt-decorator"));
+	Description = FText::FromString(TEXT("Behavior Tree Decorator (Blueprint) assets must use prefix BTDecorator_ (UE5 Style Guide 1.2.3)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-bt-decorator"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/Engine.Blueprint") };

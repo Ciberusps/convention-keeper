@@ -45,6 +45,8 @@ namespace
 UUE5StyleGuideRule_AssetNaming_Texture::UUE5StyleGuideRule_AssetNaming_Texture()
 {
 	RuleId = FName(TEXT("asset-naming-texture"));
+	Description = FText::FromString(TEXT("Texture assets must use prefix T_, TC_, MT_, RT_, RTC_, or TLP_ by type; T_ textures may have optional suffix _D, _N, _R, etc. (UE5 Style Guide 1.2.6)."));
+	Description = FText::FromString(TEXT("Texture assets must use prefix T_, TC_, MT_, RT_, RTC_, or TLP_ by type; T_ textures may have optional suffix _D, _N, _R, etc. (UE5 Style Guide 1.2.6)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-texture"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UTexture2D::StaticClass() };

@@ -7,6 +7,7 @@
 UUE5StyleGuideRule_AssetNaming_Blackboard::UUE5StyleGuideRule_AssetNaming_Blackboard()
 {
 	RuleId = FName(TEXT("asset-naming-blackboard"));
+	Description = FText::FromString(TEXT("Blackboard assets must use prefix BB_ (UE5 Style Guide 1.2.3)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-blackboard"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/AIModule.BlackboardData") };

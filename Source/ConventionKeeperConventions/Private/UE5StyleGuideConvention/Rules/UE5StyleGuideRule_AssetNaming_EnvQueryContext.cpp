@@ -7,6 +7,7 @@
 UUE5StyleGuideRule_AssetNaming_EnvQueryContext::UUE5StyleGuideRule_AssetNaming_EnvQueryContext()
 {
 	RuleId = FName(TEXT("asset-naming-env-query-context"));
+	Description = FText::FromString(TEXT("Env Query Context (Blueprint) assets must use prefix EQS_ and suffix Context (UE5 Style Guide 1.2.3)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-env-query-context"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/Engine.Blueprint") };

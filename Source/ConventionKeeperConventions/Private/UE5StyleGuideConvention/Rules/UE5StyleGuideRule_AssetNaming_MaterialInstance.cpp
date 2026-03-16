@@ -8,6 +8,8 @@
 UUE5StyleGuideRule_AssetNaming_MaterialInstance::UUE5StyleGuideRule_AssetNaming_MaterialInstance()
 {
 	RuleId = FName(TEXT("asset-naming-material-instance"));
+	Description = FText::FromString(TEXT("Material Instance assets must use prefix MI_ (UE5 Style Guide 1.2.5)."));
+	Description = FText::FromString(TEXT("Material Instance assets must use prefix MI_ (UE5 Style Guide 1.2.5)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-material-instance"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UMaterialInstanceConstant::StaticClass() };

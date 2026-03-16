@@ -8,6 +8,7 @@
 UUE5StyleGuideRule_AssetNaming_SkeletalMesh::UUE5StyleGuideRule_AssetNaming_SkeletalMesh()
 {
 	RuleId = FName(TEXT("asset-naming-skeletal-mesh"));
+	Description = FText::FromString(TEXT("Skeletal Mesh assets must use prefix SK_ (UE5 Style Guide 1.2.2)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-skeletal-mesh"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { USkeletalMesh::StaticClass() };

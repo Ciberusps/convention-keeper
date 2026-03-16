@@ -7,6 +7,7 @@
 UUE5StyleGuideRule_AssetNaming_BTService::UUE5StyleGuideRule_AssetNaming_BTService()
 {
 	RuleId = FName(TEXT("asset-naming-bt-service"));
+	Description = FText::FromString(TEXT("Behavior Tree Service (Blueprint) assets must use prefix BTService_ (UE5 Style Guide 1.2.3)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-bt-service"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/Engine.Blueprint") };

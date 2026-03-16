@@ -9,6 +9,7 @@
 UUE5StyleGuideRule_AssetNaming_BlendSpace::UUE5StyleGuideRule_AssetNaming_BlendSpace()
 {
 	RuleId = FName(TEXT("asset-naming-blend-space"));
+	Description = FText::FromString(TEXT("Blend Space (1D/2D) assets must use prefix BS_ (UE5 Style Guide 1.2.2)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-blend-space"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UBlendSpace::StaticClass(), UBlendSpace1D::StaticClass() };

@@ -9,6 +9,8 @@
 UUE5StyleGuideRule_AssetNaming_Decal::UUE5StyleGuideRule_AssetNaming_Decal()
 {
 	RuleId = FName(TEXT("asset-naming-decal"));
+	Description = FText::FromString(TEXT("Decal materials (Material / Material Instance, domain Deferred Decal) must use prefix M_ or MI_ and suffix _Decal (UE5 Style Guide 1.2.5)."));
+	Description = FText::FromString(TEXT("Decal materials (Material / Material Instance, domain Deferred Decal) must use prefix M_ or MI_ and suffix _Decal (UE5 Style Guide 1.2.5)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-decal"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UMaterial::StaticClass(), UMaterialInstanceConstant::StaticClass() };

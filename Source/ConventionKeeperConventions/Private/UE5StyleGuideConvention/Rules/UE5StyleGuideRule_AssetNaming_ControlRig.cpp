@@ -7,6 +7,7 @@
 UUE5StyleGuideRule_AssetNaming_ControlRig::UUE5StyleGuideRule_AssetNaming_ControlRig()
 {
 	RuleId = FName(TEXT("asset-naming-control-rig"));
+	Description = FText::FromString(TEXT("Control Rig / Rig assets must use prefix CR_ or Rig_ (UE5 Style Guide 1.2.2)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-control-rig"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/ControlRigDeveloper.ControlRigBlueprint") };

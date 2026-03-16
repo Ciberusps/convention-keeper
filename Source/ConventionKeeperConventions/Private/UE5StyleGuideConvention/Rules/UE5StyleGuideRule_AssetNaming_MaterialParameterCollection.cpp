@@ -8,6 +8,8 @@
 UUE5StyleGuideRule_AssetNaming_MaterialParameterCollection::UUE5StyleGuideRule_AssetNaming_MaterialParameterCollection()
 {
 	RuleId = FName(TEXT("asset-naming-material-parameter-collection"));
+	Description = FText::FromString(TEXT("Material Parameter Collection assets must use prefix MPC_ (UE5 Style Guide 1.2.5)."));
+	Description = FText::FromString(TEXT("Material Parameter Collection assets must use prefix MPC_ (UE5 Style Guide 1.2.5)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-material-parameter-collection"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UMaterialParameterCollection::StaticClass() };

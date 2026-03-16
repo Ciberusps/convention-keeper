@@ -8,6 +8,7 @@
 UUE5StyleGuideRule_AssetNaming_MorphTarget::UUE5StyleGuideRule_AssetNaming_MorphTarget()
 {
 	RuleId = FName(TEXT("asset-naming-morph-target"));
+	Description = FText::FromString(TEXT("Morph Target assets must use prefix MT_ (UE5 Style Guide 1.2.2)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-morph-target"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UMorphTarget::StaticClass() };

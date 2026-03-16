@@ -7,6 +7,7 @@
 UUE5StyleGuideRule_AssetNaming_EnvQuery::UUE5StyleGuideRule_AssetNaming_EnvQuery()
 {
 	RuleId = FName(TEXT("asset-naming-env-query"));
+	Description = FText::FromString(TEXT("Environment Query assets must use prefix EQS_ (UE5 Style Guide 1.2.3)."));
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-env-query"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/AIModule.EnvQuery") };
