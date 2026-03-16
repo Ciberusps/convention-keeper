@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ConventionKeeperNamingConvention.h"
+#include "Internationalization/Text.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperConvention.generated.h"
 
@@ -66,12 +66,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name = "";
 
-	/**
-	 * Naming convention applied to folder/asset names in scope. Used by rules that inherit from NamingConvention (e.g. PascalCase).
-	 * The Convention's effective rules can include one or more NamingConvention rules; this class is the type for the convention-wide naming check.
-	 */
+	/** Short description of this convention. Shown in UI and documentation. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (MultiLine = "true"))
+	FText Description;
+
+	/** URL to convention documentation (e.g. style guide or project wiki). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UConventionKeeperNamingConvention> NamingConvention;
+	FString DocsLink;
 
 	/**
 	 * Base convention to extend (ESLint-style). Effective rules = base's GetEffectiveRules() with RuleOverrides applied, then this Convention's Rules.

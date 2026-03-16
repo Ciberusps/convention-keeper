@@ -3,7 +3,6 @@
 #include "UHLConvention/UHLConvention.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Internationalization/Text.h"
-#include "NamingConventions/PascalCaseNamingConvention.h"
 #include "UHLConvention/Rules/UHLRule_AssetNamingCharacterAnimations.h"
 #include "UHLConvention/Rules/UHLRule_FolderContent.h"
 #include "UHLConvention/Rules/UHLRule_FolderCharacter.h"
@@ -38,7 +37,6 @@ FText UUHLConvention::GetLocalizedRuleDescription(FName RuleId) const
 UUHLConvention::UUHLConvention()
 {
 	Name = "UHL Convention";
-	NamingConvention = UPascalCaseNamingConvention::StaticClass();
 
 	Rules.Add(CreateDefaultSubobject<UUHLRule_FolderContent>(TEXT("Rule_Content")));
 	Rules.Add(CreateDefaultSubobject<UUHLRule_FolderProjectName>(TEXT("Rule_ProjectName")));

@@ -8,7 +8,7 @@
 
 /**
  * Convention based on Gamemakin UE5 Style Guide (v2).
- * Starts with naming-convention-pascalcase; further rules added by plan.
+ * Naming and structure rules are defined via Rules (e.g. naming-convention-pascalcase, asset-naming-*).
  */
 UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
 class CONVENTIONKEEPERCONVENTIONS_API UUE5StyleGuideConvention : public UConventionKeeperConvention
