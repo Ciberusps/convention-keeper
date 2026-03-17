@@ -37,6 +37,15 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SlateWidgetStyle.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_WidgetBlueprint.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ParticleSystem.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundWave.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundCue.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundAttenuation.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundMix.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ReverbEffect.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_DialogueVoice.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_DialogueWave.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MediaSoundWave.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundConcurrency.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideConvention)
 
@@ -81,4 +90,13 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SlateWidgetStyle>(TEXT("Rule_AssetNaming_SlateWidgetStyle")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_WidgetBlueprint>(TEXT("Rule_AssetNaming_WidgetBlueprint")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ParticleSystem>(TEXT("Rule_AssetNaming_ParticleSystem")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundWave>(TEXT("Rule_AssetNaming_SoundWave")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundCue>(TEXT("Rule_AssetNaming_SoundCue")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundAttenuation>(TEXT("Rule_AssetNaming_SoundAttenuation")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundMix>(TEXT("Rule_AssetNaming_SoundMix")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ReverbEffect>(TEXT("Rule_AssetNaming_ReverbEffect")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_DialogueVoice>(TEXT("Rule_AssetNaming_DialogueVoice")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_DialogueWave>(TEXT("Rule_AssetNaming_DialogueWave")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MediaSoundWave>(TEXT("Rule_AssetNaming_MediaSoundWave")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundConcurrency>(TEXT("Rule_AssetNaming_SoundConcurrency")));
 }
