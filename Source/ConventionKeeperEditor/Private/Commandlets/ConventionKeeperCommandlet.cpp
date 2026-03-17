@@ -134,7 +134,7 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 		}
 		return true;
 	}
-	UConventionKeeperConvention* Convention = ConventionKeeperSettings ? ConventionKeeperSettings->GetResolvedConvention() : nullptr;
+	UConventionKeeperConvention_Base* Convention = ConventionKeeperSettings ? ConventionKeeperSettings->GetResolvedConvention() : nullptr;
 	if (!Convention)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ConventionKeeper: Settings or Convention/Convention Asset is not set."));

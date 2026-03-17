@@ -3,7 +3,7 @@
 #include "Rules/ConventionKeeperRule_FolderStructure.h"
 
 #include "ConventionKeeperBlueprintLibrary.h"
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Misc/Paths.h"

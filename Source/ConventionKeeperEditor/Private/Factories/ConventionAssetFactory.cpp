@@ -1,15 +1,33 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "Factories/ConventionAssetFactory.h"
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "ConventionClassViewerOptions.h"
 #include "Kismet2/SClassPickerDialog.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionAssetFactory)
 
+static UClass* GetDefaultConventionClass()
+{
+	static UClass* Cached = nullptr;
+	if (!Cached)
+	{
+		Cached = LoadClass<UConventionKeeperConvention_Base>(nullptr, TEXT("/Script/ConventionKeeperConventions.ConventionKeeperConvention"));
+		if (!Cached)
+		{
+			Cached = LoadClass<UConventionKeeperConvention_Base>(nullptr, TEXT("/Script/ConventionKeeperConventions.UE5StyleGuideConvention"));
+		}
+		if (!Cached)
+		{
+			Cached = UConventionKeeperConvention_Base::StaticClass();
+		}
+	}
+	return Cached;
+}
+
 UConventionFactory::UConventionFactory()
 {
-	SupportedClass = UConventionKeeperConvention::StaticClass();
+	SupportedClass = UConventionKeeperConvention_Base::StaticClass();
 	bCreateNew = true;
 	bEditAfterNew = true;
 	ExtendsConventionClass = nullptr;
@@ -23,7 +41,7 @@ bool UConventionFactory::ConfigureProperties()
 
 	const FText TitleText = NSLOCTEXT("ConventionKeeper", "PickExtendsConvention", "Pick Convention To Extend (ExtendsConvention)");
 	UClass* ChosenClass = nullptr;
-	const bool bPressedOk = SClassPickerDialog::PickClass(TitleText, Options, ChosenClass, UConventionKeeperConvention::StaticClass());
+	const bool bPressedOk = SClassPickerDialog::PickClass(TitleText, Options, ChosenClass, UConventionKeeperConvention_Base::StaticClass());
 
 	if (bPressedOk && ChosenClass)
 	{
@@ -41,7 +59,12 @@ UObject* UConventionFactory::FactoryCreateNew(
 	UObject* Context,
 	FFeedbackContext* Warn)
 {
-	UConventionKeeperConvention* Convention = NewObject<UConventionKeeperConvention>(InParent, UConventionKeeperConvention::StaticClass(), Name, Flags | RF_Transactional);
+	UClass* CreateClass = Class;
+	if (!CreateClass || !CreateClass->IsChildOf(UConventionKeeperConvention_Base::StaticClass()) || CreateClass->HasAnyClassFlags(CLASS_Abstract))
+	{
+		CreateClass = GetDefaultConventionClass();
+	}
+	UConventionKeeperConvention_Base* Convention = NewObject<UConventionKeeperConvention_Base>(InParent, CreateClass, Name, Flags | RF_Transactional);
 	if (Convention && ExtendsConventionClass.Get())
 	{
 		Convention->ExtendsConvention = ExtendsConventionClass;

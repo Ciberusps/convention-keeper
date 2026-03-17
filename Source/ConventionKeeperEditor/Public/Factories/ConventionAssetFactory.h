@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/Factory.h"
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "ConventionAssetFactory.generated.h"
 
 UCLASS()
@@ -17,7 +17,7 @@ public:
 
 	/** Class chosen in ConfigureProperties; assigned to the new Convention's ExtendsConvention (ESLint-style extends). */
 	UPROPERTY(EditAnywhere, Category = Convention)
-	TSubclassOf<UConventionKeeperConvention> ExtendsConventionClass;
+	TSubclassOf<UConventionKeeperConvention_Base> ExtendsConventionClass;
 
 	virtual bool ConfigureProperties() override;
 	virtual UObject* FactoryCreateNew(

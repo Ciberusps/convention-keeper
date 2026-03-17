@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Internationalization/Text.h"
 #include "Rules/ConventionKeeperRule.h"
-#include "ConventionKeeperConvention.generated.h"
+#include "ConventionKeeperConvention_Base.generated.h"
 
 /** How to apply a RuleOverride: keep base rule, disable it, or replace with another rule instance. */
 UENUM(BlueprintType)
@@ -39,19 +39,17 @@ struct CONVENTIONKEEPEREDITOR_API FRuleOverride
 };
 
 /**
- * Convention: set of rules for validation (folder structure, naming, etc.).
+ * Abstract base for conventions: set of rules for validation (folder structure, naming, etc.).
+ * Do not instantiate directly — use subclasses (e.g. UConventionKeeperConvention, UUE5StyleGuideConvention, UUHLConvention).
  * Extend only via ExtendsConvention (ESLint-style), not by subclassing.
  * Chained extends are supported: MyConvention extends GodreaperConvention extends UHLConvention.
  */
-UCLASS(Blueprintable, BlueprintType)
-class CONVENTIONKEEPEREDITOR_API UConventionKeeperConvention : public UObject
+UCLASS(Abstract, Blueprintable, BlueprintType)
+class CONVENTIONKEEPEREDITOR_API UConventionKeeperConvention_Base : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	// should introspect all templates recursively
-	// e.g. we can have `/{ProjectName}/{CharacterName}/{SomethingName}`
-	// {ProjectName} - placeholder, {CharacterName} and {SomethingName} are templates
 	/**
 	 * Scans a single path string for segments of the form "{Name}",
 	 * ignores any in GlobalPlaceholders, and returns the rest.
@@ -78,80 +76,60 @@ public:
 	 * Base convention to extend (ESLint-style). Effective rules = base's GetEffectiveRules() with RuleOverrides applied, then this Convention's Rules.
 	 * When Extends Convention (Asset) is set, this field is ignored and the asset is used as the base.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Extends Convention (Class)", AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention", EditCondition = "!bExtendsConventionAssetIsSet"))
-	TSubclassOf<UConventionKeeperConvention> ExtendsConvention;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Extends Convention (Class)", AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention_Base", EditCondition = "!bExtendsConventionAssetIsSet"))
+	TSubclassOf<UConventionKeeperConvention_Base> ExtendsConvention;
 
 	/**
 	 * Optional: extend a specific Convention asset (e.g. created via Asset Actions). When set, this asset is the base instead of Extends Convention class CDO.
-	 * Use when you need to extend a customized instance (e.g. forked UHL with different Rules) rather than the class default.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Extends Convention (Asset)", AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention"))
-	TSoftObjectPtr<UConventionKeeperConvention> ExtendsConventionAsset;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Extends Convention (Asset)", AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention_Base"))
+	TSoftObjectPtr<UConventionKeeperConvention_Base> ExtendsConventionAsset;
 
 	/** Internal: true when ExtendsConventionAsset is set; used to hide "Extends Convention (Class)" in the editor. */
 	UPROPERTY(Transient, meta = (EditCondition = "false", EditConditionHides, NoResetToDefault))
 	bool bExtendsConventionAssetIsSet = false;
 
 	/**
-	 * Per-rule overrides for rules inherited from the base. Each entry: RuleId (from base), Mode (UseBase / Off / Replace), optional ReplacementRule.
-	 * Example: RuleId=folder-structure-character, Mode=Off — that rule is not run; Mode=Replace + ReplacementRule = your custom rule instance.
+	 * Per-rule overrides for rules inherited from the base.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FRuleOverride> RuleOverrides = {};
 
 	/**
-	 * Read-only. Rules inherited from the extended convention (before overrides). Populated when ExtendsConvention or ExtendsConventionAsset is set.
-	 * Shown so you can see which rules come from the base; edit overrides via RuleOverrides, not here.
+	 * Read-only. Rules inherited from the extended convention (before overrides).
 	 */
 	UPROPERTY(Transient, VisibleDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "false"))
 	TArray<TObjectPtr<UConventionKeeperRule>> ExtendedRules = {};
 
 	/**
-	 * This convention's own rules. When not extending: these are the only rules (root convention). When extending: these are added after the base rules (with overrides applied).
-	 * Example: UHL has Rules = [folder-structure-content, folder-structure-project-name, ...]; your Convention extends UHL and adds one more rule in Rules.
+	 * This convention's own rules. When not extending: these are the only rules. When extending: these are added after the base rules (with overrides applied).
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Rules"))
 	TArray<TObjectPtr<UConventionKeeperRule>> Rules = {};
 
-	/**
-	 * Returns the final list of rules used for validation: base rules (if extending) with RuleOverrides applied (Off/Replace), then this Convention's Rules.
-	 * Call this when running validation; do not iterate Rules directly if the convention extends another.
-	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<UConventionKeeperRule*> GetEffectiveRules() const;
 
-	/**
-	 * Returns a localized short description for the given RuleId. Override in subclasses (e.g. UHLConvention) to supply per-rule, per-language text.
-	 * Used by rules for GetDisplayDescription(); if empty, rule falls back to DescriptionKey or Description.
-	 */
 	virtual FText GetLocalizedRuleDescription(FName RuleId) const;
 
-	/** Runs folder structure validation for all rules that apply to the full Content tree (no path filter). */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ValidateFolderStructures();
 	void ValidateFolderStructures_Implementation();
 
-	/** Runs folder structure validation only for paths under SelectedPaths (Content/ form). Used when user selects folders in the Content Browser and runs validation. */
 	UFUNCTION(BlueprintCallable)
 	void ValidateFolderStructuresForPaths(const TArray<FString>& SelectedPaths);
 
-	/** Returns true if the directory exists; placeholders in DirectoryPath are resolved using the given map. */
 	bool DoesDirectoryExist(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders);
 
-	/** Returns the actual base convention: ExtendsConventionAsset if set, otherwise the CDO of ExtendsConvention. */
-	UConventionKeeperConvention const* GetResolvedExtendsConvention() const;
+	UConventionKeeperConvention_Base const* GetResolvedExtendsConvention() const;
 
-	/** Returns RuleIds of the extended convention's effective rules. Used by the RuleOverride.RuleId dropdown so you pick a valid id. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Convention Keeper")
 	TArray<FString> GetAvailableRuleIds() const;
 
-	//~UObject interface
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
-	//~End of UObject interface
 
 private:
 	void SyncExtendsConventionAssetFlag();
 	void RefreshExtendedRules();
 };
-

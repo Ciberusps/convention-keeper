@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 #include "ConventionKeeperRule.generated.h"
 
-class UConventionKeeperConvention;
+class UConventionKeeperConvention_Base;
 
 /** Severity when a rule fails: Error (red in Message Log) or Warning (yellow). */
 UENUM(BlueprintType)
@@ -62,7 +62,7 @@ public:
 	EConventionRuleSeverity Severity = EConventionRuleSeverity::Error;
 
 	/** Returns localized description. Prefers Convention->GetLocalizedRuleDescription when Convention is set; else DescriptionKey (global loc) or Description. */
-	FText GetDisplayDescription(const UConventionKeeperConvention* Convention = nullptr) const;
+	FText GetDisplayDescription(const UConventionKeeperConvention_Base* Convention = nullptr) const;
 
 	/**
 	 * Override the path to the rule's markdown doc. If empty, path is built from Settings:

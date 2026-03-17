@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "UE5StyleGuideConvention.generated.h"
 
 /**
@@ -11,7 +11,7 @@
  * Naming and structure rules are defined via Rules (e.g. naming-convention-pascalcase, asset-naming-*).
  */
 UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
-class CONVENTIONKEEPERCONVENTIONS_API UUE5StyleGuideConvention : public UConventionKeeperConvention
+class CONVENTIONKEEPERCONVENTIONS_API UUE5StyleGuideConvention : public UConventionKeeperConvention_Base
 {
 	GENERATED_BODY()
 

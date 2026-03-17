@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "ConventionKeeperSettings.generated.h"
 
 /** Project default language for rule descriptions and message log. */
@@ -70,22 +70,22 @@ public:
 	 * Convention class used for validation when Convention Asset is not set. The class's default object (CDO) is used.
 	 * When Convention Asset is set, this field is ignored and the asset is used instead (so you can have a class in source and override with an instance in content).
 	 */
-	UPROPERTY(Config, EditAnywhere, meta = (AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention", EditCondition = "!bConventionAssetIsSet"))
-	TSubclassOf<UConventionKeeperConvention> Convention;
+	UPROPERTY(Config, EditAnywhere, meta = (AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention_Base", EditCondition = "!bConventionAssetIsSet"))
+	TSubclassOf<UConventionKeeperConvention_Base> Convention;
 
 	/**
 	 * Optional: a Convention asset (e.g. created via Asset Actions). When set, this asset is used for all validation instead of Convention class CDO.
 	 * Use when you need to edit the convention in the editor (Rules, RuleOverrides) without changing code.
 	 */
-	UPROPERTY(Config, EditAnywhere, meta = (AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention"))
-	TSoftObjectPtr<UConventionKeeperConvention> ConventionAsset;
+	UPROPERTY(Config, EditAnywhere, meta = (AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperConvention_Base"))
+	TSoftObjectPtr<UConventionKeeperConvention_Base> ConventionAsset;
 
 	/** Internal: true when ConventionAsset is set; used to hide Convention (class) in the editor. */
 	UPROPERTY(Transient, meta = (EditCondition = "false", EditConditionHides, NoResetToDefault))
 	bool bConventionAssetIsSet = false;
 
 	/** Returns the convention used for validation: ConventionAsset if set, otherwise the CDO of Convention. */
-	UConventionKeeperConvention* GetResolvedConvention() const;
+	UConventionKeeperConvention_Base* GetResolvedConvention() const;
 
 	/**
 	 * Project default: master switch for all validations. When false, no rules run (menu, context menu, on save, commandlet).

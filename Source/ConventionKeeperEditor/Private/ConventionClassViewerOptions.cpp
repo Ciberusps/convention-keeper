@@ -1,7 +1,7 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "ConventionClassViewerOptions.h"
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "ClassViewerModule.h"
 #include "ClassViewerFilter.h"
 
@@ -35,7 +35,7 @@ FClassViewerInitializationOptions FConventionClassViewerOptions::Build()
 	Options.bShowUnloadedBlueprints = true;
 	Options.bEditorClassesOnly = false;
 	TSharedPtr<FConventionClassFilter> Filter = MakeShareable(new FConventionClassFilter);
-	Filter->AllowedChildrenOfClasses.Add(UConventionKeeperConvention::StaticClass());
+	Filter->AllowedChildrenOfClasses.Add(UConventionKeeperConvention_Base::StaticClass());
 	Options.ClassFilters.Add(Filter.ToSharedRef());
 	return Options;
 }

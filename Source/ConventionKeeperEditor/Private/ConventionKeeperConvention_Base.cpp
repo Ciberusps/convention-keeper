@@ -1,6 +1,6 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Rules/ConventionKeeperRule.h"
@@ -9,22 +9,22 @@
 #include "Misc/Paths.h"
 #include "UObject/UnrealType.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperConvention)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperConvention_Base)
 
-FText UConventionKeeperConvention::GetLocalizedRuleDescription(FName RuleId) const
+FText UConventionKeeperConvention_Base::GetLocalizedRuleDescription(FName RuleId) const
 {
 	return FText();
 }
 
-void UConventionKeeperConvention::SyncExtendsConventionAssetFlag()
+void UConventionKeeperConvention_Base::SyncExtendsConventionAssetFlag()
 {
 	bExtendsConventionAssetIsSet = !ExtendsConventionAsset.IsNull();
 }
 
-void UConventionKeeperConvention::RefreshExtendedRules()
+void UConventionKeeperConvention_Base::RefreshExtendedRules()
 {
 	ExtendedRules.Empty();
-	UConventionKeeperConvention const* Base = GetResolvedExtendsConvention();
+	UConventionKeeperConvention_Base const* Base = GetResolvedExtendsConvention();
 	if (Base)
 	{
 		for (UConventionKeeperRule* Rule : Base->GetEffectiveRules())
@@ -37,7 +37,7 @@ void UConventionKeeperConvention::RefreshExtendedRules()
 	}
 }
 
-void UConventionKeeperConvention::PostLoad()
+void UConventionKeeperConvention_Base::PostLoad()
 {
 	Super::PostLoad();
 	SyncExtendsConventionAssetFlag();
@@ -60,16 +60,16 @@ void UConventionKeeperConvention::PostLoad()
 #endif
 }
 
-void UConventionKeeperConvention::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UConventionKeeperConvention_Base::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	const FName PropName = PropertyChangedEvent.GetPropertyName();
-	if (PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConventionAsset))
+	if (PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention_Base, ExtendsConventionAsset))
 	{
 		SyncExtendsConventionAssetFlag();
 	}
-	if (PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConvention)
-		|| PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention, ExtendsConventionAsset))
+	if (PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention_Base, ExtendsConvention)
+		|| PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention_Base, ExtendsConventionAsset))
 	{
 		RefreshExtendedRules();
 #if WITH_EDITOR
@@ -84,25 +84,25 @@ void UConventionKeeperConvention::PostEditChangeProperty(FPropertyChangedEvent& 
 	}
 }
 
-UConventionKeeperConvention const* UConventionKeeperConvention::GetResolvedExtendsConvention() const
+UConventionKeeperConvention_Base const* UConventionKeeperConvention_Base::GetResolvedExtendsConvention() const
 {
 	if (ExtendsConventionAsset.IsValid())
 	{
-		UConventionKeeperConvention const* Asset = ExtendsConventionAsset.Get();
+		UConventionKeeperConvention_Base const* Asset = ExtendsConventionAsset.Get();
 		return (Asset && Asset != this) ? Asset : nullptr;
 	}
 	if (ExtendsConvention.Get())
 	{
-		UConventionKeeperConvention const* BaseCDO = ExtendsConvention->GetDefaultObject<UConventionKeeperConvention>();
+		UConventionKeeperConvention_Base const* BaseCDO = ExtendsConvention->GetDefaultObject<UConventionKeeperConvention_Base>();
 		return (BaseCDO && BaseCDO != this) ? BaseCDO : nullptr;
 	}
 	return nullptr;
 }
 
-TArray<FString> UConventionKeeperConvention::GetAvailableRuleIds() const
+TArray<FString> UConventionKeeperConvention_Base::GetAvailableRuleIds() const
 {
 	TArray<FString> Out;
-	UConventionKeeperConvention const* Base = GetResolvedExtendsConvention();
+	UConventionKeeperConvention_Base const* Base = GetResolvedExtendsConvention();
 	if (!Base)
 	{
 		return Out;
@@ -117,9 +117,9 @@ TArray<FString> UConventionKeeperConvention::GetAvailableRuleIds() const
 	return Out;
 }
 
-TArray<UConventionKeeperRule*> UConventionKeeperConvention::GetEffectiveRules() const
+TArray<UConventionKeeperRule*> UConventionKeeperConvention_Base::GetEffectiveRules() const
 {
-	UConventionKeeperConvention const* Base = GetResolvedExtendsConvention();
+	UConventionKeeperConvention_Base const* Base = GetResolvedExtendsConvention();
 
 	if (!Base)
 	{
@@ -190,19 +190,19 @@ TArray<UConventionKeeperRule*> UConventionKeeperConvention::GetEffectiveRules() 
 	return Out;
 }
 
-TSet<FString> UConventionKeeperConvention::ExtractTemplatesFromPath(
+TSet<FString> UConventionKeeperConvention_Base::ExtractTemplatesFromPath(
 	const FString& Path,
 	const TMap<FString, FString>& GlobalPlaceholders)
 {
 	return UConventionKeeperBlueprintLibrary::ExtractTemplatesFromPath(Path, GlobalPlaceholders);
 }
 
-void UConventionKeeperConvention::ValidateFolderStructures_Implementation()
+void UConventionKeeperConvention_Base::ValidateFolderStructures_Implementation()
 {
 	ValidateFolderStructuresForPaths(TArray<FString>());
 }
 
-void UConventionKeeperConvention::ValidateFolderStructuresForPaths(const TArray<FString>& SelectedPaths)
+void UConventionKeeperConvention_Base::ValidateFolderStructuresForPaths(const TArray<FString>& SelectedPaths)
 {
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
 	const TMap<FString, FString> Placeholders = Settings ? Settings->GetPlaceholders() : TMap<FString, FString>();
@@ -231,7 +231,7 @@ void UConventionKeeperConvention::ValidateFolderStructuresForPaths(const TArray<
 	}
 }
 
-bool UConventionKeeperConvention::DoesDirectoryExist(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders)
+bool UConventionKeeperConvention_Base::DoesDirectoryExist(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders)
 {
 	FString Resolved = DirectoryPath;
 	for (const TTuple<FString, FString>& Pair : Placeholders)

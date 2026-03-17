@@ -35,7 +35,7 @@ void UConventionKeeperSettings::PostEditChangeProperty(FPropertyChangedEvent& Pr
 	}
 }
 
-UConventionKeeperConvention* UConventionKeeperSettings::GetResolvedConvention() const
+UConventionKeeperConvention_Base* UConventionKeeperSettings::GetResolvedConvention() const
 {
 	if (ConventionAsset.IsValid())
 	{
@@ -43,7 +43,7 @@ UConventionKeeperConvention* UConventionKeeperSettings::GetResolvedConvention() 
 	}
 	if (Convention.Get())
 	{
-		return Convention->GetDefaultObject<UConventionKeeperConvention>();
+		return Convention->GetDefaultObject<UConventionKeeperConvention_Base>();
 	}
 	return nullptr;
 }

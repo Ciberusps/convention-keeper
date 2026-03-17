@@ -4,7 +4,7 @@
 #include "ConventionKeeperEditorStyle.h"
 #include "ConventionKeeperEditorCommands.h"
 #include "Commandlets/ConventionKeeperCommandlet.h"
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Rules/ConventionKeeperRule.h"
@@ -113,7 +113,7 @@ void FConventionKeeperEditorModule::PluginButtonClicked()
 		return;
 	}
 
-	UConventionKeeperConvention* Convention = ConventionKeeperSettings->GetResolvedConvention();
+	UConventionKeeperConvention_Base* Convention = ConventionKeeperSettings->GetResolvedConvention();
 	if (!Convention)
 	{
 		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoConvention", "Convention Keeper: Convention is not set. Set Convention or Convention Asset in Project Settings → Convention Keeper."));
@@ -413,7 +413,7 @@ void FConventionKeeperEditorModule::ValidateSavedPackages()
 		SavedPackagePathsToValidate.Empty();
 		return;
 	}
-	UConventionKeeperConvention* Convention = Settings->GetResolvedConvention();
+	UConventionKeeperConvention_Base* Convention = Settings->GetResolvedConvention();
 	if (!Convention)
 	{
 		SavedPackagePathsToValidate.Empty();

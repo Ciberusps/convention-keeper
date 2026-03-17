@@ -2,7 +2,7 @@
 
 #include "Rules/ConventionKeeperRule.h"
 
-#include "ConventionKeeperConvention.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Interfaces/IPluginManager.h"
@@ -12,7 +12,7 @@
 #include "Misc/Paths.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule)
 
-FText UConventionKeeperRule::GetDisplayDescription(const UConventionKeeperConvention* Convention) const
+FText UConventionKeeperRule::GetDisplayDescription(const UConventionKeeperConvention_Base* Convention) const
 {
 	if (Convention)
 	{
