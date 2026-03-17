@@ -1,4 +1,4 @@
-// UHL Convention rule descriptions — Russian. Edit this file to change Russian texts.
+// Convention Keeper (default) rule descriptions — Russian.
 
 { FName(TEXT("folder-structure-content")), TEXT("В корне Content должны быть папки: 3rdParty, {ProjectName}, FMOD, Movies.") },
 { FName(TEXT("folder-structure-project-name")), TEXT("В Content/{ProjectName}/ обязательны папки: Characters, Maps, Core, SFX, VFX, AI.") },

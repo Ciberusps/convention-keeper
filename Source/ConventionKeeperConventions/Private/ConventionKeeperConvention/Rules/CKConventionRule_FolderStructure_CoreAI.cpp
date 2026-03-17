@@ -1,8 +1,8 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
-#include "UHLConvention/Rules/UHLRule_FolderCoreAI.h"
+#include "ConventionKeeperConvention/Rules/CKConventionRule_FolderStructure_CoreAI.h"
 
-UUHLRule_FolderCoreAI::UUHLRule_FolderCoreAI()
+UCKConventionRule_FolderStructure_CoreAI::UCKConventionRule_FolderStructure_CoreAI()
 {
 	RuleId = FName(TEXT("folder-structure-core-ai"));
 	Description = FText::FromString(TEXT("Content/{ProjectName}/Core/AI/ must exist."));

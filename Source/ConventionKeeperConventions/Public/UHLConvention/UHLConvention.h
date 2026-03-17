@@ -3,16 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ConventionKeeperConvention_Base.h"
+#include "ConventionKeeperConvention/ConventionKeeperConvention.h"
 #include "UHLConvention.generated.h"
 
+/** Alias for Convention Keeper convention with display name "UHL Convention". Same rules as UConventionKeeperConvention. */
 UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
-class CONVENTIONKEEPERCONVENTIONS_API UUHLConvention : public UConventionKeeperConvention_Base
+class CONVENTIONKEEPERCONVENTIONS_API UUHLConvention : public UConventionKeeperConvention
 {
 	GENERATED_BODY()
 
 public:
 	UUHLConvention();
-
-	virtual FText GetLocalizedRuleDescription(FName RuleId) const override;
 };

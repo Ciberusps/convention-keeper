@@ -1,4 +1,4 @@
-// UHL Convention rule descriptions — English. Edit this file to change English texts.
+// Convention Keeper (default) rule descriptions — English.
 
 { FName(TEXT("folder-structure-content")), TEXT("Root Content folder must contain 3rdParty, {ProjectName}, FMOD, Movies.") },
 { FName(TEXT("folder-structure-project-name")), TEXT("Under Content/{ProjectName}/ require Characters, Maps, Core, SFX, VFX, AI.") },
