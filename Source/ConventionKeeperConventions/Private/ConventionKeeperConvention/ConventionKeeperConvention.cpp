@@ -46,7 +46,7 @@ UConventionKeeperConvention::UConventionKeeperConvention()
 	ExtendsConvention = UUE5StyleGuideConvention::StaticClass();
 
 	FRuleOverride AnimSeqOverride;
-	AnimSeqOverride.RuleId = FName(TEXT("asset-naming-anim-sequence"));
+	AnimSeqOverride.RuleId = FName(TEXT("asset-naming-anim-sequence")); // parent UE5StyleGuide rule id to replace
 	AnimSeqOverride.Mode = EConventionRuleOverrideMode::Replace;
 	AnimSeqOverride.ReplacementRule = CreateDefaultSubobject<UCKConventionRule_AssetNaming_AnimSequence>(TEXT("Rule_AssetNaming_AnimSequence"));
 	RuleOverrides.Add(AnimSeqOverride);

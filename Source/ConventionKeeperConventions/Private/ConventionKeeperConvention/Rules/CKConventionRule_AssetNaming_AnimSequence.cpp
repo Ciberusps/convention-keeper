@@ -7,9 +7,9 @@
 
 UCKConventionRule_AssetNaming_AnimSequence::UCKConventionRule_AssetNaming_AnimSequence()
 {
-	RuleId = FName(TEXT("asset-naming-anim-sequence"));
-	Description = FText::FromString(TEXT("Animation Sequence assets must use prefix AS_ (CKConvention override of UE5 Style Guide)."));
-	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-anim-sequence"));
+	RuleId = FName(TEXT("ck-asset-naming-anim-sequence"));
+	Description = FText::FromString(TEXT("Animation Sequence assets must use prefix AS_ (CKConvention)."));
+	DescriptionKey = FName(TEXT("RuleDesc_ck-asset-naming-anim-sequence"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClasses = { UAnimSequence::StaticClass() };
 	Prefix = TEXT("AS_");

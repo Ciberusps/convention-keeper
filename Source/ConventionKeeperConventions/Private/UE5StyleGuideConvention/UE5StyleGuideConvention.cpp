@@ -32,6 +32,11 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_DestructibleMesh.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Decal.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Texture.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Font.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SlateBrush.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SlateWidgetStyle.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_WidgetBlueprint.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ParticleSystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideConvention)
 
@@ -71,4 +76,9 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_DestructibleMesh>(TEXT("Rule_AssetNaming_DestructibleMesh")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Decal>(TEXT("Rule_AssetNaming_Decal")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Texture>(TEXT("Rule_AssetNaming_Texture")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Font>(TEXT("Rule_AssetNaming_Font")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SlateBrush>(TEXT("Rule_AssetNaming_SlateBrush")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SlateWidgetStyle>(TEXT("Rule_AssetNaming_SlateWidgetStyle")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_WidgetBlueprint>(TEXT("Rule_AssetNaming_WidgetBlueprint")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ParticleSystem>(TEXT("Rule_AssetNaming_ParticleSystem")));
 }
