@@ -231,6 +231,7 @@ void UConventionKeeperRule_AssetPlacement::Validate_Implementation(const TArray<
 				RelativePath = FString(TEXT("Content/")) + RelativePath.Mid(6);
 			}
 			RelativePath.ReplaceInline(TEXT("\\"), TEXT("/"));
+			const FString MessageLogLinkPath = PackageName + TEXT(".") + AssetData.AssetName.ToString();
 			if (bFilterToSpecificAssets && !OnlyAssetSet.Contains(RelativePath))
 			{
 				continue;
@@ -253,7 +254,7 @@ void UConventionKeeperRule_AssetPlacement::Validate_Implementation(const TArray<
 			{
 				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 					ConventionKeeperLoc::GetText(FName(TEXT("AssetPlacementMustBeInFolder"))),
-					&RelativePath,
+					&MessageLogLinkPath,
 					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetPlacementMustBeInFolderSuffix"))), FText::FromString(RequiredPathSegment)));
 			}
 		}

@@ -765,6 +765,7 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 				RelativePath = FString(TEXT("Content/")) + RelativePath.Mid(6);
 			}
 			RelativePath.ReplaceInline(TEXT("/"), TEXT("/"));
+			const FString MessageLogLinkPath = PackageName + TEXT(".") + AssetName;
 			if (bFilterToSpecificAssets && !OnlyAssetSet.Contains(RelativePath))
 			{
 				continue;
@@ -814,20 +815,20 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 			{
 				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 					ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefix"))),
-					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefixSuffix"))), FText::FromString(ExpectedPrefixForMessage)));
+					&MessageLogLinkPath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingPrefixSuffix"))), FText::FromString(ExpectedPrefixForMessage)));
 			}
 			else if (!bSuffixOk)
 			{
 				FText CustomMsg = GetCustomSuffixFailureMessage(AssetName, ExpectedPrefixForMessage);
 				if (!CustomMsg.IsEmpty())
 				{
-					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity, CustomMsg, &RelativePath, FText());
+					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity, CustomMsg, &MessageLogLinkPath, FText());
 				}
 				else
 				{
 					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 						ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffix"))),
-						&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffixVal"))), FText::FromString(Suffix)));
+						&MessageLogLinkPath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuffixVal"))), FText::FromString(Suffix)));
 				}
 			}
 			else if (!bNumberOk)
@@ -835,13 +836,13 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 				FString Suggested = SuggestZeroPaddedName(AssetName, NumberPaddingDigits);
 				UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
 					FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingNumber"))), FText::AsNumber(NumberPaddingDigits)),
-					&RelativePath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuggest"))), FText::FromString(Suggested)));
+					&MessageLogLinkPath, FText::Format(ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingSuggest"))), FText::FromString(Suggested)));
 			}
 			else if (bDebug)
 			{
 				UConventionKeeperRule::LogRuleMessage(this, EMessageSeverity::Info,
 					ConventionKeeperLoc::GetText(FName(TEXT("AssetNamingOk"))),
-					&RelativePath, FText());
+					&MessageLogLinkPath, FText());
 			}
 		}
 	}
