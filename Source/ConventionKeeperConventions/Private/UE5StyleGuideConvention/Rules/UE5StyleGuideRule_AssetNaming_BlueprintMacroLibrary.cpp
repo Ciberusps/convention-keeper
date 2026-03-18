@@ -5,6 +5,20 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary)
 
+namespace
+{
+bool IsBlueprintTypeTag_BPMacroLibrary(const FAssetData& AssetData, const TCHAR* ExpectedType)
+{
+	static const FName BlueprintTypeTag(TEXT("BlueprintType"));
+	FString BlueprintType;
+	if (!AssetData.GetTagValue(BlueprintTypeTag, BlueprintType) || BlueprintType.IsEmpty())
+	{
+		return false;
+	}
+	return BlueprintType.Equals(ExpectedType, ESearchCase::IgnoreCase) || BlueprintType.Contains(ExpectedType, ESearchCase::IgnoreCase);
+}
+}
+
 UUE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary::UUE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary()
 {
 	RuleId = FName(TEXT("asset-naming-blueprint-macro-library"));
@@ -18,6 +32,11 @@ UUE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary::UUE5StyleGuideRule_AssetNa
 
 bool UUE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const
 {
+	if (IsBlueprintTypeTag_BPMacroLibrary(AssetData, TEXT("BPTYPE_MacroLibrary")))
+	{
+		return true;
+	}
+
 	if (!Registry || !BlueprintByClassName)
 	{
 		return false;

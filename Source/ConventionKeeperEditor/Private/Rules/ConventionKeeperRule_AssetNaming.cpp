@@ -164,20 +164,31 @@ bool UConventionKeeperRule_AssetNaming::ExtractPathPlaceholders(const FString& P
 	return UConventionKeeperBlueprintLibrary::ExtractPathPlaceholders(PatternPath, ResolvedPath, GlobalPlaceholders, OutPathPlaceholders);
 }
 
-bool UConventionKeeperRule_AssetNaming::GetBlueprintParentClassPath(const FAssetData& AssetData, FString& OutParentPath)
+static bool GetFirstNonEmptyTag(const FAssetData& AssetData, const FName* TagNames, int32 NumTags, FString& OutValue)
 {
-	AssetData.GetTagValue(FName("ParentClass"), OutParentPath);
-	if (OutParentPath.IsEmpty())
+	for (int32 i = 0; i < NumTags; ++i)
 	{
-		AssetData.GetTagValue(FName("NativeParentClass"), OutParentPath);
-	}
-	if (!OutParentPath.IsEmpty())
-	{
-		OutParentPath.ReplaceInline(TEXT("Class'"), TEXT(""));
-		OutParentPath.ReplaceInline(TEXT("'"), TEXT(""));
-		return true;
+		AssetData.GetTagValue(TagNames[i], OutValue);
+		if (!OutValue.IsEmpty()) return true;
 	}
 	return false;
+}
+
+bool UConventionKeeperRule_AssetNaming::GetBlueprintParentClassPath(const FAssetData& AssetData, FString& OutParentPath)
+{
+	static const FName ParentTagNames[] = {
+		FName("NativeParentClassPath"),
+		FName("ParentClassPath"),
+		FName("NativeParentClass"),
+		FName("ParentClass")
+	};
+	if (!GetFirstNonEmptyTag(AssetData, ParentTagNames, UE_ARRAY_COUNT(ParentTagNames), OutParentPath))
+	{
+		return false;
+	}
+	OutParentPath.ReplaceInline(TEXT("Class'"), TEXT(""));
+	OutParentPath.ReplaceInline(TEXT("'"), TEXT(""));
+	return true;
 }
 
 bool UConventionKeeperRule_AssetNaming::ParentMatches(const FString& NormalizedParent, const TCHAR* Path)
@@ -187,7 +198,21 @@ bool UConventionKeeperRule_AssetNaming::ParentMatches(const FString& NormalizedP
 
 bool UConventionKeeperRule_AssetNaming::NativeRootMatchesPath(const FString& NativeRoot, const TCHAR* Path)
 {
-	return ParentMatches(NativeRoot, Path) || NativeRoot.Contains(Path);
+	if (ParentMatches(NativeRoot, Path) || NativeRoot.Contains(Path))
+	{
+		return true;
+	}
+	FString PathStr(Path);
+	if (PathStr.Len() >= NativeRoot.Len() && PathStr.EndsWith(NativeRoot, ESearchCase::CaseSensitive))
+	{
+		return true;
+	}
+	int32 DotIdx = INDEX_NONE;
+	if (PathStr.FindLastChar(TEXT('.'), DotIdx) && DotIdx >= 0 && DotIdx < PathStr.Len() - 1 && PathStr.Mid(DotIdx + 1) == NativeRoot)
+	{
+		return true;
+	}
+	return false;
 }
 
 namespace
@@ -234,13 +259,28 @@ static void NormalizeClassPath(FString& Path)
 
 bool UConventionKeeperRule_AssetNaming::GetNativeParentClassPath(const FAssetData& AssetData, IAssetRegistry& Registry, FString& OutNativeRoot, const TMap<FString, FAssetData>* BlueprintByClassName)
 {
+	if (UClass* NativeClass = UAssetRegistryHelpers::FindAssetNativeClass(AssetData))
+	{
+		FString NativePath = NativeClass->GetPathName();
+		NormalizeClassPath(NativePath);
+		if (IsNativePathHandledBySpecialtyRule(NativePath))
+		{
+			OutNativeRoot = NativePath;
+			return true;
+		}
+	}
 	FString ParentPath;
 	if (!GetBlueprintParentClassPath(AssetData, ParentPath))
 	{
 		return false;
 	}
 	FString NativeFromTag;
-	AssetData.GetTagValue(FName("NativeParentClass"), NativeFromTag);
+	static const FName NativeTagNames[] = { FName("NativeParentClassPath"), FName("NativeParentClass") };
+	for (const FName TagName : NativeTagNames)
+	{
+		AssetData.GetTagValue(TagName, NativeFromTag);
+		if (!NativeFromTag.IsEmpty()) break;
+	}
 	if (!NativeFromTag.IsEmpty())
 	{
 		NormalizeClassPath(NativeFromTag);
@@ -289,14 +329,14 @@ bool UConventionKeeperRule_AssetNaming::GetNativeParentClassPath(const FAssetDat
 		if (!ParentAsset)
 		{
 			OutNativeRoot = ParentPath;
-			return false;
+			return true;
 		}
 		ParentPath.Empty();
-		ParentAsset->GetTagValue(FName("NativeParentClass"), ParentPath);
-		if (ParentPath.IsEmpty())
-		{
-			ParentAsset->GetTagValue(FName("ParentClass"), ParentPath);
-		}
+		static const FName ParentChainTagNames[] = {
+			FName("NativeParentClassPath"), FName("ParentClassPath"),
+			FName("NativeParentClass"), FName("ParentClass")
+		};
+		GetFirstNonEmptyTag(*ParentAsset, ParentChainTagNames, UE_ARRAY_COUNT(ParentChainTagNames), ParentPath);
 		if (ParentPath.IsEmpty())
 		{
 			OutNativeRoot = ClassName;
@@ -700,9 +740,14 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 		for (const FString& ClassPath : AssetClassPaths)
 		{
 			if (ClassPath.IsEmpty()) continue;
-			if (UClass* LoadedClass = UClass::TryFindTypeSlow<UClass>(*ClassPath, EFindFirstObjectOptions::ExactClass))
+			UClass* LoadedClass = UClass::TryFindTypeSlow<UClass>(*ClassPath, EFindFirstObjectOptions::ExactClass);
+			if (LoadedClass)
 			{
 				Filter.ClassPaths.Add(FTopLevelAssetPath(LoadedClass));
+			}
+			else if (ClassPath.Contains(TEXT(".")))
+			{
+				Filter.ClassPaths.Add(FTopLevelAssetPath(ClassPath));
 			}
 		}
 		if (Filter.ClassPaths.IsEmpty())
@@ -712,6 +757,49 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 
 		TArray<FAssetData> AssetDataList;
 		AssetRegistry.GetAssets(Filter, AssetDataList);
+		if (AssetDataList.Num() == 0)
+		{
+			bool bNeedUserDefinedStructFallback = false;
+			for (const FString& ClassPath : AssetClassPaths)
+			{
+				if (ClassPath.Contains(TEXT("UserDefinedStruct")) || ClassPath.Contains(TEXT("ScriptStruct")))
+				{
+					bNeedUserDefinedStructFallback = true;
+					break;
+				}
+			}
+			if (bNeedUserDefinedStructFallback)
+			{
+				FARFilter PathOnlyFilter;
+				PathOnlyFilter.PackagePaths.Add(FName(*PackagePath));
+				PathOnlyFilter.bRecursivePaths = true;
+				TArray<FAssetData> AllInPath;
+				AssetRegistry.GetAssets(PathOnlyFilter, AllInPath);
+				for (const FAssetData& A : AllInPath)
+				{
+					FString ClassPathStr;
+					if (A.GetTagValue(FName("AssetClassPath"), ClassPathStr)
+						&& (ClassPathStr.Contains(TEXT("UserDefinedStruct")) || ClassPathStr.Contains(TEXT("ScriptStruct"))))
+					{
+						AssetDataList.Add(A);
+						continue;
+					}
+					ClassPathStr = A.AssetClassPath.ToString();
+					if (ClassPathStr.Contains(TEXT("UserDefinedStruct")) || ClassPathStr.Contains(TEXT("ScriptStruct")))
+					{
+						AssetDataList.Add(A);
+						continue;
+					}
+					if (UClass* AssetClass = UAssetRegistryHelpers::FindAssetNativeClass(A))
+					{
+						if (AssetClass->GetName().Contains(TEXT("UserDefinedStruct")) || AssetClass->GetName().Contains(TEXT("ScriptStruct")))
+						{
+							AssetDataList.Add(A);
+						}
+					}
+				}
+			}
+		}
 
 		const TSet<FString> OnlyAssetSet(Scope.OnlyAssetPaths);
 		const bool bFilterToSpecificAssets = Scope.OnlyAssetPaths.Num() > 0;

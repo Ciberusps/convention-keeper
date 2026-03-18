@@ -21,6 +21,7 @@ public class ConventionKeeperTests : ModuleRules
 			new string[]
 			{
 				"ConventionKeeperEditor",
+				"ConventionKeeperConventions",
 				"UnrealEd",
 			}
 		);

@@ -80,6 +80,21 @@ FString UConventionKeeperCommandlet::ConvertPathToRelativeForValidation(const FS
 		{
 			Path = Path.Left(DotPos);
 		}
+		else
+		{
+			// Content Browser and logs may provide object path "/Game/Folder/Asset.Asset".
+			// For validation/exclusions we normalize to package path "/Game/Folder/Asset".
+			const int32 LastSlashPos = Path.Find(TEXT("/"), ESearchCase::CaseSensitive, ESearchDir::FromEnd);
+			if (LastSlashPos != INDEX_NONE && DotPos > LastSlashPos)
+			{
+				const FString PackageLeaf = Path.Mid(LastSlashPos + 1, DotPos - LastSlashPos - 1);
+				const FString ObjectName = Path.Mid(DotPos + 1);
+				if (!PackageLeaf.IsEmpty() && ObjectName == PackageLeaf)
+				{
+					Path = Path.Left(DotPos);
+				}
+			}
+		}
 	}
 
 	if (Path.StartsWith(TEXT("Content/")))

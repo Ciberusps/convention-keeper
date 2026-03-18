@@ -11,5 +11,7 @@ UUE5StyleGuideRule_AssetNaming_Structure::UUE5StyleGuideRule_AssetNaming_Structu
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-structure"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths.Add(TEXT("/Script/Engine.UserDefinedStruct"));
+	AssetClassPaths.Add(TEXT("/Script/CoreUObject.UserDefinedStruct"));
+	AssetClassPaths.Add(TEXT("/Script/CoreUObject.ScriptStruct"));
 	AllowedPrefixes = { TEXT("F"), TEXT("S") };
 }

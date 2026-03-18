@@ -29,6 +29,14 @@ void ConventionKeeperCommandletSpec::Define()
 			TestTrue(TEXT("Folder path must end with slash"), Result.EndsWith(TEXT("/")));
 			TestTrue(TEXT("Result must be in Content form"), Result.StartsWith(TEXT("Content/")));
 		});
+
+		It("normalizes object path /Game/.../Asset.Asset to package path without object suffix", [this]()
+		{
+			const FString ObjectPath = TEXT("/Game/GameCode/Textures/Decals/Ffsdafkl.Ffsdafkl");
+			FString Result = UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(ObjectPath, false);
+			TestEqual(TEXT("Object path normalized to package path"), Result,
+				FString(TEXT("Content/GameCode/Textures/Decals/Ffsdafkl")));
+		});
 	});
 }
 
