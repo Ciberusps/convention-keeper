@@ -58,6 +58,22 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MediaSoundWave.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundConcurrency.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetPlacement_SoundClass.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_DataTable.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_CurveFloat.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_CurveVector.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_CurveColor.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_CurveTable.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_FoliageType.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ForceFeedbackEffect.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MediaPlayer.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ObjectLibrary.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_AnimatedVectorField.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_StaticVectorField.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_CameraAnim.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_LandscapeGrassType.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_LandscapeLayer.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MatineeData.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_TouchInterface.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideConvention)
 
@@ -123,4 +139,20 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MediaSoundWave>(TEXT("Rule_AssetNaming_MediaSoundWave")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundConcurrency>(TEXT("Rule_AssetNaming_SoundConcurrency")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetPlacement_SoundClass>(TEXT("Rule_AssetPlacement_SoundClass")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_DataTable>(TEXT("Rule_AssetNaming_DataTable")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_CurveFloat>(TEXT("Rule_AssetNaming_CurveFloat")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_CurveVector>(TEXT("Rule_AssetNaming_CurveVector")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_CurveColor>(TEXT("Rule_AssetNaming_CurveColor")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_CurveTable>(TEXT("Rule_AssetNaming_CurveTable")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_FoliageType>(TEXT("Rule_AssetNaming_FoliageType")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ForceFeedbackEffect>(TEXT("Rule_AssetNaming_ForceFeedbackEffect")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MediaPlayer>(TEXT("Rule_AssetNaming_MediaPlayer")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ObjectLibrary>(TEXT("Rule_AssetNaming_ObjectLibrary")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_AnimatedVectorField>(TEXT("Rule_AssetNaming_AnimatedVectorField")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_StaticVectorField>(TEXT("Rule_AssetNaming_StaticVectorField")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_CameraAnim>(TEXT("Rule_AssetNaming_CameraAnim")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_LandscapeGrassType>(TEXT("Rule_AssetNaming_LandscapeGrassType")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_LandscapeLayer>(TEXT("Rule_AssetNaming_LandscapeLayer")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MatineeData>(TEXT("Rule_AssetNaming_MatineeData")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_TouchInterface>(TEXT("Rule_AssetNaming_TouchInterface")));
 }
