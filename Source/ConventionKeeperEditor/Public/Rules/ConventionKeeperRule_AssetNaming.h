@@ -132,8 +132,11 @@ public:
 
 	/** Resolves Blueprint parent chain via Asset Registry (no loading). OutNativeRoot = native base class path; returns true if resolved to a known native base. BlueprintByClassName optional to avoid repeated GetAssets. */
 	static bool GetNativeParentClassPath(const FAssetData& AssetData, IAssetRegistry& Registry, FString& OutNativeRoot, const TMap<FString, FAssetData>* BlueprintByClassName = nullptr);
-	/** True if Path is a known native Blueprint base we use for rule dispatch (BlueprintFunctionLibrary, BlueprintInterface, etc.). */
-	static bool IsNativeBlueprintBasePath(const FString& Path);
+
+	/** Call from specialty Blueprint rules (BPFL, BPI, BPML, Component, etc.) in constructor to register native path(s). Generic BP rule will skip assets whose native root matches any registered path. */
+	static void RegisterBlueprintSpecialtyNativePath(const TCHAR* Path);
+	/** True if NativeRoot matches any path registered via RegisterBlueprintSpecialtyNativePath (used by generic Blueprint rule and when resolving chain). */
+	static bool IsNativePathHandledBySpecialtyRule(const FString& NativeRoot);
 
 	/** True if any of the rule paths is under one of the selected paths (so we only validate that folder). */
 	static bool IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths);

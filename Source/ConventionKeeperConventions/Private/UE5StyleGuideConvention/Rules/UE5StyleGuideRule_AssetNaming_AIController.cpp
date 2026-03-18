@@ -13,6 +13,7 @@ UUE5StyleGuideRule_AssetNaming_AIController::UUE5StyleGuideRule_AssetNaming_AICo
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/Engine.Blueprint") };
 	Prefix = TEXT("AIC_");
+	UConventionKeeperRule_AssetNaming::RegisterBlueprintSpecialtyNativePath(TEXT("/Script/Engine.AIController"));
 }
 
 bool UUE5StyleGuideRule_AssetNaming_AIController::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const

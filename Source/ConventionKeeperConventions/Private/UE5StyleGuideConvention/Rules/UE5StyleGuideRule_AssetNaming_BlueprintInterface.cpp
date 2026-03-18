@@ -13,6 +13,8 @@ UUE5StyleGuideRule_AssetNaming_BlueprintInterface::UUE5StyleGuideRule_AssetNamin
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths.Add(TEXT("/Script/Engine.Blueprint"));
 	Prefix = TEXT("BPI_");
+	UConventionKeeperRule_AssetNaming::RegisterBlueprintSpecialtyNativePath(TEXT("/Script/Engine.BlueprintInterface"));
+	UConventionKeeperRule_AssetNaming::RegisterBlueprintSpecialtyNativePath(TEXT("/Script/UnrealEd.BlueprintInterface"));
 }
 
 bool UUE5StyleGuideRule_AssetNaming_BlueprintInterface::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const

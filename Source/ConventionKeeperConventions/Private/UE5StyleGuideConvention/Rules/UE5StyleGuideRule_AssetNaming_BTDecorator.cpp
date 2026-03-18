@@ -13,6 +13,7 @@ UUE5StyleGuideRule_AssetNaming_BTDecorator::UUE5StyleGuideRule_AssetNaming_BTDec
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/Engine.Blueprint") };
 	Prefix = TEXT("BTDecorator_");
+	UConventionKeeperRule_AssetNaming::RegisterBlueprintSpecialtyNativePath(TEXT("/Script/AIModule.BTDecorator_BlueprintBase"));
 }
 
 bool UUE5StyleGuideRule_AssetNaming_BTDecorator::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const

@@ -14,6 +14,7 @@ UUE5StyleGuideRule_AssetNaming_BlueprintComponent::UUE5StyleGuideRule_AssetNamin
 	AssetClassPaths.Add(TEXT("/Script/Engine.Blueprint"));
 	Prefix = TEXT("BP_");
 	Suffix = TEXT("Component");
+	UConventionKeeperRule_AssetNaming::RegisterBlueprintSpecialtyNativePath(TEXT("/Script/Engine.ActorComponent"));
 }
 
 bool UUE5StyleGuideRule_AssetNaming_BlueprintComponent::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const

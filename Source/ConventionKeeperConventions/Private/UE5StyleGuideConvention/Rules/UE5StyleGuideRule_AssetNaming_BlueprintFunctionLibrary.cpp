@@ -13,6 +13,7 @@ UUE5StyleGuideRule_AssetNaming_BlueprintFunctionLibrary::UUE5StyleGuideRule_Asse
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths.Add(TEXT("/Script/Engine.Blueprint"));
 	Prefix = TEXT("BPFL_");
+	UConventionKeeperRule_AssetNaming::RegisterBlueprintSpecialtyNativePath(TEXT("/Script/Engine.BlueprintFunctionLibrary"));
 }
 
 bool UUE5StyleGuideRule_AssetNaming_BlueprintFunctionLibrary::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const

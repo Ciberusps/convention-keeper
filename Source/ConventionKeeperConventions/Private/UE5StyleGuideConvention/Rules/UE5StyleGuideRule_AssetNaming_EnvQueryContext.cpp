@@ -14,6 +14,7 @@ UUE5StyleGuideRule_AssetNaming_EnvQueryContext::UUE5StyleGuideRule_AssetNaming_E
 	AssetClassPaths = { TEXT("/Script/Engine.Blueprint") };
 	Prefix = TEXT("EQS_");
 	Suffix = TEXT("Context");
+	UConventionKeeperRule_AssetNaming::RegisterBlueprintSpecialtyNativePath(TEXT("/Script/AIModule.EnvQueryContext"));
 }
 
 bool UUE5StyleGuideRule_AssetNaming_EnvQueryContext::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const

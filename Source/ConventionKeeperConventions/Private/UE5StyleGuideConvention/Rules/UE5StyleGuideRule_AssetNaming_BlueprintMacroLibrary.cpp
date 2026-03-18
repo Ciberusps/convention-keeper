@@ -13,6 +13,7 @@ UUE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary::UUE5StyleGuideRule_AssetNa
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths.Add(TEXT("/Script/Engine.Blueprint"));
 	Prefix = TEXT("BPML_");
+	UConventionKeeperRule_AssetNaming::RegisterBlueprintSpecialtyNativePath(TEXT("/Script/Engine.BlueprintMacroLibrary"));
 }
 
 bool UUE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const

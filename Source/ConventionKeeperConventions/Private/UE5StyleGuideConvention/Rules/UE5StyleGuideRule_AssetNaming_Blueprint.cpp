@@ -22,7 +22,7 @@ bool UUE5StyleGuideRule_AssetNaming_Blueprint::ShouldValidateAsset(const FAssetD
 		return true;
 	}
 	FString NativeRoot;
-	if (UConventionKeeperRule_AssetNaming::GetNativeParentClassPath(AssetData, *Registry, NativeRoot, BlueprintByClassName) && UConventionKeeperRule_AssetNaming::IsNativeBlueprintBasePath(NativeRoot))
+	if (UConventionKeeperRule_AssetNaming::GetNativeParentClassPath(AssetData, *Registry, NativeRoot, BlueprintByClassName) && UConventionKeeperRule_AssetNaming::IsNativePathHandledBySpecialtyRule(NativeRoot))
 	{
 		return false;
 	}
