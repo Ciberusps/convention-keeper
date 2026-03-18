@@ -146,6 +146,18 @@ public:
 	static bool IsPathUnderExcluded(const FString& ResolvedPath, const TArray<FString>& Exclusions, const TMap<FString, FString>& Placeholders);
 
 	/**
+	 * Evaluates naming for a single asset without running full validation (no AssetRegistry scan, no path exclusion).
+	 * Use for unit tests with synthetic FAssetData: build FAssetData with desired AssetName and AssetClassPath, then call this.
+	 * PathPlaceholders can be empty for rules that only use fixed Prefix (e.g. DT_, VFA_).
+	 * @param AssetData Asset to check (AssetName and class path must match rule; path placeholders used for NamingTemplate).
+	 * @param PathPlaceholders Placeholders for NamingTemplate/Prefix resolution (e.g. {ProjectName}=GameCode). Keys with or without braces.
+	 * @param bOutValid True if prefix, suffix, and number padding pass.
+	 * @param OutExpectedPrefix If non-null, set to the required prefix (for assertion messages).
+	 * @param OutSuggestedName If non-null and only number suffix is wrong, set to suggested name.
+	 */
+	void EvaluateSingleAssetNaming(const FAssetData& AssetData, const TMap<FString, FString>& PathPlaceholders, bool& bOutValid, FString* OutExpectedPrefix = nullptr, FString* OutSuggestedName = nullptr) const;
+
+	/**
 	 * Returns the list of (QueryPath, OnlyAssetPaths) scopes to validate.
 	 * Used by Validate_Implementation and by tests to assert folder/asset scope.
 	 * ResolvedPaths: rule paths in Content form, with or without trailing slash.

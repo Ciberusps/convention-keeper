@@ -20,6 +20,7 @@ public class ConventionKeeperTests : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"AssetRegistry",
 				"ConventionKeeperEditor",
 				"ConventionKeeperConventions",
 				"UnrealEd",

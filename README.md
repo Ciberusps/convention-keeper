@@ -41,7 +41,7 @@ TODO how to setup in project
 ## 🛡️ Conventions already implemented
 
 - [ue5-style-guide](https://github.com/Allar/ue5-style-guide) convention - 1 to 1 implementation of the UE5 Style Guide
-- CK Convention (recommended) - default convention keeper convention, mush more UE5 assets coverage than ue5-style-guide. You can create your own conventions by extending it (inherits from ue5-style-guide convention with overrides/additions)
+- CK Convention (recommended) - default convention keeper convention, much more UE5 assets coverage than ue5-style-guide. You can create your own conventions by extending it (inherits from ue5-style-guide convention with overrides/additions)
 
 
 ## 🌐 Localization & languages
@@ -83,15 +83,20 @@ Rule descriptions, validation messages in the Message Log, and the “Convention
 
 ## ▶️ Commandlet (CI / CLI)
 
-Проверка конвенций из командной строки (например, в CI):
+Run convention validation from the command line (e.g. in CI):
 
 ```bash
-# Вся валидация (по настройкам Convention в Project Settings)
+# Full validation (uses Convention from Project Settings)
 UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet
 
-# Только указанные пути (разделитель — ;)
+# Only specified paths (separator: ;)
 UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Content/GameCode;Content/Shared"
+
+# Validate specific assets (package paths without .uasset). Without -AssetPaths, paths are treated as folders.
+UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Content/GameCode/Maps/Main" -AssetPaths
 ```
+
+For details on automated testing and adding new rules, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 📖 Documentation
 
@@ -104,12 +109,12 @@ UnrealEditor.exe YourProject.uproject -run=ConventionKeeperCommandlet Paths="Con
 
 ## 🤝 Contributing
 
-Contributions welcome! Feel free to open issues or pull requests.
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for testing expectations, how to add new rules (documentation, localization, tests), and workflow.
 
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/my-feature`)
-3. Commit changes (`git commit -am 'Add feature'`)
-4. Push branch (`git push origin feature/my-feature`)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -am 'Add feature'`)
+4. Push the branch (`git push origin feature/my-feature`)
 5. Open a Pull Request
 
 ---

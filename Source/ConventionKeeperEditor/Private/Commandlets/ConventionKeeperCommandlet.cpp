@@ -178,13 +178,13 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 int32 UConventionKeeperCommandlet::Main(const FString& Params)
 {
 	TArray<FString> Paths;
-
 	FString PathsValue;
 	if (FParse::Value(*Params, TEXT("Paths="), PathsValue))
 	{
 		PathsValue.ParseIntoArray(Paths, TEXT(";"), true);
 	}
+	const bool bAssetPaths = FParse::Param(*Params, TEXT("AssetPaths"));
 
-	const bool bSuccess = ValidateData(Paths);
+	const bool bSuccess = ValidateData(Paths, bAssetPaths);
 	return bSuccess ? 0 : 1;
 }

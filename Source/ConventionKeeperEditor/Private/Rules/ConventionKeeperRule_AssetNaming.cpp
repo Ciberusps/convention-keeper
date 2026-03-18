@@ -936,6 +936,79 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 	}
 }
 
+void UConventionKeeperRule_AssetNaming::EvaluateSingleAssetNaming(const FAssetData& AssetData, const TMap<FString, FString>& PathPlaceholders, bool& bOutValid, FString* OutExpectedPrefix, FString* OutSuggestedName) const
+{
+	bOutValid = false;
+	if (OutExpectedPrefix) { OutExpectedPrefix->Reset(); }
+	if (OutSuggestedName) { OutSuggestedName->Reset(); }
+
+	TMap<FString, FString> PlaceholdersWithBraces;
+	for (const TTuple<FString, FString>& Pair : PathPlaceholders)
+	{
+		FString Key = Pair.Key;
+		if (!Key.StartsWith(TEXT("{")))
+		{
+			Key = FString::Printf(TEXT("{%s}"), *Pair.Key);
+		}
+		PlaceholdersWithBraces.Add(Key, Pair.Value);
+	}
+
+	TArray<FString> AllowedPrefixesResolved;
+	if (AllowedPrefixes.Num() > 0)
+	{
+		for (const FString& P : AllowedPrefixes)
+		{
+			AllowedPrefixesResolved.Add(ResolveNamingTemplate(P, PlaceholdersWithBraces));
+		}
+	}
+	FString RequiredPrefix = NamingTemplate.IsEmpty()
+		? (Prefix.IsEmpty() ? FString() : ResolveNamingTemplate(Prefix, PlaceholdersWithBraces))
+		: ResolveNamingTemplate(NamingTemplate, PlaceholdersWithBraces);
+
+	const FString AssetName = AssetData.AssetName.ToString();
+	bool bPrefixOk = false;
+	FString ExpectedPrefixForMessage;
+	FString PerAssetPrefix;
+	if (GetRequiredPrefixForAsset(AssetData, PerAssetPrefix))
+	{
+		bPrefixOk = AssetName.StartsWith(PerAssetPrefix);
+		ExpectedPrefixForMessage = PerAssetPrefix;
+	}
+	else if (AllowedPrefixesResolved.Num() > 0)
+	{
+		for (const FString& P : AllowedPrefixesResolved)
+		{
+			if (AssetName.StartsWith(P))
+			{
+				bPrefixOk = true;
+				break;
+			}
+		}
+		ExpectedPrefixForMessage = FString::Join(AllowedPrefixesResolved, TEXT(", "));
+	}
+	else
+	{
+		bPrefixOk = RequiredPrefix.IsEmpty() || AssetName.StartsWith(RequiredPrefix);
+		ExpectedPrefixForMessage = RequiredPrefix;
+	}
+	bool bSuffixOk = Suffix.IsEmpty() || AssetName.EndsWith(Suffix);
+	if (GetCustomSuffixValidity(AssetName, ExpectedPrefixForMessage, bSuffixOk))
+	{
+		// bSuffixOk already set by override
+	}
+	bool bNumberOk = IsNumberSuffixValid(AssetName, NumberPaddingDigits);
+
+	bOutValid = bPrefixOk && bSuffixOk && bNumberOk;
+	if (OutExpectedPrefix)
+	{
+		*OutExpectedPrefix = ExpectedPrefixForMessage;
+	}
+	if (OutSuggestedName && !bNumberOk && bPrefixOk && bSuffixOk)
+	{
+		*OutSuggestedName = SuggestZeroPaddedName(AssetName, NumberPaddingDigits);
+	}
+}
+
 #if WITH_EDITOR
 void UConventionKeeperRule_AssetNaming::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
