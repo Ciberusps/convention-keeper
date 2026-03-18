@@ -11,6 +11,10 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_LevelSequence.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MorphTarget.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_PaperFlipbook.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Sprite.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SpriteAtlasGroup.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_TileMap.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_TileSet.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ControlRig.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SkeletalMesh.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Skeleton.h"
@@ -65,6 +69,10 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_LevelSequence>(TEXT("Rule_AssetNaming_LevelSequence")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MorphTarget>(TEXT("Rule_AssetNaming_MorphTarget")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_PaperFlipbook>(TEXT("Rule_AssetNaming_PaperFlipbook")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Sprite>(TEXT("Rule_AssetNaming_Sprite")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SpriteAtlasGroup>(TEXT("Rule_AssetNaming_SpriteAtlasGroup")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_TileMap>(TEXT("Rule_AssetNaming_TileMap")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_TileSet>(TEXT("Rule_AssetNaming_TileSet")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ControlRig>(TEXT("Rule_AssetNaming_ControlRig")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SkeletalMesh>(TEXT("Rule_AssetNaming_SkeletalMesh")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Skeleton>(TEXT("Rule_AssetNaming_Skeleton")));

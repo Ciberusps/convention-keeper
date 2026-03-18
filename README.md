@@ -40,8 +40,9 @@ TODO how to setup in project
 
 ## 🛡️ Conventions already implemented
 
-- ConventionKeeper convention (recommended) - default convention, you can create your own conventions by extending it (inherits from ue5-style-guide convention with overrides/additions)
 - [ue5-style-guide](https://github.com/Allar/ue5-style-guide) convention - 1 to 1 implementation of the UE5 Style Guide
+- CK Convention (recommended) - default convention keeper convention, mush more UE5 assets coverage than ue5-style-guide. You can create your own conventions by extending it (inherits from ue5-style-guide convention with overrides/additions)
+
 
 ## 🌐 Localization & languages
 
