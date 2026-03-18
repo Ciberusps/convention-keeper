@@ -1,6 +1,7 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BTService.h"
+#include "Rules/ConventionKeeperRule_AssetNaming.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideRule_AssetNaming_BTService)
 
@@ -11,6 +12,16 @@ UUE5StyleGuideRule_AssetNaming_BTService::UUE5StyleGuideRule_AssetNaming_BTServi
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-bt-service"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/Engine.Blueprint") };
-	BlueprintParentClassPaths = { TEXT("/Script/AIModule.BTService_BlueprintBase") };
 	Prefix = TEXT("BTService_");
+}
+
+bool UUE5StyleGuideRule_AssetNaming_BTService::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const
+{
+	if (!Registry || !BlueprintByClassName)
+	{
+		return false;
+	}
+	FString NativeRoot;
+	return UConventionKeeperRule_AssetNaming::GetNativeParentClassPath(AssetData, *Registry, NativeRoot, BlueprintByClassName) &&
+		UConventionKeeperRule_AssetNaming::NativeRootMatchesPath(NativeRoot, TEXT("/Script/AIModule.BTService_BlueprintBase"));
 }

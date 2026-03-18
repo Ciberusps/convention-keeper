@@ -1,6 +1,7 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_AIController.h"
+#include "Rules/ConventionKeeperRule_AssetNaming.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideRule_AssetNaming_AIController)
 
@@ -11,6 +12,16 @@ UUE5StyleGuideRule_AssetNaming_AIController::UUE5StyleGuideRule_AssetNaming_AICo
 	DescriptionKey = FName(TEXT("RuleDesc_asset-naming-ai-controller"));
 	FolderPathPattern.Path = TEXT("Content/{ProjectName}");
 	AssetClassPaths = { TEXT("/Script/Engine.Blueprint") };
-	BlueprintParentClassPaths = { TEXT("/Script/Engine.AIController") };
 	Prefix = TEXT("AIC_");
+}
+
+bool UUE5StyleGuideRule_AssetNaming_AIController::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const
+{
+	if (!Registry || !BlueprintByClassName)
+	{
+		return false;
+	}
+	FString NativeRoot;
+	return UConventionKeeperRule_AssetNaming::GetNativeParentClassPath(AssetData, *Registry, NativeRoot, BlueprintByClassName) &&
+		UConventionKeeperRule_AssetNaming::NativeRootMatchesPath(NativeRoot, TEXT("/Script/Engine.AIController"));
 }

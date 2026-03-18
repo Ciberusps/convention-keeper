@@ -40,6 +40,13 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SlateBrush.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SlateWidgetStyle.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_WidgetBlueprint.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Blueprint.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BlueprintComponent.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BlueprintFunctionLibrary.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BlueprintInterface.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Enumeration.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Structure.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ParticleSystem.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundWave.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundCue.h"
@@ -98,6 +105,13 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SlateBrush>(TEXT("Rule_AssetNaming_SlateBrush")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SlateWidgetStyle>(TEXT("Rule_AssetNaming_SlateWidgetStyle")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_WidgetBlueprint>(TEXT("Rule_AssetNaming_WidgetBlueprint")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Blueprint>(TEXT("Rule_AssetNaming_Blueprint")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BlueprintComponent>(TEXT("Rule_AssetNaming_BlueprintComponent")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BlueprintFunctionLibrary>(TEXT("Rule_AssetNaming_BlueprintFunctionLibrary")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BlueprintInterface>(TEXT("Rule_AssetNaming_BlueprintInterface")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BlueprintMacroLibrary>(TEXT("Rule_AssetNaming_BlueprintMacroLibrary")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Enumeration>(TEXT("Rule_AssetNaming_Enumeration")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Structure>(TEXT("Rule_AssetNaming_Structure")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ParticleSystem>(TEXT("Rule_AssetNaming_ParticleSystem")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundWave>(TEXT("Rule_AssetNaming_SoundWave")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundCue>(TEXT("Rule_AssetNaming_SoundCue")));

@@ -109,6 +109,7 @@ public:
 	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
 	bool bValidateAssetNamingOnSave = true;
 
+
 	/**
 	 * Paths that are skipped by all rules. Entries can be folders (with trailing slash) or assets (no trailing slash), in Content/ form.
 	 * Example: "Content/Developers/", "Content/Game/TestMap" — those paths are not validated. Placeholders like {ProjectName} are resolved using GetPlaceholders().
@@ -161,6 +162,7 @@ public:
 
 	/** Returns placeholders for rule paths: {ProjectName} = ProjectNameFolder, plus any entries from Placeholders. Keys use braces, e.g. "{ProjectName}". */
 	TMap<FString, FString> GetPlaceholders() const;
+
 
 protected:
 	/**

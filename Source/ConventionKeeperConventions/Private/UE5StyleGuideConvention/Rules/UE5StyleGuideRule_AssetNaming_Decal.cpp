@@ -17,7 +17,7 @@ UUE5StyleGuideRule_AssetNaming_Decal::UUE5StyleGuideRule_AssetNaming_Decal()
 	Suffix = TEXT("_Decal");
 }
 
-bool UUE5StyleGuideRule_AssetNaming_Decal::ShouldValidateAsset(const FAssetData& AssetData) const
+bool UUE5StyleGuideRule_AssetNaming_Decal::ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry, const TMap<FString, FAssetData>* BlueprintByClassName) const
 {
 	UObject* Loaded = AssetData.GetAsset();
 	if (UMaterial* Material = Cast<UMaterial>(Loaded))

@@ -4,6 +4,7 @@
 
 #include "AssetRegistry/ARFilter.h"
 #include "AssetRegistry/AssetRegistryHelpers.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "UObject/Class.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Rules/ConventionKeeperRule.h"
@@ -161,6 +162,160 @@ bool UConventionKeeperRule_AssetNaming::IsPathUnderExcluded(const FString& Resol
 bool UConventionKeeperRule_AssetNaming::ExtractPathPlaceholders(const FString& PatternPath, const FString& ResolvedPath, const TMap<FString, FString>& GlobalPlaceholders, TMap<FString, FString>& OutPathPlaceholders)
 {
 	return UConventionKeeperBlueprintLibrary::ExtractPathPlaceholders(PatternPath, ResolvedPath, GlobalPlaceholders, OutPathPlaceholders);
+}
+
+bool UConventionKeeperRule_AssetNaming::GetBlueprintParentClassPath(const FAssetData& AssetData, FString& OutParentPath)
+{
+	AssetData.GetTagValue(FName("ParentClass"), OutParentPath);
+	if (OutParentPath.IsEmpty())
+	{
+		AssetData.GetTagValue(FName("NativeParentClass"), OutParentPath);
+	}
+	if (!OutParentPath.IsEmpty())
+	{
+		OutParentPath.ReplaceInline(TEXT("Class'"), TEXT(""));
+		OutParentPath.ReplaceInline(TEXT("'"), TEXT(""));
+		return true;
+	}
+	return false;
+}
+
+bool UConventionKeeperRule_AssetNaming::ParentMatches(const FString& NormalizedParent, const TCHAR* Path)
+{
+	return NormalizedParent == Path || NormalizedParent.StartsWith(FString(Path) + TEXT("."));
+}
+
+bool UConventionKeeperRule_AssetNaming::NativeRootMatchesPath(const FString& NativeRoot, const TCHAR* Path)
+{
+	return ParentMatches(NativeRoot, Path) || NativeRoot.Contains(Path);
+}
+
+static void NormalizeClassPath(FString& Path)
+{
+	Path.ReplaceInline(TEXT("Class'"), TEXT(""));
+	Path.ReplaceInline(TEXT("'"), TEXT(""));
+}
+
+static bool IsNativeBlueprintBasePathImpl(const FString& Path)
+{
+	if (UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/Engine.BlueprintFunctionLibrary"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/Engine.BlueprintInterface"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/UnrealEd.BlueprintInterface"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/Engine.BlueprintMacroLibrary"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/Engine.ActorComponent"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/Engine.AIController"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/AIModule.BTDecorator_BlueprintBase"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/AIModule.BTService_BlueprintBase"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/AIModule.BTTask_BlueprintBase"))
+		|| UConventionKeeperRule_AssetNaming::ParentMatches(Path, TEXT("/Script/AIModule.EnvQueryContext")))
+	{
+		return true;
+	}
+	// Tag may be stored as "Prefix./Script/Module.ClassName" (e.g. /Script/CoreUObject./Script/Engine.BlueprintFunctionLibrary)
+	return Path.Contains(TEXT("/Script/Engine.BlueprintFunctionLibrary"))
+		|| Path.Contains(TEXT("/Script/Engine.BlueprintInterface"))
+		|| Path.Contains(TEXT("/Script/UnrealEd.BlueprintInterface"))
+		|| Path.Contains(TEXT("/Script/Engine.BlueprintMacroLibrary"))
+		|| Path.Contains(TEXT("/Script/Engine.ActorComponent"))
+		|| Path.Contains(TEXT("/Script/Engine.AIController"))
+		|| Path.Contains(TEXT("/Script/AIModule.BTDecorator_BlueprintBase"))
+		|| Path.Contains(TEXT("/Script/AIModule.BTService_BlueprintBase"))
+		|| Path.Contains(TEXT("/Script/AIModule.BTTask_BlueprintBase"))
+		|| Path.Contains(TEXT("/Script/AIModule.EnvQueryContext"));
+}
+
+bool UConventionKeeperRule_AssetNaming::IsNativeBlueprintBasePath(const FString& Path)
+{
+	if (IsNativeBlueprintBasePathImpl(Path))
+	{
+		return true;
+	}
+	// Tag may be stored as class name only (e.g. "BlueprintFunctionLibrary")
+	return Path == TEXT("BlueprintFunctionLibrary")
+		|| Path == TEXT("BlueprintInterface")
+		|| Path == TEXT("BlueprintMacroLibrary")
+		|| Path == TEXT("ActorComponent")
+		|| Path == TEXT("AIController")
+		|| Path == TEXT("BTDecorator_BlueprintBase")
+		|| Path == TEXT("BTService_BlueprintBase")
+		|| Path == TEXT("BTTask_BlueprintBase")
+		|| Path == TEXT("EnvQueryContext");
+}
+
+bool UConventionKeeperRule_AssetNaming::GetNativeParentClassPath(const FAssetData& AssetData, IAssetRegistry& Registry, FString& OutNativeRoot, const TMap<FString, FAssetData>* BlueprintByClassName)
+{
+	FString ParentPath;
+	if (!GetBlueprintParentClassPath(AssetData, ParentPath))
+	{
+		return false;
+	}
+	FString NativeFromTag;
+	AssetData.GetTagValue(FName("NativeParentClass"), NativeFromTag);
+	if (!NativeFromTag.IsEmpty())
+	{
+		NormalizeClassPath(NativeFromTag);
+		if (IsNativeBlueprintBasePath(NativeFromTag))
+		{
+			OutNativeRoot = NativeFromTag;
+			return true;
+		}
+	}
+	constexpr int32 MaxIterations = 50;
+	int32 Iterations = 0;
+	TMap<FString, FAssetData> LocalMap;
+	const TMap<FString, FAssetData>* MapToUse = BlueprintByClassName;
+	if (!MapToUse)
+	{
+		FARFilter Filter;
+		Filter.ClassPaths.Add(FTopLevelAssetPath(FName(TEXT("/Script/Engine")), FName(TEXT("Blueprint"))));
+		Filter.bRecursivePaths = true;
+		TArray<FAssetData> AllBlueprints;
+		Registry.GetAssets(Filter, AllBlueprints);
+		for (const FAssetData& A : AllBlueprints)
+		{
+			FString Name = A.AssetName.ToString();
+			if (!LocalMap.Contains(Name))
+			{
+				LocalMap.Add(Name, A);
+			}
+		}
+		MapToUse = &LocalMap;
+	}
+	while (Iterations++ < MaxIterations)
+	{
+		if (IsNativeBlueprintBasePath(ParentPath))
+		{
+			OutNativeRoot = ParentPath;
+			return true;
+		}
+		int32 DotIdx = INDEX_NONE;
+		if (!ParentPath.FindLastChar(TEXT('.'), DotIdx) || DotIdx < 0 || DotIdx >= ParentPath.Len() - 1)
+		{
+			OutNativeRoot = ParentPath;
+			return false;
+		}
+		const FString ClassName = ParentPath.Mid(DotIdx + 1);
+		const FAssetData* ParentAsset = MapToUse->Find(ClassName);
+		if (!ParentAsset)
+		{
+			OutNativeRoot = ParentPath;
+			return false;
+		}
+		ParentPath.Empty();
+		ParentAsset->GetTagValue(FName("NativeParentClass"), ParentPath);
+		if (ParentPath.IsEmpty())
+		{
+			ParentAsset->GetTagValue(FName("ParentClass"), ParentPath);
+		}
+		if (ParentPath.IsEmpty())
+		{
+			OutNativeRoot = ClassName;
+			return false;
+		}
+		NormalizeClassPath(ParentPath);
+	}
+	OutNativeRoot = ParentPath;
+	return false;
 }
 
 FString UConventionKeeperRule_AssetNaming::ResolveNamingTemplate(const FString& Template, const TMap<FString, FString>& PathPlaceholders)
@@ -460,6 +615,22 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 	}
 
 	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+	TMap<FString, FAssetData> BlueprintByClassName;
+	{
+		FARFilter BpFilter;
+		BpFilter.ClassPaths.Add(FTopLevelAssetPath(FName(TEXT("/Script/Engine")), FName(TEXT("Blueprint"))));
+		BpFilter.bRecursivePaths = true;
+		TArray<FAssetData> AllBlueprints;
+		AssetRegistry.GetAssets(BpFilter, AllBlueprints);
+		for (const FAssetData& A : AllBlueprints)
+		{
+			FString Name = A.AssetName.ToString();
+			if (!BlueprintByClassName.Contains(Name))
+			{
+				BlueprintByClassName.Add(Name, A);
+			}
+		}
+	}
 
 	TArray<FString> PatternSegments;
 	PatternPath.ParseIntoArray(PatternSegments, TEXT("/"), true);
@@ -559,30 +730,22 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 		{
 			if (BlueprintParentClassPaths.Num() > 0)
 			{
-				FString ParentClassPath;
-				AssetData.GetTagValue(FName("ParentClass"), ParentClassPath);
-				if (ParentClassPath.IsEmpty())
-				{
-					AssetData.GetTagValue(FName("NativeParentClass"), ParentClassPath);
-				}
-				if (ParentClassPath.IsEmpty())
+				FString NormalizedParent;
+				if (!GetBlueprintParentClassPath(AssetData, NormalizedParent))
 				{
 					if (UClass* NativeClass = UAssetRegistryHelpers::FindAssetNativeClass(AssetData))
 					{
-						ParentClassPath = NativeClass->GetPathName();
+						NormalizedParent = NativeClass->GetPathName();
 					}
-					if (ParentClassPath.IsEmpty())
+					if (NormalizedParent.IsEmpty())
 					{
 						continue;
 					}
 				}
-				FString NormalizedParent = ParentClassPath;
-				NormalizedParent.ReplaceInline(TEXT("Class'"), TEXT(""));
-				NormalizedParent.ReplaceInline(TEXT("'"), TEXT(""));
 				bool bMatch = false;
 				for (const FString& AllowedParent : BlueprintParentClassPaths)
 				{
-					if (NormalizedParent == AllowedParent || NormalizedParent.StartsWith(AllowedParent + TEXT(".")))
+					if (ParentMatches(NormalizedParent, *AllowedParent))
 					{
 						bMatch = true;
 						break;
@@ -620,7 +783,7 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 			{
 				continue;
 			}
-			if (!ShouldValidateAsset(AssetData))
+			if (!ShouldValidateAsset(AssetData, &AssetRegistry, &BlueprintByClassName))
 			{
 				continue;
 			}

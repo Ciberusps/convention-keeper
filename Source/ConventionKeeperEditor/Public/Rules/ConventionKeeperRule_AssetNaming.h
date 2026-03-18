@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "AssetRegistry/AssetData.h"
 #include "Internationalization/Text.h"
+
+class IAssetRegistry;
 #include "Rules/ConventionKeeperRule.h"
 #include "ConventionKeeperRule_AssetNaming.generated.h"
 
@@ -88,8 +90,9 @@ public:
 	/**
 	 * Override to skip assets that do not belong to this rule (e.g. Decal rule only validates assets that are actually decals).
 	 * When returns false, the asset is not validated by this rule. Default: true.
+	 * For Blueprint rules, Registry and BlueprintByClassName are set: use GetNativeParentClassPath to resolve parent chain via registry (no asset loading).
 	 */
-	virtual bool ShouldValidateAsset(const FAssetData& AssetData) const { return true; }
+	virtual bool ShouldValidateAsset(const FAssetData& AssetData, IAssetRegistry* Registry = nullptr, const TMap<FString, FAssetData>* BlueprintByClassName = nullptr) const { return true; }
 
 	/**
 	 * Override to supply a per-asset required prefix (e.g. M_ vs PP_ for materials by domain).
@@ -119,6 +122,18 @@ public:
 
 	/** Fills OutPathPlaceholders from resolved path using pattern with {Placeholder} segments. GlobalPlaceholders keys must include braces (e.g. "{ProjectName}"). */
 	static bool ExtractPathPlaceholders(const FString& PatternPath, const FString& ResolvedPath, const TMap<FString, FString>& GlobalPlaceholders, TMap<FString, FString>& OutPathPlaceholders);
+
+	/** Fills OutParentPath with the Blueprint parent class path (ParentClass or NativeParentClass tag, normalized). Returns false if empty. */
+	static bool GetBlueprintParentClassPath(const FAssetData& AssetData, FString& OutParentPath);
+	/** True if NormalizedParent equals Path or is a subclass path (e.g. /Script/GameCode.BP_Child). */
+	static bool ParentMatches(const FString& NormalizedParent, const TCHAR* Path);
+	/** True if NativeRoot matches Path (ParentMatches or Contains); use for NativeRoot from tags that may be "Prefix./Script/Module.ClassName". */
+	static bool NativeRootMatchesPath(const FString& NativeRoot, const TCHAR* Path);
+
+	/** Resolves Blueprint parent chain via Asset Registry (no loading). OutNativeRoot = native base class path; returns true if resolved to a known native base. BlueprintByClassName optional to avoid repeated GetAssets. */
+	static bool GetNativeParentClassPath(const FAssetData& AssetData, IAssetRegistry& Registry, FString& OutNativeRoot, const TMap<FString, FAssetData>* BlueprintByClassName = nullptr);
+	/** True if Path is a known native Blueprint base we use for rule dispatch (BlueprintFunctionLibrary, BlueprintInterface, etc.). */
+	static bool IsNativeBlueprintBasePath(const FString& Path);
 
 	/** True if any of the rule paths is under one of the selected paths (so we only validate that folder). */
 	static bool IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths);
