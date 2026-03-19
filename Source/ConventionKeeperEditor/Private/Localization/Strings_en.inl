@@ -99,6 +99,7 @@
 { FName(TEXT("RuleDesc_asset-naming-landscape-layer")), TEXT("Landscape Layer (Layer Info) assets must use prefix LL_ (UE5 Style Guide 1.2.7).") },
 { FName(TEXT("RuleDesc_asset-naming-matinee-data")), TEXT("Matinee Data assets must use prefix Matinee_ (UE5 Style Guide 1.2.7).") },
 { FName(TEXT("RuleDesc_asset-naming-touch-interface")), TEXT("Touch Interface Setup assets must use prefix TI_ (UE5 Style Guide 1.2.7).") },
+{ FName(TEXT("RuleDesc_ck-asset-naming-state-tree")), TEXT("StateTree assets must use prefix ST_ (CKConvention).") },
 { FName(TEXT("PascalCaseHintPrefix")), TEXT("Use PascalCase. {0}") },
 { FName(TEXT("PascalCaseReasonEmptyName")), TEXT("Name cannot be empty.") },
 { FName(TEXT("PascalCaseReasonEmptySegment")), TEXT("Empty segment not allowed (avoid double underscores or leading/trailing underscore).") },
