@@ -29,6 +29,66 @@ FText UConventionKeeperRule::GetDisplayDescription(const UConventionKeeperConven
 	return Description;
 }
 
+bool UConventionKeeperRule::AreRequirementsSatisfied(FString* OutReason) const
+{
+	if (OutReason)
+	{
+		OutReason->Empty();
+	}
+
+	if (PluginRequirements.Num() == 0)
+	{
+		return true;
+	}
+
+	TArray<FString> MissingPlugins;
+	int32 EnabledCount = 0;
+	for (const FName PluginName : PluginRequirements)
+	{
+		if (PluginName.IsNone())
+		{
+			continue;
+		}
+		const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(PluginName.ToString());
+		const bool bEnabled = Plugin.IsValid() && Plugin->IsEnabled();
+		if (bEnabled)
+		{
+			++EnabledCount;
+		}
+		else
+		{
+			MissingPlugins.Add(PluginName.ToString());
+		}
+	}
+
+	if (bRequireAllPlugins)
+	{
+		const bool bOk = MissingPlugins.Num() == 0;
+		if (!bOk && OutReason)
+		{
+			*OutReason = FString::Printf(TEXT("missing required plugin(s): %s"), *FString::Join(MissingPlugins, TEXT(", ")));
+		}
+		return bOk;
+	}
+
+	const bool bAnyEnabled = EnabledCount > 0;
+	if (!bAnyEnabled && OutReason)
+	{
+		TArray<FString> RequiredNames;
+		RequiredNames.Reserve(PluginRequirements.Num());
+		for (const FName Name : PluginRequirements)
+		{
+			if (!Name.IsNone())
+			{
+				RequiredNames.Add(Name.ToString());
+			}
+		}
+		*OutReason = FString::Printf(TEXT("none of required plugins are enabled: %s"),
+			*FString::Join(RequiredNames, TEXT(", ")));
+	}
+	return bAnyEnabled;
+}
+
 FString UConventionKeeperRule::GetDocumentationUrl() const
 {
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();

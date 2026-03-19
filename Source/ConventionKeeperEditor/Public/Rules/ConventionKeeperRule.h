@@ -61,8 +61,26 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EConventionRuleSeverity Severity = EConventionRuleSeverity::Error;
 
+	/**
+	 * Optional plugin requirements for this rule.
+	 * If not empty, the rule is included in effective rules only when required plugin(s) are enabled.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Requirements")
+	TArray<FName> PluginRequirements;
+
+	/**
+	 * How PluginRequirements are matched:
+	 * true  = all listed plugins must be enabled,
+	 * false = any one listed plugin is enough.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Requirements", meta = (EditCondition = "PluginRequirements.Num() > 1", EditConditionHides))
+	bool bRequireAllPlugins = true;
+
 	/** Returns localized description. Prefers Convention->GetLocalizedRuleDescription when Convention is set; else DescriptionKey (global loc) or Description. */
 	FText GetDisplayDescription(const UConventionKeeperConvention_Base* Convention = nullptr) const;
+
+	/** True when plugin requirements are satisfied (or no requirements are set). Optionally returns a human-readable reason. */
+	bool AreRequirementsSatisfied(FString* OutReason = nullptr) const;
 
 	/**
 	 * Override the path to the rule's markdown doc. If empty, path is built from Settings:

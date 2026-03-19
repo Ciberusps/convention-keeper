@@ -799,6 +799,60 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 					}
 				}
 			}
+
+			// Generic fallback for optional modules: if class-path filter returns nothing,
+			// scan assets in path and match by AssetClassPath/ClassPath string.
+			if (AssetDataList.Num() == 0 && AssetClassPaths.Num() > 0)
+			{
+				FARFilter PathOnlyFilter;
+				PathOnlyFilter.PackagePaths.Add(FName(*PackagePath));
+				PathOnlyFilter.bRecursivePaths = true;
+				TArray<FAssetData> AllInPath;
+				AssetRegistry.GetAssets(PathOnlyFilter, AllInPath);
+
+				TArray<FString> MatchTokens;
+				MatchTokens.Reserve(AssetClassPaths.Num() * 2);
+				for (const FString& ClassPath : AssetClassPaths)
+				{
+					if (ClassPath.IsEmpty())
+					{
+						continue;
+					}
+					MatchTokens.Add(ClassPath);
+					int32 DotIdx = INDEX_NONE;
+					if (ClassPath.FindLastChar(TEXT('.'), DotIdx) && DotIdx >= 0 && DotIdx + 1 < ClassPath.Len())
+					{
+						MatchTokens.Add(ClassPath.Mid(DotIdx + 1));
+					}
+				}
+
+				for (const FAssetData& A : AllInPath)
+				{
+					FString ClassPathStr;
+					if (!A.GetTagValue(FName("AssetClassPath"), ClassPathStr) || ClassPathStr.IsEmpty())
+					{
+						ClassPathStr = A.AssetClassPath.ToString();
+					}
+					if (ClassPathStr.IsEmpty())
+					{
+						continue;
+					}
+
+					bool bMatches = false;
+					for (const FString& Token : MatchTokens)
+					{
+						if (!Token.IsEmpty() && ClassPathStr.Contains(Token))
+						{
+							bMatches = true;
+							break;
+						}
+					}
+					if (bMatches)
+					{
+						AssetDataList.AddUnique(A);
+					}
+				}
+			}
 		}
 
 		const TSet<FString> OnlyAssetSet(Scope.OnlyAssetPaths);

@@ -44,7 +44,7 @@ struct CONVENTIONKEEPEREDITOR_API FRuleOverride
  * Extend only via ExtendsConvention (ESLint-style), not by subclassing.
  * Chained extends are supported: MyConvention extends GodreaperConvention extends UHLConvention.
  */
-UCLASS(Abstract, Blueprintable, BlueprintType)
+UCLASS(Blueprintable, BlueprintType)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperConvention_Base : public UObject
 {
 	GENERATED_BODY()
@@ -125,6 +125,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Convention Keeper")
 	TArray<FString> GetAvailableRuleIds() const;
+
+	/** Sets ExtendsConvention and refreshes transient inherited rules immediately. */
+	UFUNCTION(BlueprintCallable, Category = "Convention Keeper")
+	void SetExtendsConventionClass(TSubclassOf<UConventionKeeperConvention_Base> InExtendsConvention);
+
+	/** Rebuilds transient ExtendedRules from the currently resolved base convention. */
+	UFUNCTION(BlueprintCallable, Category = "Convention Keeper")
+	void RebuildExtendedRules();
 
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;

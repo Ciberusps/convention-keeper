@@ -7,6 +7,7 @@
 #include "ConventionKeeperConvention/Rules/CKConventionRule_FolderStructure_Character.h"
 #include "ConventionKeeperConvention/Rules/CKConventionRule_FolderStructure_CoreAI.h"
 #include "ConventionKeeperConvention/Rules/CKConventionRule_AssetNaming_CharacterAnimations.h"
+#include "ConventionKeeperConvention/Rules/CKConventionRule_AssetNaming_StateTree.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Internationalization/Text.h"
 #include "UE5StyleGuideConvention/UE5StyleGuideConvention.h"
@@ -56,4 +57,5 @@ UConventionKeeperConvention::UConventionKeeperConvention()
 	Rules.Add(CreateDefaultSubobject<UCKConventionRule_FolderStructure_Character>(TEXT("Rule_FolderStructure_Character")));
 	Rules.Add(CreateDefaultSubobject<UCKConventionRule_FolderStructure_CoreAI>(TEXT("Rule_FolderStructure_CoreAI")));
 	Rules.Add(CreateDefaultSubobject<UCKConventionRule_AssetNaming_CharacterAnimations>(TEXT("Rule_AssetNaming_CharacterAnimations")));
+	Rules.Add(CreateDefaultSubobject<UCKConventionRule_AssetNaming_StateTree>(TEXT("Rule_AssetNaming_StateTree")));
 }

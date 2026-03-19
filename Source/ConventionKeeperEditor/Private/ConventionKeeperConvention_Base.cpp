@@ -37,11 +37,25 @@ void UConventionKeeperConvention_Base::RefreshExtendedRules()
 	}
 }
 
+void UConventionKeeperConvention_Base::RebuildExtendedRules()
+{
+	SyncExtendsConventionAssetFlag();
+	RefreshExtendedRules();
+#if WITH_EDITOR
+	for (UConventionKeeperRule* Rule : ExtendedRules)
+	{
+		if (Rule)
+		{
+			Rule->RefreshDocumentationFields();
+		}
+	}
+#endif
+}
+
 void UConventionKeeperConvention_Base::PostLoad()
 {
 	Super::PostLoad();
-	SyncExtendsConventionAssetFlag();
-	RefreshExtendedRules();
+	RebuildExtendedRules();
 #if WITH_EDITOR
 	for (UConventionKeeperRule* Rule : Rules)
 	{
@@ -71,16 +85,7 @@ void UConventionKeeperConvention_Base::PostEditChangeProperty(FPropertyChangedEv
 	if (PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention_Base, ExtendsConvention)
 		|| PropName == GET_MEMBER_NAME_CHECKED(UConventionKeeperConvention_Base, ExtendsConventionAsset))
 	{
-		RefreshExtendedRules();
-#if WITH_EDITOR
-		for (UConventionKeeperRule* Rule : ExtendedRules)
-		{
-			if (Rule)
-			{
-				Rule->RefreshDocumentationFields();
-			}
-		}
-#endif
+		RebuildExtendedRules();
 	}
 }
 
@@ -117,19 +122,43 @@ TArray<FString> UConventionKeeperConvention_Base::GetAvailableRuleIds() const
 	return Out;
 }
 
+void UConventionKeeperConvention_Base::SetExtendsConventionClass(TSubclassOf<UConventionKeeperConvention_Base> InExtendsConvention)
+{
+	ExtendsConvention = InExtendsConvention;
+	RebuildExtendedRules();
+}
+
 TArray<UConventionKeeperRule*> UConventionKeeperConvention_Base::GetEffectiveRules() const
 {
 	UConventionKeeperConvention_Base const* Base = GetResolvedExtendsConvention();
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	const bool bDebug = Settings && Settings->bDebug;
+
+	auto AddRuleIfAvailable = [bDebug](TArray<UConventionKeeperRule*>& Out, UConventionKeeperRule* Rule)
+	{
+		if (!Rule)
+		{
+			return;
+		}
+		FString Reason;
+		if (!Rule->AreRequirementsSatisfied(&Reason))
+		{
+			if (bDebug)
+			{
+				const FString RuleName = Rule->RuleId.IsNone() ? Rule->GetClass()->GetName() : Rule->RuleId.ToString();
+				UE_LOG(LogTemp, Log, TEXT("[ConventionKeeper] Rule skipped: %s (%s)"), *RuleName, *Reason);
+			}
+			return;
+		}
+		Out.Add(Rule);
+	};
 
 	if (!Base)
 	{
 		TArray<UConventionKeeperRule*> Out;
 		for (UConventionKeeperRule* Rule : Rules)
 		{
-			if (Rule)
-			{
-				Out.Add(Rule);
-			}
+			AddRuleIfAvailable(Out, Rule);
 		}
 		return Out;
 	}
@@ -153,7 +182,7 @@ TArray<UConventionKeeperRule*> UConventionKeeperConvention_Base::GetEffectiveRul
 		}
 		if (Rule->RuleId.IsNone())
 		{
-			Out.Add(Rule);
+			AddRuleIfAvailable(Out, Rule);
 			continue;
 		}
 		if (const FRuleOverride* Override = OverrideMap.Find(Rule->RuleId))
@@ -163,28 +192,22 @@ TArray<UConventionKeeperRule*> UConventionKeeperConvention_Base::GetEffectiveRul
 			case EConventionRuleOverrideMode::Off:
 				break;
 			case EConventionRuleOverrideMode::Replace:
-				if (Override->ReplacementRule)
-				{
-					Out.Add(Override->ReplacementRule);
-				}
+				AddRuleIfAvailable(Out, Override->ReplacementRule);
 				break;
 			default:
-				Out.Add(Rule);
+				AddRuleIfAvailable(Out, Rule);
 				break;
 			}
 		}
 		else
 		{
-			Out.Add(Rule);
+			AddRuleIfAvailable(Out, Rule);
 		}
 	}
 
 	for (UConventionKeeperRule* Rule : Rules)
 	{
-		if (Rule)
-		{
-			Out.Add(Rule);
-		}
+		AddRuleIfAvailable(Out, Rule);
 	}
 
 	return Out;

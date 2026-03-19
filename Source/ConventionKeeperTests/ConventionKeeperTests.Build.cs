@@ -23,6 +23,7 @@ public class ConventionKeeperTests : ModuleRules
 				"AssetRegistry",
 				"ConventionKeeperEditor",
 				"ConventionKeeperConventions",
+				"Projects",
 				"UnrealEd",
 			}
 		);

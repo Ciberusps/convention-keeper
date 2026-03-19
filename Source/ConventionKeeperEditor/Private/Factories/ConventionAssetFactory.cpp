@@ -59,15 +59,20 @@ UObject* UConventionFactory::FactoryCreateNew(
 	UObject* Context,
 	FFeedbackContext* Warn)
 {
-	UClass* CreateClass = Class;
-	if (!CreateClass || !CreateClass->IsChildOf(UConventionKeeperConvention_Base::StaticClass()) || CreateClass->HasAnyClassFlags(CLASS_Abstract))
+	UConventionKeeperConvention_Base* Convention = NewObject<UConventionKeeperConvention_Base>(
+		InParent,
+		UConventionKeeperConvention_Base::StaticClass(),
+		Name,
+		Flags | RF_Transactional);
+
+	if (Convention)
 	{
-		CreateClass = GetDefaultConventionClass();
-	}
-	UConventionKeeperConvention_Base* Convention = NewObject<UConventionKeeperConvention_Base>(InParent, CreateClass, Name, Flags | RF_Transactional);
-	if (Convention && ExtendsConventionClass.Get())
-	{
-		Convention->ExtendsConvention = ExtendsConventionClass;
+		UClass* ResolvedExtendsClass = ExtendsConventionClass.Get();
+		if (!ResolvedExtendsClass)
+		{
+			ResolvedExtendsClass = GetDefaultConventionClass();
+		}
+		Convention->SetExtendsConventionClass(ResolvedExtendsClass);
 	}
 	return Convention;
 }

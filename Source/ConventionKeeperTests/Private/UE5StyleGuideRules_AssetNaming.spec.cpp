@@ -61,7 +61,7 @@ void UE5StyleGuideRules_AssetNamingSpec::Define()
 			TestEqual(TEXT("Prefix is BPML_"), Rule->Prefix, FString(TEXT("BPML_")));
 		});
 	});
+
 }
 
 #endif // WITH_DEV_AUTOMATION_TESTS
-
