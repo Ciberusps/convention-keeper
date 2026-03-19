@@ -54,6 +54,8 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_PhysicsAsset.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ReverbEffect.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SkeletalMesh.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_StaticMesh.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_LevelMap.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SlateBrush.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SlateWidgetStyle.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundAttenuation.h"
@@ -270,6 +272,29 @@ void UE5StyleGuideRulesSpec::Define()
 		{
 			TestNamingRule(this, NewObject<UUE5StyleGuideRule_AssetNaming_SkeletalMesh>(GetTransientPackage()),
 				TEXT("/Script/Engine.SkeletalMesh"), TEXT("Hero"), TEXT("SK_Hero"), TEXT("SK_"));
+		});
+		It("StaticMesh: S_ prefix", [this]()
+		{
+			TestNamingRule(this, NewObject<UUE5StyleGuideRule_AssetNaming_StaticMesh>(GetTransientPackage()),
+				TEXT("/Script/Engine.StaticMesh"), TEXT("Rock"), TEXT("S_Rock"), TEXT("S_"));
+		});
+		It("LevelMap: no prefix, optional suffix _P/_Audio/_Lighting/_Geo/_Gameplay", [this]()
+		{
+			UConventionKeeperRule_AssetNaming* Rule = NewObject<UUE5StyleGuideRule_AssetNaming_LevelMap>(GetTransientPackage());
+			TestNotNull(TEXT("Rule created"), Rule);
+			if (!Rule) return;
+			TMap<FString, FString> Placeholders;
+			bool bValid = true;
+			FString ExpectedPrefixOut;
+			FAssetData Bad = MakeSyntheticAssetData(TEXT("/Game/Test/Maps/Level_Foo"), TEXT("Level_Foo"), TEXT("/Script/Engine.World"));
+			Rule->EvaluateSingleAssetNaming(Bad, Placeholders, bValid, &ExpectedPrefixOut, nullptr);
+			TestFalse(TEXT("Level_Foo must be invalid (bad suffix)"), bValid);
+			FAssetData Good = MakeSyntheticAssetData(TEXT("/Game/Test/Maps/MainLevel"), TEXT("MainLevel"), TEXT("/Script/Engine.World"));
+			Rule->EvaluateSingleAssetNaming(Good, Placeholders, bValid, nullptr, nullptr);
+			TestTrue(TEXT("MainLevel must be valid"), bValid);
+			FAssetData GoodSuffix = MakeSyntheticAssetData(TEXT("/Game/Test/Maps/Campaign_P"), TEXT("Campaign_P"), TEXT("/Script/Engine.World"));
+			Rule->EvaluateSingleAssetNaming(GoodSuffix, Placeholders, bValid, nullptr, nullptr);
+			TestTrue(TEXT("Campaign_P must be valid"), bValid);
 		});
 		It("LevelSequence: LS_ prefix", [this]()
 		{

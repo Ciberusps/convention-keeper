@@ -17,6 +17,7 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_TileSet.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_ControlRig.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SkeletalMesh.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_StaticMesh.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Skeleton.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_AIController.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_BehaviorTree.h"
@@ -58,6 +59,7 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MediaSoundWave.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_SoundConcurrency.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetPlacement_SoundClass.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetPlacement_Maps.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_DataTable.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_CurveFloat.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_CurveVector.h"
@@ -74,6 +76,7 @@
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_LandscapeLayer.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_MatineeData.h"
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_TouchInterface.h"
+#include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_LevelMap.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideConvention)
 
@@ -98,6 +101,7 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_TileSet>(TEXT("Rule_AssetNaming_TileSet")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_ControlRig>(TEXT("Rule_AssetNaming_ControlRig")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SkeletalMesh>(TEXT("Rule_AssetNaming_SkeletalMesh")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_StaticMesh>(TEXT("Rule_AssetNaming_StaticMesh")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_Skeleton>(TEXT("Rule_AssetNaming_Skeleton")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_AIController>(TEXT("Rule_AssetNaming_AIController")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_BehaviorTree>(TEXT("Rule_AssetNaming_BehaviorTree")));
@@ -139,6 +143,7 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MediaSoundWave>(TEXT("Rule_AssetNaming_MediaSoundWave")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_SoundConcurrency>(TEXT("Rule_AssetNaming_SoundConcurrency")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetPlacement_SoundClass>(TEXT("Rule_AssetPlacement_SoundClass")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetPlacement_Maps>(TEXT("Rule_AssetPlacement_Maps")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_DataTable>(TEXT("Rule_AssetNaming_DataTable")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_CurveFloat>(TEXT("Rule_AssetNaming_CurveFloat")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_CurveVector>(TEXT("Rule_AssetNaming_CurveVector")));
@@ -155,4 +160,5 @@ UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_LandscapeLayer>(TEXT("Rule_AssetNaming_LandscapeLayer")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_MatineeData>(TEXT("Rule_AssetNaming_MatineeData")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_TouchInterface>(TEXT("Rule_AssetNaming_TouchInterface")));
+	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_LevelMap>(TEXT("Rule_AssetNaming_LevelMap")));
 }
