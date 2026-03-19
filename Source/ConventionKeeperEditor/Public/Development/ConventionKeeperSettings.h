@@ -109,6 +109,19 @@ public:
 	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
 	bool bValidateAssetNamingOnSave = true;
 
+	/**
+	 * CI: minimum rule coverage % (0–100). When > 0, commandlet with -Coverage fails if coverage is below this.
+	 * 0 = disabled.
+	 */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Min coverage % (CI)", ClampMin = "0", ClampMax = "100"))
+	int32 MinCoveragePercent = 0;
+
+	/**
+	 * CI: minimum compliance % (0–100). When > 0, commandlet with -Compliance fails if compliance is below this.
+	 * 0 = disabled.
+	 */
+	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Min compliance % (CI)", ClampMin = "0", ClampMax = "100"))
+	int32 MinCompliancePercent = 0;
 
 	/**
 	 * Paths that are skipped by all rules. Entries can be folders (with trailing slash) or assets (no trailing slash), in Content/ form.

@@ -1,6 +1,8 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "Commandlets/ConventionKeeperCommandlet.h"
+#include "ConventionCoverage.h"
+#include "ConventionKeeperConvention_Base.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Logging/MessageLog.h"
@@ -177,6 +179,65 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 
 int32 UConventionKeeperCommandlet::Main(const FString& Params)
 {
+	const bool bCoverage = FParse::Param(*Params, TEXT("Coverage"));
+	const bool bCompliance = FParse::Param(*Params, TEXT("Compliance"));
+	int32 MinCoverage = 0;
+	int32 MinCompliance = 0;
+	FParse::Value(*Params, TEXT("MinCoverage="), MinCoverage);
+	FParse::Value(*Params, TEXT("MinCompliance="), MinCompliance);
+
+	if (bCoverage || bCompliance)
+	{
+		const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+		UConventionKeeperConvention_Base* Convention = Settings ? Settings->GetResolvedConvention() : nullptr;
+		if (!Settings || !Convention)
+		{
+			UE_LOG(LogTemp, Error, TEXT("ConventionKeeper: Convention not set. Set in Project Settings."));
+			return 1;
+		}
+		FConventionCoverageResult Result = ConventionCoverage::RunAnalysis(Convention, Settings, TArray<FString>());
+		const int32 CoveragePct = Result.TotalAssets > 0 ? FMath::RoundToInt(100.0 * Result.CoveredAssets / Result.TotalAssets) : 0;
+		const int32 CompliancePct = Result.CoveredAssets > 0 ? FMath::RoundToInt(100.0 * Result.CompliantAssets / Result.CoveredAssets) : 0;
+		if (bCoverage)
+		{
+			UE_LOG(LogTemp, Log, TEXT("ConventionKeeper: In rule scope: %d%% (%d/%d assets in a path where a rule applies)."), CoveragePct, Result.CoveredAssets, Result.TotalAssets);
+		}
+		if (bCompliance)
+		{
+			UE_LOG(LogTemp, Log, TEXT("ConventionKeeper: Compliance: of those in scope, %d%% (%d/%d pass)."), CompliancePct, Result.CompliantAssets, Result.CoveredAssets);
+		}
+		for (const FConventionCoverageClassStats& Stats : Result.PerClass)
+		{
+			if (bCoverage && Stats.Covered == 0 && Stats.Total > 0)
+			{
+				UE_LOG(LogTemp, Log, TEXT("  %s: %d assets, no rule"), *Stats.ClassName, Stats.Total);
+			}
+			else if (bCoverage && Stats.Covered > 0)
+			{
+				const int32 CvPct = Stats.Total > 0 ? static_cast<int32>(FMath::RoundToInt(100.0 * Stats.Covered / Stats.Total)) : 0;
+				UE_LOG(LogTemp, Log, TEXT("  %s: %d total; %d in scope (%d%%)"), *Stats.ClassName, Stats.Total, Stats.Covered, CvPct);
+			}
+			if (bCompliance && Stats.Covered > 0)
+			{
+				const int32 Cp = static_cast<int32>(FMath::RoundToInt(100.0 * Stats.Compliant / Stats.Covered));
+				UE_LOG(LogTemp, Log, TEXT("  %s: %d in scope; %d%% compliant (%d/%d)"), *Stats.ClassName, Stats.Covered, Cp, Stats.Compliant, Stats.Covered);
+			}
+		}
+		const int32 CoverageThreshold = (MinCoverage > 0) ? MinCoverage : (Settings->MinCoveragePercent);
+		if (bCoverage && CoverageThreshold > 0 && Result.TotalAssets > 0 && CoveragePct < CoverageThreshold)
+		{
+			UE_LOG(LogTemp, Error, TEXT("ConventionKeeper: Coverage %d%% is below minimum %d%%. Failing."), CoveragePct, CoverageThreshold);
+			return 1;
+		}
+		const int32 ComplianceThreshold = (MinCompliance > 0) ? MinCompliance : (Settings->MinCompliancePercent);
+		if (bCompliance && ComplianceThreshold > 0 && Result.CoveredAssets > 0 && CompliancePct < ComplianceThreshold)
+		{
+			UE_LOG(LogTemp, Error, TEXT("ConventionKeeper: Compliance %d%% is below minimum %d%%. Failing."), CompliancePct, ComplianceThreshold);
+			return 1;
+		}
+		return 0;
+	}
+
 	TArray<FString> Paths;
 	FString PathsValue;
 	if (FParse::Value(*Params, TEXT("Paths="), PathsValue))

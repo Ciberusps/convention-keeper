@@ -24,6 +24,10 @@ public:
 	
 	/** This function will be bound to Command. */
 	void PluginButtonClicked();
+	/** Runs Convention Rule Coverage analysis and reports to Message Log. */
+	void RunCoverageTest();
+	/** Runs Convention Compliance analysis and reports to Message Log. */
+	void RunComplianceTest();
 	
 private:
 	void RegisterMenus();

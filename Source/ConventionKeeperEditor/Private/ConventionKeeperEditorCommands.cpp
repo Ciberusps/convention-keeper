@@ -6,7 +6,9 @@
 
 void FConventionKeeperEditorCommands::RegisterCommands()
 {
-	UI_COMMAND(PluginAction, "ConventionKeeper", "Execute ConventionKeeper action", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(PluginAction, "ConventionKeeper", "Validate convention folders", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(CoverageAction, "Convention Coverage", "Run rule coverage report; show results in Message Log", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(ComplianceAction, "Convention Compliance", "Run compliance report (covered assets passing validation); show results in Message Log", EUserInterfaceActionType::Button, FInputChord());
 }
 
 #undef LOCTEXT_NAMESPACE

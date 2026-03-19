@@ -1,12 +1,15 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
 #include "ConventionKeeperEditor.h"
+#include "ConventionCoverage.h"
 #include "ConventionKeeperEditorStyle.h"
 #include "ConventionKeeperEditorCommands.h"
 #include "Commandlets/ConventionKeeperCommandlet.h"
 #include "ConventionKeeperConvention_Base.h"
 #include "Development/ConventionKeeperSettings.h"
+#include "Development/ConventionKeeperSettingsCustomization.h"
 #include "Localization/ConventionKeeperLocalization.h"
+#include "PropertyEditorModule.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -52,6 +55,14 @@ void FConventionKeeperEditorModule::StartupModule()
 		FConventionKeeperEditorCommands::Get().PluginAction,
 		FExecuteAction::CreateRaw(this, &FConventionKeeperEditorModule::PluginButtonClicked),
 		FCanExecuteAction());
+	PluginCommands->MapAction(
+		FConventionKeeperEditorCommands::Get().CoverageAction,
+		FExecuteAction::CreateRaw(this, &FConventionKeeperEditorModule::RunCoverageTest),
+		FCanExecuteAction());
+	PluginCommands->MapAction(
+		FConventionKeeperEditorCommands::Get().ComplianceAction,
+		FExecuteAction::CreateRaw(this, &FConventionKeeperEditorModule::RunComplianceTest),
+		FCanExecuteAction());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FConventionKeeperEditorModule::RegisterMenus));
 
@@ -65,6 +76,12 @@ void FConventionKeeperEditorModule::StartupModule()
 	UToolMenus::Get()->RefreshAllWidgets();
 	RegisterAssetTypeActions();
 	RegisterContentBrowserExtenders();
+
+	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	PropertyModule.RegisterCustomClassLayout(
+		UConventionKeeperSettings::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic(&FConventionKeeperSettingsCustomization::MakeInstance));
+	PropertyModule.NotifyCustomizationModuleChanged();
 
 #if WITH_EDITOR
 	PackageSavedDelegateHandle = UPackage::PackageSavedWithContextEvent.AddLambda(
@@ -86,6 +103,12 @@ void FConventionKeeperEditorModule::ShutdownModule()
 
 	UnregisterAssetTypeActions();
 	UnregisterContentBrowserExtenders();
+
+	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
+	{
+		FPropertyEditorModule& PropertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		PropertyModule.UnregisterCustomClassLayout(UConventionKeeperSettings::StaticClass()->GetFName());
+	}
 
 #if WITH_EDITOR
 	if (PackageSavedDelegateHandle.IsValid())
@@ -122,11 +145,50 @@ void FConventionKeeperEditorModule::PluginButtonClicked()
 	}
 
 	Convention->ValidateFolderStructures();
+}
 
-	// FText DialogText = FText::Format(
-	// 						LOCTEXT("PluginButtonDialogText", "Path exists {0}"),
-	// 						bExists);
-	// FMessageDialog::Open(EAppMsgType::Ok, DialogText);
+void FConventionKeeperEditorModule::RunCoverageTest()
+{
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	if (!Settings)
+	{
+		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoSettings", "Convention Keeper: Project Settings not found."));
+		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
+		return;
+	}
+
+	UConventionKeeperConvention_Base* Convention = Settings->GetResolvedConvention();
+	if (!Convention)
+	{
+		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoConvention", "Convention Keeper: Convention is not set. Set Convention or Convention Asset in Project Settings → Convention Keeper."));
+		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
+		return;
+	}
+
+	FConventionCoverageResult Result = ConventionCoverage::RunAnalysis(Convention, Settings, TArray<FString>());
+	ConventionCoverage::ReportToMessageLog(Result, ConventionCoverage::EConventionReportMode::CoverageOnly, true);
+}
+
+void FConventionKeeperEditorModule::RunComplianceTest()
+{
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	if (!Settings)
+	{
+		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoSettings", "Convention Keeper: Project Settings not found."));
+		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
+		return;
+	}
+
+	UConventionKeeperConvention_Base* Convention = Settings->GetResolvedConvention();
+	if (!Convention)
+	{
+		FMessageLog(TEXT("ConventionKeeper")).Error(LOCTEXT("NoConvention", "Convention Keeper: Convention is not set. Set Convention or Convention Asset in Project Settings → Convention Keeper."));
+		FMessageLog(TEXT("ConventionKeeper")).Open(EMessageSeverity::Error, true);
+		return;
+	}
+
+	FConventionCoverageResult Result = ConventionCoverage::RunAnalysis(Convention, Settings, TArray<FString>());
+	ConventionCoverage::ReportToMessageLog(Result, ConventionCoverage::EConventionReportMode::ComplianceOnly, true);
 }
 
 bool FConventionKeeperEditorModule::CheckAssetPathExists(const FString& PackagePath)
@@ -164,6 +226,8 @@ void FConventionKeeperEditorModule::RegisterMenus()
 	{
 		FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
 		Section.AddMenuEntryWithCommandList(FConventionKeeperEditorCommands::Get().PluginAction, PluginCommands);
+		Section.AddMenuEntryWithCommandList(FConventionKeeperEditorCommands::Get().CoverageAction, PluginCommands);
+		Section.AddMenuEntryWithCommandList(FConventionKeeperEditorCommands::Get().ComplianceAction, PluginCommands);
 	}
 
 	UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar");
