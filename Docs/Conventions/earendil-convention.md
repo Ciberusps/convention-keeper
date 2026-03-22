@@ -23,6 +23,7 @@ All rules from [`ue5-style-guide-convention`](./ue5-style-guide-convention.md) a
 | `folder-structure-content` | Expected layout under `Content/{ProjectName}/` |
 | `folder-structure-project-name` | Project root folder naming |
 | `folder-structure-character` | Character-related paths |
+| `folder-structure-character-gyms` | Required gym level assets per character under `Gyms/` |
 | `folder-structure-core-ai` | Core AI paths |
 
 See `Docs/Rules/{RuleId}.md` for each.

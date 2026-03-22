@@ -4,6 +4,7 @@
 #include "ConventionCoverage.h"
 #include "ConventionKeeperConvention_Base.h"
 #include "ConventionKeeperValidationHooks.h"
+#include "ConventionKeeperValidationContext.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Logging/MessageLog.h"
@@ -257,6 +258,9 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 		}
 	}
 
+#if WITH_EDITOR
+	const FConventionKeeperAssetValidationScope PerAssetValidationScope(bAssetPaths);
+#endif
 	if (ConventionKeeperSettings && bLargeInteractiveScope)
 	{
 		const TArray<UConventionKeeperRule*> RulesForProgress = Convention->GetEffectiveRules();

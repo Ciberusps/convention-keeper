@@ -8,8 +8,118 @@
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Misc/Paths.h"
 #include "Rules/ConventionKeeperRule.h"
+#include "HAL/PlatformFilemanager.h"
+
+#if WITH_EDITOR
+#include "ConventionKeeperValidationContext.h"
+#endif
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperRule_FolderStructure)
+
+namespace FolderStructureAssetLog
+{
+FString ContentRelativePathForAssetLink(const FString& ResolvedBasePath, const FString& AssetBaseName)
+{
+	FString Base = ResolvedBasePath;
+	Base.ReplaceInline(TEXT("\\"), TEXT("/"));
+	while (Base.EndsWith(TEXT("/")))
+	{
+		Base.LeftChopInline(1);
+	}
+	return Base + TEXT("/") + AssetBaseName;
+}
+}
+
+void UConventionKeeperRule_FolderStructure::CollectAssetBaseNamesInDirectory(const FString& AbsoluteDir, TSet<FName>& OutNames)
+{
+	TArray<FString> Files;
+	IFileManager::Get().FindFiles(Files, *(AbsoluteDir / TEXT("*")), true, false);
+	for (const FString& FileName : Files)
+	{
+		const FString Ext = FPaths::GetExtension(FileName, false);
+		if (Ext.Equals(TEXT("uasset"), ESearchCase::IgnoreCase) || Ext.Equals(TEXT("umap"), ESearchCase::IgnoreCase))
+		{
+			OutNames.Add(FName(FPaths::GetBaseFilename(FileName)));
+		}
+	}
+}
+
+void UConventionKeeperRule_FolderStructure::GatherRequiredBannedAssetViolations(
+	const FString& AbsoluteBaseDir,
+	const FString& ResolvedContentBasePath,
+	const TArray<FString>& InRequiredAssets,
+	const TArray<FString>& InBannedAssets,
+	const TMap<FString, FString>& MergedPlaceholders,
+	TArray<FString>& OutMissingRequiredContentPaths,
+	TArray<FString>& OutPresentBannedContentPaths)
+{
+	OutMissingRequiredContentPaths.Reset();
+	OutPresentBannedContentPaths.Reset();
+
+	TSet<FName> AssetBaseNames;
+	CollectAssetBaseNamesInDirectory(AbsoluteBaseDir, AssetBaseNames);
+
+	for (const FString& Pattern : InRequiredAssets)
+	{
+		const FString ResolvedName = ResolvePlaceholdersForPath(Pattern, MergedPlaceholders);
+		if (ResolvedName.IsEmpty() || ResolvedName.Contains(TEXT("{")))
+		{
+			continue;
+		}
+		const FName RequiredFName(*ResolvedName);
+		if (!AssetBaseNames.Contains(RequiredFName))
+		{
+			OutMissingRequiredContentPaths.Add(FolderStructureAssetLog::ContentRelativePathForAssetLink(ResolvedContentBasePath, ResolvedName));
+		}
+	}
+
+	for (const FString& Pattern : InBannedAssets)
+	{
+		const FString ResolvedName = ResolvePlaceholdersForPath(Pattern, MergedPlaceholders);
+		if (ResolvedName.IsEmpty() || ResolvedName.Contains(TEXT("{")))
+		{
+			continue;
+		}
+		const FName BannedFName(*ResolvedName);
+		if (AssetBaseNames.Contains(BannedFName))
+		{
+			OutPresentBannedContentPaths.Add(FolderStructureAssetLog::ContentRelativePathForAssetLink(ResolvedContentBasePath, ResolvedName));
+		}
+	}
+}
+
+void UConventionKeeperRule_FolderStructure::GatherDisallowedExtraAssets(
+	const FString& AbsoluteBaseDir,
+	const FString& ResolvedContentBasePath,
+	const TArray<FString>& InRequiredAssets,
+	const TMap<FString, FString>& MergedPlaceholders,
+	TArray<FString>& OutDisallowedAssetContentPaths)
+{
+	OutDisallowedAssetContentPaths.Reset();
+
+	TSet<FName> OnDisk;
+	CollectAssetBaseNamesInDirectory(AbsoluteBaseDir, OnDisk);
+
+	TSet<FName> Allowed;
+	for (const FString& Pattern : InRequiredAssets)
+	{
+		const FString ResolvedName = ResolvePlaceholdersForPath(Pattern, MergedPlaceholders);
+		if (ResolvedName.IsEmpty() || ResolvedName.Contains(TEXT("{")))
+		{
+			continue;
+		}
+		Allowed.Add(FName(*ResolvedName));
+	}
+
+	for (const FName& BaseName : OnDisk)
+	{
+		if (!Allowed.Contains(BaseName))
+		{
+			OutDisallowedAssetContentPaths.Add(
+				FolderStructureAssetLog::ContentRelativePathForAssetLink(ResolvedContentBasePath, BaseName.ToString()));
+		}
+	}
+}
 
 FString UConventionKeeperRule_FolderStructure::ResolvePlaceholdersForPath(const FString& DirectoryPath, const TMap<FString, FString>& Placeholders)
 {
@@ -203,6 +313,13 @@ bool UConventionKeeperRule_FolderStructure::DoesDirectoryExist(const FString& Di
 
 bool UConventionKeeperRule_FolderStructure::CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const
 {
+#if WITH_EDITOR
+	if (!bValidateOnPerAssetSave && FConventionKeeperAssetValidationScope::IsPerAssetPackageValidation())
+	{
+		return false;
+	}
+#endif
+
 	const FString ResolvedFolderPath = ResolvePlaceholdersForPath(FolderPath.Path, Placeholders);
 
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
@@ -294,7 +411,7 @@ TArray<FString> UConventionKeeperRule_FolderStructure::GetConcreteBasePathsForFo
 			}
 			if (NormalizedSelectedPath.StartsWith(BasePath))
 			{
-				Filtered.AddUnique(NormalizedSelectedPath);
+				Filtered.AddUnique(BasePath);
 				break;
 			}
 		}
@@ -376,6 +493,89 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 				UConventionKeeperRule::LogRuleMessage(this, EMessageSeverity::Info,
 					ConventionKeeperLoc::GetText(FName(TEXT("RequiredSubfolderExists"))),
 					&ResolvedRequiredForLog, ConventionKeeperLoc::GetText(FName(TEXT("FolderOkSuffix"))));
+			}
+		}
+
+		if (RequiredAssets.Num() > 0 || BannedAssets.Num() > 0 || bOtherAssetsNotAllowed)
+		{
+			const FString ExpectedRuleFolderResolved = ResolvePlaceholdersForPath(FolderPath.Path, MergedPlaceholders);
+			const FString ExpectedRuleFolderNorm = UConventionKeeperRule::NormalizeRelativePath(ExpectedRuleFolderResolved);
+			const FString CurrentBaseNorm = UConventionKeeperRule::NormalizeRelativePath(ResolvedBasePath);
+			const bool bFolderMatchesRuleRoot = !ExpectedRuleFolderNorm.Contains(TEXT("{"))
+				&& CurrentBaseNorm.Equals(ExpectedRuleFolderNorm, ESearchCase::IgnoreCase);
+
+			if (bFolderMatchesRuleRoot)
+			{
+				TArray<FString> MissingRequired;
+				TArray<FString> PresentBanned;
+				if (RequiredAssets.Num() > 0 || BannedAssets.Num() > 0)
+				{
+					GatherRequiredBannedAssetViolations(
+						AbsoluteBasePath,
+						ResolvedBasePath,
+						RequiredAssets,
+						BannedAssets,
+						MergedPlaceholders,
+						MissingRequired,
+						PresentBanned);
+				}
+
+				for (const FString& ContentPathForLink : MissingRequired)
+				{
+					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
+						ConventionKeeperLoc::GetText(FName(TEXT("RequiredAssetMissing"))),
+						&ContentPathForLink, FText());
+				}
+
+				for (const FString& ContentPathForLink : PresentBanned)
+				{
+					UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
+						ConventionKeeperLoc::GetText(FName(TEXT("BannedAssetPresent"))),
+						&ContentPathForLink, FText());
+				}
+
+				if (bOtherAssetsNotAllowed)
+				{
+					TArray<FString> ExtraAssets;
+					GatherDisallowedExtraAssets(
+						AbsoluteBasePath,
+						ResolvedBasePath,
+						RequiredAssets,
+						MergedPlaceholders,
+						ExtraAssets);
+					TSet<FString> BannedPathsSet(PresentBanned);
+					for (const FString& ContentPathForLink : ExtraAssets)
+					{
+						if (BannedPathsSet.Contains(ContentPathForLink))
+						{
+							continue;
+						}
+						UConventionKeeperRule::LogRuleMessage(this, FailureSeverity,
+							ConventionKeeperLoc::GetText(FName(TEXT("DisallowedAsset"))),
+							&ContentPathForLink, FText());
+					}
+				}
+
+				if (bDebug)
+				{
+					TSet<FName> AssetBaseNames;
+					CollectAssetBaseNamesInDirectory(AbsoluteBasePath, AssetBaseNames);
+					for (const FString& Pattern : RequiredAssets)
+					{
+						const FString ResolvedName = ResolvePlaceholdersForPath(Pattern, MergedPlaceholders);
+						if (ResolvedName.IsEmpty() || ResolvedName.Contains(TEXT("{")))
+						{
+							continue;
+						}
+						if (AssetBaseNames.Contains(FName(*ResolvedName)))
+						{
+							const FString ContentPathForLink = FolderStructureAssetLog::ContentRelativePathForAssetLink(ResolvedBasePath, ResolvedName);
+							UConventionKeeperRule::LogRuleMessage(this, EMessageSeverity::Info,
+								ConventionKeeperLoc::GetText(FName(TEXT("RequiredAssetExists"))),
+								&ContentPathForLink, ConventionKeeperLoc::GetText(FName(TEXT("FolderOkSuffix"))));
+						}
+					}
+				}
 			}
 		}
 

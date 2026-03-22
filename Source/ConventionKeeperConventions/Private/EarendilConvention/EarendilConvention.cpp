@@ -5,6 +5,7 @@
 #include "EarendilConvention/Rules/EarendilConventionRule_FolderStructure_Content.h"
 #include "EarendilConvention/Rules/EarendilConventionRule_FolderStructure_ProjectName.h"
 #include "EarendilConvention/Rules/EarendilConventionRule_FolderStructure_Character.h"
+#include "EarendilConvention/Rules/EarendilConventionRule_FolderStructure_CharacterGyms.h"
 #include "EarendilConvention/Rules/EarendilConventionRule_FolderStructure_CoreAI.h"
 #include "EarendilConvention/Rules/EarendilConventionRule_AssetNaming_CharacterAnimations.h"
 #include "EarendilConvention/Rules/EarendilConventionRule_AssetNaming_StateTree.h"
@@ -55,6 +56,7 @@ UEarendilConvention::UEarendilConvention()
 	Rules.Add(CreateDefaultSubobject<UEarendilConventionRule_FolderStructure_Content>(TEXT("Rule_FolderStructure_Content")));
 	Rules.Add(CreateDefaultSubobject<UEarendilConventionRule_FolderStructure_ProjectName>(TEXT("Rule_FolderStructure_ProjectName")));
 	Rules.Add(CreateDefaultSubobject<UEarendilConventionRule_FolderStructure_Character>(TEXT("Rule_FolderStructure_Character")));
+	Rules.Add(CreateDefaultSubobject<UEarendilConventionRule_FolderStructure_CharacterGyms>(TEXT("Rule_FolderStructure_CharacterGyms")));
 	Rules.Add(CreateDefaultSubobject<UEarendilConventionRule_FolderStructure_CoreAI>(TEXT("Rule_FolderStructure_CoreAI")));
 	Rules.Add(CreateDefaultSubobject<UEarendilConventionRule_AssetNaming_CharacterAnimations>(TEXT("Rule_AssetNaming_CharacterAnimations")));
 	Rules.Add(CreateDefaultSubobject<UEarendilConventionRule_AssetNaming_StateTree>(TEXT("Rule_AssetNaming_StateTree")));

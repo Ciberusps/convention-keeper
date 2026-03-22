@@ -3,6 +3,7 @@
 { FName(TEXT("folder-structure-content")), TEXT("Root Content folder must contain 3rdParty, {ProjectName}, FMOD, Movies.") },
 { FName(TEXT("folder-structure-project-name")), TEXT("Under Content/{ProjectName}/ require Characters, Maps, Core, SFX, VFX, AI.") },
 { FName(TEXT("folder-structure-character")), TEXT("Each character folder must have AI, Projectiles, Animations, Gyms, Data, Abilities, Materials.") },
+{ FName(TEXT("folder-structure-character-gyms")), TEXT("Under Content/{ProjectName}/Characters/{CharacterName}/Gyms/ only Gym_{CharacterName}, AIGym_{CharacterName}, AIGym_{CharacterName}_Arena, AnimGym_{CharacterName} (.uasset/.umap); no other assets in that folder.") },
 { FName(TEXT("folder-structure-core-ai")), TEXT("Content/{ProjectName}/Core/AI/ must exist.") },
 { FName(TEXT("ec-asset-naming-anim-sequence")), TEXT("Animation Sequence assets must use prefix AS_ (EarendilConvention).") },
 { FName(TEXT("ec-asset-naming-state-tree")), TEXT("StateTree assets must use prefix ST_ (EarendilConvention).") },
