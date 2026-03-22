@@ -40,9 +40,9 @@ FText UEarendilConvention::GetLocalizedRuleDescription(FName RuleId) const
 
 UEarendilConvention::UEarendilConvention()
 {
-	Name = TEXT("Earendil");
-	Description = FText::FromString(TEXT("Default convention: UE5 Style Guide (v2) with AS_ for AnimSequence, plus folder structure and character animation naming. Extend for your project."));
-	DocsLink = TEXT("https://github.com/Allar/ue5-style-guide/tree/v2?tab=readme-ov-file");
+	Name = TEXT("earendil-convention");
+	Description = FText::FromString(
+		TEXT("Extends UE5 Style Guide with project folder rules, AnimSequence AS_ override, character animation and StateTree naming. Documentation: Docs/Conventions/earendil-convention.md (Name = doc slug)."));
 
 	ExtendsConvention = UUE5StyleGuideConvention::StaticClass();
 

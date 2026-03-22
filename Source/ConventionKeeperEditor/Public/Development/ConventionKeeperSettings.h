@@ -120,14 +120,14 @@ public:
 	 * CI: minimum rule coverage % (0–100). When > 0, commandlet with -Coverage fails if coverage is below this.
 	 * 0 = disabled.
 	 */
-	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Min coverage % (CI)", ClampMin = "0", ClampMax = "100"))
+	UPROPERTY(Config, EditAnywhere, Category="CI", meta = (DisplayName = "Min coverage % (CI)", ClampMin = "0", ClampMax = "100"))
 	int32 MinCoveragePercent = 0;
 
 	/**
 	 * CI: minimum compliance % (0–100). When > 0, commandlet with -Compliance fails if compliance is below this.
 	 * 0 = disabled.
 	 */
-	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Min compliance % (CI)", ClampMin = "0", ClampMax = "100"))
+	UPROPERTY(Config, EditAnywhere, Category="CI", meta = (DisplayName = "Min compliance % (CI)", ClampMin = "0", ClampMax = "100"))
 	int32 MinCompliancePercent = 0;
 
 	/**
@@ -170,6 +170,13 @@ public:
 	 */
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Rule doc path template"))
 	FString DocsRulePathTemplate = TEXT("Docs/Rules/{RuleId}.md");
+
+	/**
+	 * Path template for convention documentation, relative to the repo root. {ConventionDocId} = OverrideDocumentationId if set, else slug derived from Name.
+	 * Localized: Docs/Conventions/{Lang}/{ConventionDocId}.md when present.
+	 */
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (DisplayName = "Convention doc path template"))
+	FString DocsConventionPathTemplate = TEXT("Docs/Conventions/{ConventionDocId}.md");
 
 	//~UDeveloperSettings interface
 	virtual FName GetCategoryName() const override { return FApp::GetProjectName(); }

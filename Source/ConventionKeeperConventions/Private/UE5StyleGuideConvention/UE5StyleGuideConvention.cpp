@@ -82,9 +82,9 @@
 
 UUE5StyleGuideConvention::UUE5StyleGuideConvention()
 {
-	Name = TEXT("UE5 Style Guide");
-	Description = FText::FromString(TEXT("Convention based on Gamemakin's UE5 Style Guide (v2): asset naming prefixes/suffixes, folder structure, PascalCase for names."));
-	DocsLink = TEXT("https://github.com/Allar/ue5-style-guide/tree/v2?tab=readme-ov-file");
+	Name = TEXT("ue5-style-guide-convention");
+	Description = FText::FromString(
+		TEXT("Root preset: PascalCase plus asset naming / placement rules aligned with Gamemakin UE5 Style Guide v2. Documentation: Docs/Conventions/ue5-style-guide-convention.md (Name = doc slug)."));
 	Rules.Add(CreateDefaultSubobject<UConventionKeeperRule_NamingConvention_PascalCase>(TEXT("Rule_NamingConvention_PascalCase")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_AnimSequence>(TEXT("Rule_AssetNaming_AnimSequence")));
 	Rules.Add(CreateDefaultSubobject<UUE5StyleGuideRule_AssetNaming_AnimMontage>(TEXT("Rule_AssetNaming_AnimMontage")));

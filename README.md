@@ -55,6 +55,7 @@ Rule descriptions, validation messages in the Message Log, and the “Convention
 |------|----------|
 | `en` | English (default) |
 | `ru` | Russian |
+| more | to come |
 
 **Where to set**
 

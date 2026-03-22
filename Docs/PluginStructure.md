@@ -82,7 +82,9 @@ YourGame/Source/YourGame/
 | Плюсы | Один шаблон URL, уже заложен в Settings (`DocsRulePathTemplate`). Один каталог — проще собирать сайт доков, линковать между правилами. RuleId = имя файла. | Всё по правилу в одной папке: код + док. Перенос/удаление правила = одна папка. |
 | Минусы | Код и док в разных местах. | Шаблон пути усложняется (нужен контекст конвенции или полный путь к правилу), либо дублирование RuleId в путях. |
 
-**Рекомендация: root `Docs/Rules/`** — как в ESLint. Один шаблон `Docs/Rules/{RuleId}.md`, без привязки к конвенции; плагин уже под это заточен. Если один и тот же RuleId переиспользуется в разных конвенциях — один общий док. Если позже понадобится «свой» док на конвенцию — можно завести `Docs/Conventions/EarendilConvention/Rules/{RuleId}.md` и отдельный шаблон.
+**Рекомендация: root `Docs/Rules/`** — как в ESLint. Один шаблон `Docs/Rules/{RuleId}.md`, без привязки к конвенции; плагин уже под это заточен. Если один и тот же RuleId переиспользуется в разных конвенциях — один общий док.
+
+**Конвенции:** полное описание пресета, списки правил и reference-ссылки — в `Docs/Conventions/{ConventionDocId}.md`. `{ConventionDocId}` = **OverrideDocumentationId** (Advanced), иначе slug из **Name** (нижний регистр, пробелы/`_` → `-`). Переводы: `Docs/Conventions/ru/...`. В деталях markdown **не** подгружается; **Documentation URL** + кнопка «Open documentation». **Doc path override** (Advanced) — свой путь в репо.
 
 **Локализация:** оригиналы в `Docs/Rules/` (плоский список), переводы — в подпапках по языку: `Docs/Rules/ru/`, `Docs/Rules/fr/` и т.д., внутри та же структура имён. Один язык = одна папка, удобно отдавать переводчикам и масштабировать. Порядок выбора: `Docs/Rules/{lang}/{RuleId}.md` → `Docs/Rules/{RuleId}.md` (оригинал).
 
@@ -98,6 +100,10 @@ Plugins/convention-keeper/
 │   │   └── fr/
 │   │       ├── folder-structure-content.md
 │   │       └── ...
+│   ├── Conventions/              ← markdown: имя файла = slug Name или OverrideDocumentationId
+│   │   ├── ue5-style-guide-convention.md
+│   │   ├── earendil-convention.md
+│   │   └── ru/
 │   └── RuleOverrideSystem.md
 ├── Source/
 │   └── ConventionKeeperConventions/

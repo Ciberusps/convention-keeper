@@ -8,6 +8,7 @@
 #include "ConventionKeeperConvention_Base.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Development/ConventionKeeperSettingsCustomization.h"
+#include "Development/ConventionKeeperConventionDetailCustomization.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "PropertyEditorModule.h"
 #include "Rules/ConventionKeeperRule.h"
@@ -81,6 +82,9 @@ void FConventionKeeperEditorModule::StartupModule()
 	PropertyModule.RegisterCustomClassLayout(
 		UConventionKeeperSettings::StaticClass()->GetFName(),
 		FOnGetDetailCustomizationInstance::CreateStatic(&FConventionKeeperSettingsCustomization::MakeInstance));
+	PropertyModule.RegisterCustomClassLayout(
+		UConventionKeeperConvention_Base::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic(&FConventionKeeperConventionDetailCustomization::MakeInstance));
 	PropertyModule.NotifyCustomizationModuleChanged();
 
 #if WITH_EDITOR
@@ -108,6 +112,7 @@ void FConventionKeeperEditorModule::ShutdownModule()
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		PropertyModule.UnregisterCustomClassLayout(UConventionKeeperSettings::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UConventionKeeperConvention_Base::StaticClass()->GetFName());
 	}
 
 #if WITH_EDITOR
