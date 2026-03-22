@@ -1,6 +1,6 @@
-# ck-asset-naming-state-tree
+# ec-asset-naming-state-tree
 
-**StateTree** assets must use the prefix **ST_** (CKConvention).
+**StateTree** assets must use the prefix **ST_** (EarendilConvention).
 
 **Valid:** `ST_AI_Combat`, `ST_Player_Locomotion`, `ST_NPC_Idle`  
 **Invalid:** `NewStateTree`, `StateTree_AI`, `BT_Combat`

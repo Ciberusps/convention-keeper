@@ -1,5 +1,5 @@
 // Pavel Penkov 2025 All Rights Reserved.
-// Shared validation messages only. Rule descriptions live in each Convention (e.g. ConventionKeeperConventionStrings_*.inl).
+// Shared validation messages only. Rule descriptions live in each Convention (e.g. EarendilConventionStrings_*.inl).
 // To add a language: add Strings_xx.inl in this folder and a branch in GetStringsForLanguage().
 
 #include "Localization/ConventionKeeperLocalization.h"

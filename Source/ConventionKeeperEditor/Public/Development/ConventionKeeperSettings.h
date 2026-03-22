@@ -34,7 +34,7 @@ enum class EConventionKeeperValidationOverride : uint8
 };
 
 // USTRUCT(BlueprintType)
-// struct UHLCONVENTIONKEEPEREDITOR_API FUHECustomClassIconDescription
+// struct CONVENTIONKEEPEREDITOR_API FUHECustomClassIconDescription
 // {
 //     GENERATED_BODY()
 //

@@ -12,7 +12,7 @@ static UClass* GetDefaultConventionClass()
 	static UClass* Cached = nullptr;
 	if (!Cached)
 	{
-		Cached = LoadClass<UConventionKeeperConvention_Base>(nullptr, TEXT("/Script/ConventionKeeperConventions.ConventionKeeperConvention"));
+		Cached = LoadClass<UConventionKeeperConvention_Base>(nullptr, TEXT("/Script/ConventionKeeperConventions.EarendilConvention"));
 		if (!Cached)
 		{
 			Cached = LoadClass<UConventionKeeperConvention_Base>(nullptr, TEXT("/Script/ConventionKeeperConventions.UE5StyleGuideConvention"));

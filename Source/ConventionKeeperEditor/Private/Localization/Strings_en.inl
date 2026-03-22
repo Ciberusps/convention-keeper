@@ -102,7 +102,7 @@
 { FName(TEXT("RuleDesc_asset-naming-matinee-data")), TEXT("Matinee Data assets must use prefix Matinee_ (UE5 Style Guide 1.2.7).") },
 { FName(TEXT("RuleDesc_asset-naming-touch-interface")), TEXT("Touch Interface Setup assets must use prefix TI_ (UE5 Style Guide 1.2.7).") },
 { FName(TEXT("RuleDesc_asset-naming-level-map")), TEXT("Level/Map (World) assets may have no suffix or one of: _P (Persistent), _Audio, _Lighting, _Geo, _Gameplay (UE5 Style Guide 1.2.1).") },
-{ FName(TEXT("RuleDesc_ck-asset-naming-state-tree")), TEXT("StateTree assets must use prefix ST_ (CKConvention).") },
+{ FName(TEXT("RuleDesc_ec-asset-naming-state-tree")), TEXT("StateTree assets must use prefix ST_ (EarendilConvention).") },
 { FName(TEXT("PascalCaseHintPrefix")), TEXT("Use PascalCase. {0}") },
 { FName(TEXT("PascalCaseReasonEmptyName")), TEXT("Name cannot be empty.") },
 { FName(TEXT("PascalCaseReasonEmptySegment")), TEXT("Empty segment not allowed (avoid double underscores or leading/trailing underscore).") },

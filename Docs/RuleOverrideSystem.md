@@ -2,18 +2,18 @@
 
 ## Цель
 
-- Пользователь может **наследоваться** от конвенции (например UHLConvention) и **переопределять** только нужные правила (отключить или заменить).
-- При выходе патча в UHL с **новым правилом** оно автоматически появляется у всех, кто от него наследуется, без ручного копирования `Rules`.
+- Пользователь может **наследоваться** от конвенции (например `UEarendilConvention` или `UUE5StyleGuideConvention`) и **переопределять** только нужные правила (отключить или заменить).
+- При выходе патча в **базовой конвенции** с **новым правилом** оно автоматически появляется у всех, кто от неё наследуется через `ExtendsConvention`, без ручного копирования `Rules`.
 
 ## Текущее состояние
 
 ### ConventionKeeper
 
-- **UConventionKeeperConvention**: база, хранит `TArray<TObjectPtr<UConventionKeeperRule>> Rules`.
-- **UUHLConvention**: в конструкторе заполняет `Rules` через `CreateDefaultSubobject` (Rule_Content, Rule_ProjectName, Rule_Character, Rule_CoreAI).
-- **Settings**: `TSubclassOf<UConventionKeeperConvention> Convention` (по умолчанию UUHLConvention); везде используется `Convention.GetDefaultObject()`.
+- **UConventionKeeperConvention_Base**: база, хранит `TArray<TObjectPtr<UConventionKeeperRule>> Rules`.
+- **UEarendilConvention**: пресет по умолчанию — расширяет UE5 Style Guide, добавляет правила структуры папок и переопределения по `RuleId`.
+- **Settings**: `TSubclassOf<UConventionKeeperConvention_Base> Convention` (по умолчанию `UEarendilConvention`); везде используется `Convention.GetDefaultObject()` или Convention Asset, если задан.
 
-**Проблема**: при наследовании (C++ или Blueprint) дочерний класс/ассет имеет **свою копию** `Rules`. У Blueprint она сериализуется в ассет — при добавлении нового правила в UHL конвенция пользователя по-прежнему видит только старый набор. У C++-наследника пришлось бы дублировать весь конструктор UHL и потом добавлять свои правила — хрупко и не масштабируется.
+**Проблема** (если не использовать вычисляемый merge): при наследовании только через **полную копию** `Rules` в дочернем классе/ассете при добавлении нового правила в базу дочерняя конвенция не подхватывает его. Отсюда модель `ExtendsConvention` + `GetEffectiveRules()`.
 
 ### UENamingConventionValidation
 
@@ -43,10 +43,10 @@
 
 1. **UConventionKeeperRule** (базовый класс правил):
    - **Стабильный идентификатор**: `UPROPERTY(EditDefaultsOnly) FName RuleId;`  
-   - В UHL для правил FolderStructure задавать id с префиксом и через тире, например: `folder-structure-content`, `folder-structure-project-name`, `folder-structure-character`, `folder-structure-core-ai`.
+   - В `UEarendilConvention` для правил FolderStructure задавать id с префиксом и через тире, например: `folder-structure-content`, `folder-structure-project-name`, `folder-structure-character`, `folder-structure-core-ai`.
 
-2. **UConventionKeeperConvention**:
-   - `UPROPERTY(EditAnywhere) TSubclassOf<UConventionKeeperConvention> ExtendsConvention;` — опционально, если не задан — это «корневая» конвенция.
+2. **UConventionKeeperConvention_Base** (реализации: `UEarendilConvention`, `UUE5StyleGuideConvention`, …):
+   - `UPROPERTY(EditAnywhere) TSubclassOf<UConventionKeeperConvention_Base> ExtendsConvention;` — опционально, если не задан — это «корневая» конвенция.
    - `UPROPERTY(EditAnywhere) TArray<FRuleOverride> RuleOverrides;`  
    - `UPROPERTY(EditAnywhere) TArray<TObjectPtr<UConventionKeeperRule>> AdditionalRules;` — правила без RuleId из базы (только свои).
 
@@ -67,26 +67,26 @@ struct FRuleOverride
 
 4. **Вычисление эффективных правил**:
    - `GetEffectiveRules()` (виртуальная или финальная):
-     - Если `ExtendsConvention` не задан → возвращаем `Rules` (как сейчас у UHL).
+     - Если `ExtendsConvention` не задан → возвращаем `Rules` (корневая конвенция без extends).
      - Иначе: `BaseRules = ExtendsConvention.GetDefaultObject()->GetEffectiveRules()`.
      - По каждому правилу из `BaseRules`: если у правила есть `RuleId` и в `RuleOverrides` есть запись с таким id — при `Off` пропускаем, при `Replace` подставляем `ReplacementRule`.
      - В конец добавляем `AdditionalRules`.
    - Везде, где сейчас используется `Rules`, использовать `GetEffectiveRules()`.
 
-**Плюсы**: новые правила в UHL автоматически попадают ко всем наследникам; переопределять можно только нужные; поддержка Blueprint через `ExtendsConvention` + массив `RuleOverrides` + опционально свои правила в `AdditionalRules`.  
+**Плюсы**: новые правила в базовой конвенции автоматически попадают ко всем наследникам; переопределять можно только нужные; поддержка Blueprint через `ExtendsConvention` + массив `RuleOverrides` + опционально свои правила в `AdditionalRules`.  
 **Минусы**: нужно ввести RuleId и один проход мержа (простая логика).
 
 ---
 
 ### Вариант 2: Конвенция как Data Asset (база — ассет)
 
-**Идея**: конвенция — не класс с CDO, а **экземпляр** (UDataAsset или отдельный UConventionKeeperConvention-подтип, сохраняемый как ассет). У пользователя ассет «MyProjectConvention», в нём поле **Base Convention** указывает на ассет (например, плагинный «UHLConvention»). Эффективные правила = правила из базового ассета + overrides + свои.
+**Идея**: конвенция — не класс с CDO, а **экземпляр** (UDataAsset или отдельный подтип `UConventionKeeperConvention_Base`, сохраняемый как ассет). У пользователя ассет «MyProjectConvention», в нём поле **Base Convention** указывает на ассет (например плагинный `UEarendilConvention` как default asset). Эффективные правила = правила из базового ассета + overrides + свои.
 
-- Патч плагина обновляет **базовый ассет** (например `/ConventionKeeper/Defaults/UHLConvention`). Все конвенции, ссылающиеся на него, при следующем вызове `GetEffectiveRules()` получают новый набор из базы.
+- Патч плагина обновляет **базовый ассет** (например дефолтный пресет Earendil). Все конвенции, ссылающиеся на него, при следующем вызове `GetEffectiveRules()` получают новый набор из базы.
 - Override по RuleId — так же, как в варианте 1: в дочернем ассете храним `RuleOverrides` и `AdditionalRules`.
 
 **Плюсы**: явный «документ» конфигурации, обновление базы через контент.  
-**Минусы**: смена модели с «класс в настройках» на «ассет в настройках»; нужно решить, остаётся ли в Settings `TSubclassOf` или `TSoftObjectPtr<UConventionKeeperConvention>` на ассет; для Blueprint-наследования от UHL по-прежнему лучше вариант 1 (Blueprint может наследовать класс и задать BaseConvention = UUHLConvention).
+**Минусы**: смена модели с «класс в настройках» на «ассет в настройках»; нужно решить, остаётся ли в Settings `TSubclassOf` или `TSoftObjectPtr<UConventionKeeperConvention_Base>` на ассет; для Blueprint-наследования от пресета по-прежнему лучше вариант 1 (Blueprint может наследовать класс и задать `ExtendsConvention = UEarendilConvention`).
 
 ---
 
@@ -105,29 +105,29 @@ struct FRuleOverride
 
 **Вариант 1 (ExtendsConvention + RuleOverrides + GetEffectiveRules())** даёт нужное поведение в духе ESLint, минимально меняет текущую модель (остаётся `TSubclassOf` в Settings, конвенция по-прежнему класс с опциональным `extends`) и хорошо дружит с Blueprint:
 
-- В редакторе пользователь выбирает свой Blueprint конвенции (наследник UHLConvention).
-- В Blueprint задаёт `ExtendsConvention = UUHLConvention` (или оставляет родительский класс и тогда extends = родитель).
+- В редакторе пользователь выбирает свой Blueprint конвенции (наследник `UEarendilConvention` или другой базы).
+- В Blueprint задаёт `ExtendsConvention = UEarendilConvention` (или оставляет родительский класс и тогда extends = родитель).
 - В `RuleOverrides` отключает или заменяет правила по `RuleId` (например `folder-structure-character`, `folder-structure-core-ai`).
 - При необходимости добавляет свои правила в `AdditionalRules` (для них RuleId может быть пустым или игнорироваться при мерже).
 
-При добавлении нового правила в UHL (новый `RuleId`, новый элемент в `Rules`) все конвенции, у которых ExtendsConvention = UHL, автоматически получают это правило через `GetEffectiveRules()`.
+При добавлении нового правила в базу (новый `RuleId`, новый элемент в `Rules`) все конвенции, у которых `ExtendsConvention` указывает на эту базу, автоматически получают это правило через `GetEffectiveRules()`.
 
 ---
 
 ## Поддержка Blueprint
 
-- `UConventionKeeperConvention` уже `Blueprintable`, `EditInlineNew`.
+- Конкретные конвенции (`UEarendilConvention`, `UUE5StyleGuideConvention`, …) — `Blueprintable`, `EditInlineNew` (база — `UConventionKeeperConvention_Base`).
 - `FRuleOverride`: `BlueprintType`, все поля `EditAnywhere` — редактируется в Details.
-- `ExtendsConvention`: `TSubclassOf` — в Blueprint выбирается класс (в т.ч. родительский или UUHLConvention).
+- `ExtendsConvention`: `TSubclassOf` — в Blueprint выбирается класс (в т.ч. родительский или `UEarendilConvention`).
 - `GetEffectiveRules()` — вызывать из C++ (commandlet, кнопка валидации); в Blueprint при необходимости можно экспортировать как BlueprintCallable.
-- Правила с `RuleId` в базе задаются в C++ (UHL); в Blueprint пользователь только включает/выключает/заменяет по id и добавляет свои в `AdditionalRules`.
+- Правила с `RuleId` в базе задаются в C++; в Blueprint пользователь только включает/выключает/заменяет по id и добавляет свои в `AdditionalRules`.
 
 ---
 
 ## Краткий чеклист внедрения (вариант 1)
 
-1. В `UConventionKeeperRule` поле `FName RuleId`; в UHL для FolderStructure правил — id с префиксом и тире: `folder-structure-content`, `folder-structure-project-name`, `folder-structure-character`, `folder-structure-core-ai`.
-2. Ввести `FRuleOverride` и поля `ExtendsConvention`, `RuleOverrides`, `AdditionalRules` в `UConventionKeeperConvention`.
+1. В `UConventionKeeperRule` поле `FName RuleId`; для FolderStructure в `UEarendilConvention` — id с префиксом и тире: `folder-structure-content`, `folder-structure-project-name`, `folder-structure-character`, `folder-structure-core-ai`.
+2. Ввести `FRuleOverride` и поля `ExtendsConvention`, `RuleOverrides`, `AdditionalRules` в `UConventionKeeperConvention_Base`.
 3. Реализовать `GetEffectiveRules()` с мержем от базы и применением overrides.
 4. Заменить использование `Rules` на `GetEffectiveRules()` в валидации (ValidateFolderStructures, ValidateFolderStructuresForPaths и т.д.).
-5. У UHL оставить заполнение только `Rules` (без ExtendsConvention); у пользовательских конвенций задавать `ExtendsConvention = UUHLConvention` и при необходимости заполнять `RuleOverrides` и `AdditionalRules`.
+5. У корневой пресет-конвенции оставить заполнение только `Rules` (без ExtendsConvention) или задать extends на UE5 Style Guide; у пользовательских конвенций задавать `ExtendsConvention = UEarendilConvention` (или другую базу) и при необходимости заполнять `RuleOverrides` и `AdditionalRules`.

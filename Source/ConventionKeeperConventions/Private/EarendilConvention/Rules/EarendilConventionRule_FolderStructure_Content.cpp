@@ -1,8 +1,8 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
-#include "ConventionKeeperConvention/Rules/CKConventionRule_FolderStructure_Content.h"
+#include "EarendilConvention/Rules/EarendilConventionRule_FolderStructure_Content.h"
 
-UCKConventionRule_FolderStructure_Content::UCKConventionRule_FolderStructure_Content()
+UEarendilConventionRule_FolderStructure_Content::UEarendilConventionRule_FolderStructure_Content()
 {
 	RuleId = FName(TEXT("folder-structure-content"));
 	Description = FText::FromString(TEXT("Root Content folder must contain 3rdParty, {ProjectName}, FMOD, Movies."));

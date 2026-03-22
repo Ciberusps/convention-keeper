@@ -1,8 +1,8 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
-#include "ConventionKeeperConvention/Rules/CKConventionRule_FolderStructure_Character.h"
+#include "EarendilConvention/Rules/EarendilConventionRule_FolderStructure_Character.h"
 
-UCKConventionRule_FolderStructure_Character::UCKConventionRule_FolderStructure_Character()
+UEarendilConventionRule_FolderStructure_Character::UEarendilConventionRule_FolderStructure_Character()
 {
 	RuleId = FName(TEXT("folder-structure-character"));
 	Description = FText::FromString(TEXT("Each character folder must have AI, Projectiles, Animations, Gyms, Data, Abilities, Materials."));

@@ -1,8 +1,8 @@
 // Pavel Penkov 2025 All Rights Reserved.
 
-#include "ConventionKeeperConvention/Rules/CKConventionRule_FolderStructure_ProjectName.h"
+#include "EarendilConvention/Rules/EarendilConventionRule_FolderStructure_ProjectName.h"
 
-UCKConventionRule_FolderStructure_ProjectName::UCKConventionRule_FolderStructure_ProjectName()
+UEarendilConventionRule_FolderStructure_ProjectName::UEarendilConventionRule_FolderStructure_ProjectName()
 {
 	RuleId = FName(TEXT("folder-structure-project-name"));
 	Description = FText::FromString(TEXT("Under Content/{ProjectName}/ require Characters, Maps, Core, SFX, VFX, AI."));

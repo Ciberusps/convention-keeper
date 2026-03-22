@@ -1,6 +1,6 @@
-# ck-asset-naming-state-tree
+# ec-asset-naming-state-tree
 
-Ассеты **StateTree** должны иметь префикс **ST_** (CKConvention).
+Ассеты **StateTree** должны иметь префикс **ST_** (EarendilConvention).
 
 **Верно:** `ST_AI_Combat`, `ST_Player_Locomotion`, `ST_NPC_Idle`  
 **Неверно:** `NewStateTree`, `StateTree_AI`, `BT_Combat`

@@ -99,7 +99,7 @@
 { FName(TEXT("RuleDesc_asset-naming-matinee-data")), TEXT("Ассеты Matinee Data должны иметь префикс Matinee_ (UE5 Style Guide 1.2.7).") },
 { FName(TEXT("RuleDesc_asset-naming-touch-interface")), TEXT("Ассеты Touch Interface Setup должны иметь префикс TI_ (UE5 Style Guide 1.2.7).") },
 { FName(TEXT("RuleDesc_asset-naming-level-map")), TEXT("Ассеты Level/Map (World) могут не иметь суффикса или иметь один из: _P (Persistent), _Audio, _Lighting, _Geo, _Gameplay (UE5 Style Guide 1.2.1).") },
-{ FName(TEXT("RuleDesc_ck-asset-naming-state-tree")), TEXT("Ассеты StateTree должны иметь префикс ST_ (CKConvention).") },
+{ FName(TEXT("RuleDesc_ec-asset-naming-state-tree")), TEXT("Ассеты StateTree должны иметь префикс ST_ (EarendilConvention).") },
 { FName(TEXT("PascalCaseHintPrefix")), TEXT("Используйте PascalCase. {0}") },
 { FName(TEXT("PascalCaseReasonEmptyName")), TEXT("Имя не может быть пустым.") },
 { FName(TEXT("PascalCaseReasonEmptySegment")), TEXT("Пустой сегмент не допускается (избегайте двойных подчёркиваний и подчёркивания в начале/конце).") },

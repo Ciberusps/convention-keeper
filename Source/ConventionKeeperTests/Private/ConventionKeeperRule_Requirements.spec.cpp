@@ -2,7 +2,7 @@
 
 #include "Misc/AutomationTest.h"
 #include "Interfaces/IPluginManager.h"
-#include "ConventionKeeperConvention/ConventionKeeperConvention.h"
+#include "EarendilConvention/EarendilConvention.h"
 #include "Rules/ConventionKeeperRule_NamingConvention_PascalCase.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -74,11 +74,11 @@ void ConventionKeeperRule_RequirementsSpec::Define()
 		});
 	});
 
-	Describe("CKConvention StateTree rule requirements", [this]()
+	Describe("EarendilConvention StateTree rule requirements", [this]()
 	{
 		It("StateTree rule is filtered out from GetEffectiveRules when plugin requirement is unmet", [this]()
 		{
-			UConventionKeeperConvention* Convention = NewObject<UConventionKeeperConvention>(GetTransientPackage());
+			UEarendilConvention* Convention = NewObject<UEarendilConvention>(GetTransientPackage());
 			TestNotNull(TEXT("Convention created"), Convention);
 			if (!Convention)
 			{
@@ -88,13 +88,13 @@ void ConventionKeeperRule_RequirementsSpec::Define()
 			UConventionKeeperRule* StateTreeRule = nullptr;
 			for (UConventionKeeperRule* Rule : Convention->Rules)
 			{
-				if (Rule && Rule->RuleId == FName(TEXT("ck-asset-naming-state-tree")))
+				if (Rule && Rule->RuleId == FName(TEXT("ec-asset-naming-state-tree")))
 				{
 					StateTreeRule = Rule;
 					break;
 				}
 			}
-			TestNotNull(TEXT("CK StateTree rule exists in local Rules"), StateTreeRule);
+			TestNotNull(TEXT("Earendil StateTree rule exists in local Rules"), StateTreeRule);
 			if (!StateTreeRule)
 			{
 				return;
@@ -107,14 +107,14 @@ void ConventionKeeperRule_RequirementsSpec::Define()
 			bool bFound = false;
 			for (UConventionKeeperRule* Rule : EffectiveRules)
 			{
-				if (Rule && Rule->RuleId == FName(TEXT("ck-asset-naming-state-tree")))
+				if (Rule && Rule->RuleId == FName(TEXT("ec-asset-naming-state-tree")))
 				{
 					bFound = true;
 					break;
 				}
 			}
 
-			TestFalse(TEXT("CK StateTree rule should be skipped from effective rules"), bFound);
+			TestFalse(TEXT("Earendil StateTree rule should be skipped from effective rules"), bFound);
 		});
 	});
 }

@@ -40,9 +40,9 @@ struct CONVENTIONKEEPEREDITOR_API FRuleOverride
 
 /**
  * Abstract base for conventions: set of rules for validation (folder structure, naming, etc.).
- * Do not instantiate directly — use subclasses (e.g. UConventionKeeperConvention, UUE5StyleGuideConvention, UUHLConvention).
+ * Do not instantiate directly — use subclasses (e.g. UEarendilConvention, UUE5StyleGuideConvention).
  * Extend only via ExtendsConvention (ESLint-style), not by subclassing.
- * Chained extends are supported: MyConvention extends GodreaperConvention extends UHLConvention.
+ * Chained extends are supported: e.g. MyConvention extends ParentConvention extends UEarendilConvention.
  */
 UCLASS(Blueprintable, BlueprintType)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperConvention_Base : public UObject
@@ -60,7 +60,7 @@ public:
 		const TMap<FString, FString>& GlobalPlaceholders
 	);
 
-	/** Display name of this convention (e.g. "UHL", "My Project"). Shown in UI and in Settings when choosing a convention. */
+	/** Display name of this convention (e.g. "Earendil", "My Project"). Shown in UI and in Settings when choosing a convention. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name = "";
 

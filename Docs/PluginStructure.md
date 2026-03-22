@@ -2,7 +2,7 @@
 
 ## Modules
 
-Отдельный модуль под готовые конвенции (UHL, UE5 Style Guide и т.д.), чтобы не засорять ядро. Зависит от текущего модуля.
+Отдельный модуль под готовые конвенции (Earendil, UE5 Style Guide и т.д.), чтобы не засорять ядро. Зависит от текущего модуля.
 
 ```
 Plugins/convention-keeper/
@@ -12,9 +12,9 @@ Plugins/convention-keeper/
 │   └── ...
 │
 ├── ConventionKeeperConventions   ← NEW: пресеты конвенций + их правила (depends on ConventionKeeperEditor)
-│   ├── UHLConvention/
-│   │   ├── UHLConvention.h/.cpp
-│   │   └── Rules/                    ← правила, специфичные для UHL
+│   ├── EarendilConvention/
+│   │   ├── EarendilConvention.h/.cpp
+│   │   └── Rules/                    ← правила пресета Earendil
 │   ├── UE5StyleGuideConvention/
 │   │   ├── UE5StyleGuideConvention.h/.cpp
 │   │   └── Rules/
@@ -24,7 +24,7 @@ Plugins/convention-keeper/
 ```
 
 - **ConventionKeeperEditor** — как сейчас: базовые типы, правила, редакторский функционал.
-- **ConventionKeeperConventions** — только классы конвенций и их правила; подключаешь модуль — получаешь UHL/UE5StyleGuide в пикере, не подключаешь — в проекте только свои конвенции.
+- **ConventionKeeperConventions** — только классы конвенций и их правила; подключаешь модуль — получаешь Earendil/UE5StyleGuide в пикере, не подключаешь — в проекте только свои конвенции.
 
 ## Rule classes: few bases, thin subclasses
 
@@ -62,8 +62,8 @@ Plugins/convention-keeper/Source/
 │       └── ConventionKeeperRule_NamingConvention_PascalCase.h/.cpp
 │
 ├── ConventionKeeperConventions/        ← пресеты + их rules в одной папке на конвенцию
-│   ├── UHLConvention/
-│   │   ├── UHLConvention.h/.cpp
+│   ├── EarendilConvention/             ← `UEarendilConvention` (default preset) + rules
+│   │   ├── EarendilConvention.h/.cpp
 │   │   └── Rules/
 │   └── UE5StyleGuideConvention/
 │       ├── UE5StyleGuideConvention.h/.cpp
@@ -76,13 +76,13 @@ YourGame/Source/YourGame/
 
 ## Документация правил: root Docs/Rules vs рядом с правилом
 
-| | **Root Docs/Rules** (как ESLint) | **Colocated** (UHLConvention/Rules/FooRule/ + .md) |
+| | **Root Docs/Rules** (как ESLint) | **Colocated** (EarendilConvention/Rules/FooRule/ + .md) |
 |---|---|---|
 | Путь | `Docs/Rules/{RuleId}.md` в корне плагина | рядом с кодом правила: `.../Rules/FooRule/README.md` или `FooRule.md` |
 | Плюсы | Один шаблон URL, уже заложен в Settings (`DocsRulePathTemplate`). Один каталог — проще собирать сайт доков, линковать между правилами. RuleId = имя файла. | Всё по правилу в одной папке: код + док. Перенос/удаление правила = одна папка. |
 | Минусы | Код и док в разных местах. | Шаблон пути усложняется (нужен контекст конвенции или полный путь к правилу), либо дублирование RuleId в путях. |
 
-**Рекомендация: root `Docs/Rules/`** — как в ESLint. Один шаблон `Docs/Rules/{RuleId}.md`, без привязки к конвенции; плагин уже под это заточен. Если один и тот же RuleId переиспользуется в разных конвенциях — один общий док. Если позже понадобится «свой» док на конвенцию — можно завести `Docs/Conventions/UHLConvention/Rules/{RuleId}.md` и отдельный шаблон.
+**Рекомендация: root `Docs/Rules/`** — как в ESLint. Один шаблон `Docs/Rules/{RuleId}.md`, без привязки к конвенции; плагин уже под это заточен. Если один и тот же RuleId переиспользуется в разных конвенциях — один общий док. Если позже понадобится «свой» док на конвенцию — можно завести `Docs/Conventions/EarendilConvention/Rules/{RuleId}.md` и отдельный шаблон.
 
 **Локализация:** оригиналы в `Docs/Rules/` (плоский список), переводы — в подпапках по языку: `Docs/Rules/ru/`, `Docs/Rules/fr/` и т.д., внутри та же структура имён. Один язык = одна папка, удобно отдавать переводчикам и масштабировать. Порядок выбора: `Docs/Rules/{lang}/{RuleId}.md` → `Docs/Rules/{RuleId}.md` (оригинал).
 
@@ -101,7 +101,7 @@ Plugins/convention-keeper/
 │   └── RuleOverrideSystem.md
 ├── Source/
 │   └── ConventionKeeperConventions/
-│       └── UHLConvention/
+│       └── EarendilConvention/
 │           └── Rules/            ← только код правил, без доков
 │               ├── Rule_FolderContent.h/.cpp
 │               └── ...
