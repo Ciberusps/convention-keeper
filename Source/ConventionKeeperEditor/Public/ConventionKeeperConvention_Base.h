@@ -34,7 +34,7 @@ struct CONVENTIONKEEPEREDITOR_API FRuleOverride
 	EConventionRuleOverrideMode Mode = EConventionRuleOverrideMode::UseBase;
 
 	/** When Mode == Replace, this rule is used instead of the base rule with the same RuleId. Must be the same rule type (e.g. FolderStructure). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "Mode == EConventionRuleOverrideMode::Replace"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "Mode == EConventionRuleOverrideMode::Replace", AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperRule"))
 	TObjectPtr<UConventionKeeperRule> ReplacementRule = nullptr;
 };
 
@@ -119,7 +119,7 @@ public:
     /**
      * This convention's own rules. When not extending: these are the only rules. When extending: these are added after the base rules (with overrides applied).
      */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Rules", meta = (DisplayName = "Rules"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Rules", meta = (DisplayName = "Rules", AllowedClasses = "/Script/ConventionKeeperEditor.ConventionKeeperRule"))
     TArray<TObjectPtr<UConventionKeeperRule>> Rules = {};
 
 	/**

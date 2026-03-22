@@ -9,8 +9,7 @@ Support: `all your concerns sweetie 🥰`
 ## ✨ Features
 
 - Conventions
-- Naming conventions
-- FolderStructure conventions
+- Rules for assets naming, folder structure
 - Exclusions
 - Localization
 - **Convention Coverage & Compliance** — two metrics: *in rule scope* (share of assets in a path where a rule applies) and *compliance* (of those in scope, how many pass). Run from **Tools → Convention Coverage** or **Convention Compliance**, or **Project Settings → Convention Keeper**
@@ -75,6 +74,14 @@ Rule descriptions, validation messages in the Message Log, and the “Convention
 - Conventions - are sets of rules that are used to validate the structure of the project
 - Rules - are used to validate project assets/folders/etc.
 - Every rule has description, localization, documentation, severity and so on
+
+### Your own convention: base rules only vs subclassing
+
+- **Light path (recommended to start):** create a **Convention** asset (or duplicate a preset) and add **base rule types** from the editor directly — *Folder Structure*, *Asset Naming*, *Asset Placement*, *Naming Convention (PascalCase)*, etc. Configure paths, templates, and severities in the details panel. No C++ or Blueprint subclasses required; you get validation immediately. Docs links use **RuleId** + `Docs/Rules/{RuleId}.md` when you set them; empty **RuleId** just skips the doc URL — still fine for internal use.
+
+- **Full path:** subclass a base rule in **C++** or **Blueprint** when you need a stable **RuleId**, shared markdown, overrides in **RuleOverrides**, or custom **Validate** logic. That’s the route for teams that want everything aligned with repo docs and CONTRIBUTING-style workflow.
+
+Preset conventions (Earendil, UE5 Style Guide) are built from the same base types; you can mirror that **only with editor-placed base rules**, or extend presets via **Extends Convention** and tweak the **Rules** array.
 
 ## Convention Coverage & Compliance
 

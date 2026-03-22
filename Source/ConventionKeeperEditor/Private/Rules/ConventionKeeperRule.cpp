@@ -89,6 +89,12 @@ bool UConventionKeeperRule::AreRequirementsSatisfied(FString* OutReason) const
 	return bAnyEnabled;
 }
 
+bool UConventionKeeperRule::AreRequirementsSatisfiedWithReason(FString& OutReason) const
+{
+	OutReason.Empty();
+	return AreRequirementsSatisfied(&OutReason);
+}
+
 FString UConventionKeeperRule::GetDocumentationUrl() const
 {
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
@@ -374,5 +380,16 @@ void UConventionKeeperRule::LogRuleMessage(const UConventionKeeperRule* Rule, EM
 		TokenizedMessage->AddToken(FTextToken::Create(Suffix));
 	}
 	FMessageLog(TEXT("ConventionKeeper")).AddMessage(TokenizedMessage);
+}
+
+void UConventionKeeperRule::LogRuleValidationMessage(
+	const UConventionKeeperRule* Rule,
+	const bool bAsWarning,
+	const FText& MessageBody,
+	const FString& PathForLink)
+{
+	const EMessageSeverity::Type Sev = bAsWarning ? EMessageSeverity::Warning : EMessageSeverity::Error;
+	const FString* PathPtr = PathForLink.IsEmpty() ? nullptr : &PathForLink;
+	LogRuleMessage(Rule, Sev, MessageBody, PathPtr, FText());
 }
 #endif

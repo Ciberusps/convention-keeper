@@ -28,7 +28,7 @@ struct CONVENTIONKEEPEREDITOR_API FAssetNamingScopeEntry
  *   but if it ends with _<number>, that number must be zero-padded to NumberPaddingDigits (e.g. AS_Zombie_Jump_01 not _1).
  * - Optional Prefix/Suffix for simpler fixed prefix/suffix checks.
  */
-UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew)
+UCLASS(Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_AssetNaming : public UConventionKeeperRule
 {
 	GENERATED_BODY()

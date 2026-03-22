@@ -10,7 +10,7 @@
  * Base rule for naming conventions: validates folder and asset names in a path scope.
  * Subclasses override IsNameValidForFolder / IsNameValidForAsset to implement the actual convention (e.g. PascalCase).
  */
-UCLASS(Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
+UCLASS(Abstract, Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_NamingConvention : public UConventionKeeperRule
 {
 	GENERATED_BODY()
@@ -37,8 +37,12 @@ public:
 	bool IsNameValidForAsset(const FString& Name) const;
 	virtual bool IsNameValidForAsset_Implementation(const FString& Name) const { return true; }
 
-	/** Override: return a short hint for the user when name is invalid (e.g. "Use PascalCase. Segment 'ab' must start with uppercase."). Appended after the generic message in the log. */
-	virtual FText GetValidationErrorHint(const FString& Name, bool bIsFolder) const { return FText(); }
+	/**
+	 * Override in Blueprint or C++ (_Implementation): short hint when name is invalid (e.g. PascalCase hint).
+	 * Appended after the generic message in the log.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Convention Keeper|Rule")
+	FText GetValidationErrorHint(const FString& Name, bool bIsFolder) const;
 
 	static bool IsRelevantPath(const FString& ResolvedPath, const TArray<FString>& SelectedPaths);
 	static bool IsRelevantPath(const TArray<FString>& ResolvedPathsToCheck, const TArray<FString>& SelectedPaths);

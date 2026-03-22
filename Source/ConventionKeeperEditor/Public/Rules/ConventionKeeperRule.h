@@ -22,7 +22,7 @@ inline EMessageSeverity::Type ConventionKeeperRuleSeverityToMessageSeverity(ECon
 	return RuleSeverity == EConventionRuleSeverity::Warning ? EMessageSeverity::Warning : EMessageSeverity::Error;
 }
 
-UCLASS(Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
+UCLASS(Abstract, Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule : public UObject
 {
 	GENERATED_BODY()
@@ -77,10 +77,15 @@ public:
 	bool bRequireAllPlugins = true;
 
 	/** Returns localized description. Prefers Convention->GetLocalizedRuleDescription when Convention is set; else DescriptionKey (global loc) or Description. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Convention Keeper|Rule")
 	FText GetDisplayDescription(const UConventionKeeperConvention_Base* Convention = nullptr) const;
 
 	/** True when plugin requirements are satisfied (or no requirements are set). Optionally returns a human-readable reason. */
 	bool AreRequirementsSatisfied(FString* OutReason = nullptr) const;
+
+	/** Blueprint-friendly: returns false when requirements fail; OutReason is empty when satisfied or when failed with no detail. */
+	UFUNCTION(BlueprintCallable, Category = "Convention Keeper|Rule")
+	bool AreRequirementsSatisfiedWithReason(FString& OutReason) const;
 
 	/**
 	 * Override the path to the rule's markdown doc. If empty, path is built from Settings:
@@ -126,6 +131,7 @@ public:
 	 * Converts a path to a normalized form: forward slashes, trailing slash.
 	 * Used by FolderStructure and AssetNaming for comparison and scope. Example: "Content/Game/Abilities" → "Content/Game/Abilities/".
 	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Convention Keeper|Rule")
 	static FString NormalizeRelativePath(const FString& InPath);
 
 #if WITH_EDITOR
@@ -134,5 +140,16 @@ public:
 	void RefreshDocumentationFields();
 	/** Logs to ConventionKeeper: [RuleId] as clickable doc link (localized if exists, else en), then MessageBody, optional path/suffix. Rule null = no link. */
 	static void LogRuleMessage(const UConventionKeeperRule* Rule, EMessageSeverity::Type Severity, const FText& MessageBody, const FString* PathForLink = nullptr, const FText& Suffix = FText());
+
+	/**
+	 * Blueprint entry point for validation messages. PathForLink should be a Content-relative asset/folder path (e.g. Content/Game/MyAsset) or empty.
+	 * When bAsWarning is true, logs as warning; otherwise error.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Convention Keeper|Rule", meta = (AutoCreateRefTerm = "PathForLink"))
+	static void LogRuleValidationMessage(
+		const UConventionKeeperRule* Rule,
+		bool bAsWarning,
+		const FText& MessageBody,
+		const FString& PathForLink);
 #endif
 };

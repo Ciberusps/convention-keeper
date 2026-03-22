@@ -113,7 +113,7 @@ FText UConventionKeeperRule_NamingConvention_PascalCase::GetFirstInvalidSegmentR
 	return FText();
 }
 
-FText UConventionKeeperRule_NamingConvention_PascalCase::GetValidationErrorHint(const FString& Name, bool bIsFolder) const
+FText UConventionKeeperRule_NamingConvention_PascalCase::GetValidationErrorHint_Implementation(const FString& Name, bool bIsFolder) const
 {
 	const FText Reason = GetFirstInvalidSegmentReason(Name);
 	if (Reason.IsEmpty())

@@ -131,6 +131,11 @@ bool UConventionKeeperRule_NamingConvention::IsPathUnderExcluded(const FString& 
 	return false;
 }
 
+FText UConventionKeeperRule_NamingConvention::GetValidationErrorHint_Implementation(const FString& Name, bool bIsFolder) const
+{
+	return FText();
+}
+
 bool UConventionKeeperRule_NamingConvention::CanValidate_Implementation(const TArray<FString>& SelectedPaths, const TMap<FString, FString>& Placeholders) const
 {
 	FString PatternPath = FolderPathPattern.Path;

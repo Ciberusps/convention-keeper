@@ -8,7 +8,7 @@
 
 class UConventionKeeperSettings;
 
-UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew)
+UCLASS(Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_FolderStructure : public UConventionKeeperRule
 {
 	GENERATED_BODY()

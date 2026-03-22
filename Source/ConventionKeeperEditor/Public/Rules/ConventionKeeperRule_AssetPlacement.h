@@ -12,7 +12,7 @@
  * Rule: assets of given class(es) must be located under a path that contains a required segment (e.g. Sound Class in SoundClasses).
  * Reuses the same scope and asset iteration as AssetNaming (FolderPathPattern, placeholders, exclusions, GetScopesForValidation).
  */
-UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew)
+UCLASS(Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_AssetPlacement : public UConventionKeeperRule
 {
 	GENERATED_BODY()

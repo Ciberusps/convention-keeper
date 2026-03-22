@@ -11,7 +11,7 @@
  * Each segment (after splitting by underscore) must start with an uppercase letter, rest alphanumeric lowercase/digits.
  * E.g. MyFolder, BP_MyActor, M_MyMaterial are valid; myFolder, bp_MyActor are not.
  */
-UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew)
+UCLASS(Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperRule_NamingConvention_PascalCase : public UConventionKeeperRule_NamingConvention
 {
 	GENERATED_BODY()
@@ -21,7 +21,7 @@ public:
 
 	bool IsNameValidForFolder_Implementation(const FString& Name) const override;
 	bool IsNameValidForAsset_Implementation(const FString& Name) const override;
-	FText GetValidationErrorHint(const FString& Name, bool bIsFolder) const override;
+	FText GetValidationErrorHint_Implementation(const FString& Name, bool bIsFolder) const override;
 
 	/** Returns true if the name is valid PascalCase (each segment: [A-Z][a-z0-9]* or all digits). */
 	static bool IsPascalCaseName(const FString& Name);

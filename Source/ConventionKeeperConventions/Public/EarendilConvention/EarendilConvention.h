@@ -10,7 +10,7 @@
  * EarendilConvention: default convention for the Convention Keeper plugin. Extends UE5 Style Guide via ExtendsConvention,
  * overrides asset-naming-anim-sequence to use prefix AS_ (not A_), and adds folder-structure and character animation rules.
  */
-UCLASS(BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
+UCLASS(Blueprintable, BlueprintType, DefaultToInstanced, EditInlineNew, AutoExpandCategories = ("Default"))
 class CONVENTIONKEEPERCONVENTIONS_API UEarendilConvention : public UConventionKeeperConvention_Base
 {
 	GENERATED_BODY()

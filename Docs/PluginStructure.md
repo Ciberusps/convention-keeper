@@ -1,34 +1,34 @@
-# Структура плагина (target)
+# Plugin structure (target)
 
 ## Modules
 
-Отдельный модуль под готовые конвенции (Earendil, UE5 Style Guide и т.д.), чтобы не засорять ядро. Зависит от текущего модуля.
+A separate module for shipped conventions (Earendil, UE5 Style Guide, etc.) so the core stays lean. It depends on the editor module.
 
 ```
 Plugins/convention-keeper/
-├── ConventionKeeperEditor        ← текущий модуль (базы Convention/Rule, UI, валидация, Settings)
+├── ConventionKeeperEditor        ← core module (Convention/Rule bases, UI, validation, Settings)
 │   ├── Convention, Rule, Rule_AssetNaming, Rule_FolderStructure
 │   ├── AssetTypeActions, Factories, Style, Commands
 │   └── ...
 │
-├── ConventionKeeperConventions   ← NEW: пресеты конвенций + их правила (depends on ConventionKeeperEditor)
+├── ConventionKeeperConventions   ← convention presets + their rules (depends on ConventionKeeperEditor)
 │   ├── EarendilConvention/
 │   │   ├── EarendilConvention.h/.cpp
-│   │   └── Rules/                    ← правила пресета Earendil
+│   │   └── Rules/                    ← Earendil preset rules
 │   ├── UE5StyleGuideConvention/
 │   │   ├── UE5StyleGuideConvention.h/.cpp
 │   │   └── Rules/
 │   └── ...
 │
-└── ConventionKeeperTests         ← depends on ConventionKeeperEditor (и при необходимости ConventionKeeperConventions)
+└── ConventionKeeperTests         ← depends on ConventionKeeperEditor (and ConventionKeeperConventions if needed)
 ```
 
-- **ConventionKeeperEditor** — как сейчас: базовые типы, правила, редакторский функционал.
-- **ConventionKeeperConventions** — только классы конвенций и их правила; подключаешь модуль — получаешь Earendil/UE5StyleGuide в пикере, не подключаешь — в проекте только свои конвенции.
+- **ConventionKeeperEditor** — base types, rules, editor-facing features.
+- **ConventionKeeperConventions** — convention classes and their rules only; enable the module to get Earendil / UE5 Style Guide in pickers; without it you rely on your own conventions.
 
 ## Rule classes: few bases, thin subclasses
 
-In UI the user sees **only base rule types** (no clutter). Concrete rules = thin subclasses (often header-only) or data in Convention.
+In the UI the user sees **only base rule types** (no clutter). Concrete rules = thin subclasses (often header-only) or data on the Convention asset.
 
 ```
                     UConventionKeeperRule (abstract)
@@ -43,7 +43,8 @@ In UI the user sees **only base rule types** (no clutter). Concrete rules = thin
 ```
 
 - **Class picker / "New rule"**: only `Rule_AssetNaming`, `Rule_FolderStructure`, … (3–5 base classes).
-- **Your custom rule**: subclass one base in your game module, set `RuleId` and options in constructor/defaults; no extra .cpp if logic is in the base.
+- **Light custom convention:** a **Convention** asset plus **instances of base rule types** (same as in the picker) is enough. **No** C++/Blueprint subclass required — configure each rule in the details panel and save. Good for a quick internal preset without a dedicated `RuleId` / repo `.md` (or set `RuleId` when you want the doc link).
+- **Custom rule type (full path):** subclass a base in **C++** (game module) or **Blueprint** with a parent from the editor (`Convention Keeper Rule`, `Folder Structure`, `Asset Naming`, `Naming Convention`, …). Use when you need a stable **RuleId**, repo markdown, custom **Validate** logic, or thin preset-style rules like in `ConventionKeeperConventions`. Class Defaults: `RuleId` and options; in BP: **Event Validate** / **Can Validate**; **Log Rule Validation Message** and **Normalize Relative Path** from the base. Thin C++ preset rules use plain `UCLASS()`; **Blueprintable** is on the **bases** in `ConventionKeeperEditor`.
 
 ## Where Conventions and Rules live
 
@@ -61,7 +62,7 @@ Plugins/convention-keeper/Source/
 │       ├── ConventionKeeperRule_NamingConvention.h/.cpp
 │       └── ConventionKeeperRule_NamingConvention_PascalCase.h/.cpp
 │
-├── ConventionKeeperConventions/        ← пресеты + их rules в одной папке на конвенцию
+├── ConventionKeeperConventions/        ← presets + their rules, one folder per convention
 │   ├── EarendilConvention/             ← `UEarendilConvention` (default preset) + rules
 │   │   ├── EarendilConvention.h/.cpp
 │   │   └── Rules/
@@ -70,37 +71,37 @@ Plugins/convention-keeper/Source/
 │       └── Rules/
 │
 YourGame/Source/YourGame/
-└── Rules/                             ← опционально: свои тонкие правила
+└── Rules/                             ← optional: your own thin rules
     └── Rule_AssetNaming_Characters.h
 ```
 
-## Документация правил: root Docs/Rules vs рядом с правилом
+## Rule docs: root `Docs/Rules` vs colocated
 
-| | **Root Docs/Rules** (как ESLint) | **Colocated** (EarendilConvention/Rules/FooRule/ + .md) |
+| | **Root Docs/Rules** (ESLint-style) | **Colocated** (EarendilConvention/Rules/FooRule/ + .md) |
 |---|---|---|
-| Путь | `Docs/Rules/{RuleId}.md` в корне плагина | рядом с кодом правила: `.../Rules/FooRule/README.md` или `FooRule.md` |
-| Плюсы | Один шаблон URL, уже заложен в Settings (`DocsRulePathTemplate`). Один каталог — проще собирать сайт доков, линковать между правилами. RuleId = имя файла. | Всё по правилу в одной папке: код + док. Перенос/удаление правила = одна папка. |
-| Минусы | Код и док в разных местах. | Шаблон пути усложняется (нужен контекст конвенции или полный путь к правилу), либо дублирование RuleId в путях. |
+| Path | `Docs/Rules/{RuleId}.md` at plugin root | Next to rule code: `.../Rules/FooRule/README.md` or `FooRule.md` |
+| Pros | Single URL template wired in Settings (`DocsRulePathTemplate`). One tree — easier for doc sites and cross-links. RuleId = file name. | Code + doc in one place; moving/removing a rule = one folder. |
+| Cons | Code and doc live apart. | Path templates get harder (convention context or full path), or duplicate RuleId in paths. |
 
-**Рекомендация: root `Docs/Rules/`** — как в ESLint. Один шаблон `Docs/Rules/{RuleId}.md`, без привязки к конвенции; плагин уже под это заточен. Если один и тот же RuleId переиспользуется в разных конвенциях — один общий док.
+**Recommendation: root `Docs/Rules/`** — ESLint-style. One pattern `Docs/Rules/{RuleId}.md`, convention-agnostic; the plugin is built around that. If the same RuleId is reused across conventions, share one doc.
 
-**Конвенции:** полное описание пресета, списки правил и reference-ссылки — в `Docs/Conventions/{ConventionDocId}.md`. `{ConventionDocId}` = **OverrideDocumentationId** (Advanced), иначе slug из **Name** (нижний регистр, пробелы/`_` → `-`). Переводы: `Docs/Conventions/ru/...`. В деталях markdown **не** подгружается; **Documentation URL** + кнопка «Open documentation». **Doc path override** (Advanced) — свой путь в репо.
+**Conventions:** full preset description, rule lists, and references in `Docs/Conventions/{ConventionDocId}.md`. `{ConventionDocId}` = **OverrideDocumentationId** (Advanced), else a slug from **Name** (lowercase, spaces/`_` → `-`). Translations: `Docs/Conventions/ru/...`. Markdown is **not** inlined in details; use **Documentation URL** and **Open documentation**. **Doc path override** (Advanced) for a custom repo path.
 
-**Локализация:** оригиналы в `Docs/Rules/` (плоский список), переводы — в подпапках по языку: `Docs/Rules/ru/`, `Docs/Rules/fr/` и т.д., внутри та же структура имён. Один язык = одна папка, удобно отдавать переводчикам и масштабировать. Порядок выбора: `Docs/Rules/{lang}/{RuleId}.md` → `Docs/Rules/{RuleId}.md` (оригинал).
+**Localization:** originals in `Docs/Rules/` (flat list); translations in per-language subfolders: `Docs/Rules/ru/`, `Docs/Rules/fr/`, etc., same file names inside. One language = one folder — easy for translators. Resolution order: `Docs/Rules/{lang}/{RuleId}.md` → `Docs/Rules/{RuleId}.md` (fallback).
 
 ```
 Plugins/convention-keeper/
 ├── Docs/
-│   ├── Rules/                    ← оригиналы (дефолтный язык)
+│   ├── Rules/                    ← originals (default language)
 │   │   ├── folder-structure-content.md
 │   │   ├── folder-structure-core-ai.md
-│   │   ├── ru/                   ← переводы: та же структура имён
+│   │   ├── ru/                   ← translations: same file names
 │   │   │   ├── folder-structure-content.md
 │   │   │   └── folder-structure-core-ai.md
 │   │   └── fr/
 │   │       ├── folder-structure-content.md
 │   │       └── ...
-│   ├── Conventions/              ← markdown: имя файла = slug Name или OverrideDocumentationId
+│   ├── Conventions/              ← markdown: file name = Name slug or OverrideDocumentationId
 │   │   ├── ue5-style-guide-convention.md
 │   │   ├── earendil-convention.md
 │   │   └── ru/
@@ -108,25 +109,25 @@ Plugins/convention-keeper/
 ├── Source/
 │   └── ConventionKeeperConventions/
 │       └── EarendilConvention/
-│           └── Rules/            ← только код правил, без доков
+│           └── Rules/            ← rule code only, no docs here
 │               ├── Rule_FolderContent.h/.cpp
 │               └── ...
 ```
 
-## Checklist для новых Rule'ов (кроме BaseRule)
+## Checklist for new concrete rules (not base `UConventionKeeperRule`)
 
-Для **каждого нового конкретного правила** (не для абстрактного `UConventionKeeperRule`):
+For **each new concrete rule** (not the abstract `UConventionKeeperRule`):
 
-1. **Документация**
-   - `Docs/Rules/{RuleId}.md` — описание правила, примеры, rationale.
-   - Ссылки на [UE5 Style Guide (v2)](https://github.com/Allar/ue5-style-guide/tree/v2?tab=readme-ov-file) в разделе **References**, если правило соотносится со стиль-гайдом (указывать конкретный якорь, напр. `#21-folder-names`).
-   - `Docs/Rules/ru/{RuleId}.md` — перевод того же текста.
+1. **Documentation**
+   - `Docs/Rules/{RuleId}.md` — rule description, examples, rationale.
+   - Link [UE5 Style Guide (v2)](https://github.com/Allar/ue5-style-guide/tree/v2?tab=readme-ov-file) under **References** when applicable (use a concrete anchor, e.g. `#21-folder-names`).
+   - `Docs/Rules/ru/{RuleId}.md` — Russian translation of the same text.
 
-2. **Локализация**
-   - В конструкторе правила: `DescriptionKey = FName(TEXT("RuleDesc_{RuleId}"));`
-   - `Source/ConventionKeeperEditor/Private/Localization/Strings_en.inl`: запись `{ FName(TEXT("RuleDesc_{RuleId}")), TEXT("...") }` с описанием правила на английском.
-   - `Source/ConventionKeeperEditor/Private/Localization/Strings_ru.inl`: то же на русском.
-   - Любые новые сообщения валидации (ошибки/предупреждения) — отдельные ключи в обоих .inl.
+2. **Localization**
+   - In the rule constructor: `DescriptionKey = FName(TEXT("RuleDesc_{RuleId}"));`
+   - `Source/ConventionKeeperEditor/Private/Localization/Strings_en.inl`: `{ FName(TEXT("RuleDesc_{RuleId}")), TEXT("...") }` with the English description.
+   - `Source/ConventionKeeperEditor/Private/Localization/Strings_ru.inl`: same entry in Russian.
+   - Any new validation messages (errors/warnings) — new keys in both `.inl` files.
 
-3. **Путь к доку**
-   - По умолчанию используется шаблон из Settings (`DocsRulePathTemplate` = `Docs/Rules/{RuleId}.md`). Если файл лежит там, переопределение не нужно. Иначе задать `DocPathOverride` в правиле.
+3. **Doc path**
+   - By default Settings use `DocsRulePathTemplate` = `Docs/Rules/{RuleId}.md`. If the file lives there, no override. Otherwise set `DocPathOverride` on the rule.
