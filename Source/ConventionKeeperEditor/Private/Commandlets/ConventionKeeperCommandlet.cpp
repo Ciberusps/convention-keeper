@@ -3,13 +3,72 @@
 #include "Commandlets/ConventionKeeperCommandlet.h"
 #include "ConventionCoverage.h"
 #include "ConventionKeeperConvention_Base.h"
+#include "ConventionKeeperValidationHooks.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Logging/MessageLog.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Misc/MessageDialog.h"
 #include "Misc/PackageName.h"
 #include "Misc/Paths.h"
+#include "Misc/ScopedSlowTask.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ConventionKeeperCommandlet)
+
+#define LOCTEXT_NAMESPACE "ConventionKeeperCommandlet"
+
+static int32 CountAssetsInValidationScope(TArrayView<const FString> RelativePaths, bool bAssetPaths)
+{
+	if (bAssetPaths)
+	{
+		return RelativePaths.Num();
+	}
+
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	if (RelativePaths.IsEmpty())
+	{
+		FARFilter Filter;
+		Filter.PackagePaths.Add(TEXT("/Game"));
+		Filter.bRecursivePaths = true;
+		TArray<FAssetData> Assets;
+		AssetRegistry.GetAssets(Filter, Assets);
+		return Assets.Num();
+	}
+
+	TSet<FName> UniquePackages;
+	for (const FString& RelPath : RelativePaths)
+	{
+		FString RelCopy = RelPath;
+		RelCopy.ReplaceInline(TEXT("\\"), TEXT("/"));
+		if (RelCopy.EndsWith(TEXT("/")))
+		{
+			RelCopy.LeftChopInline(1);
+		}
+		FString LongPackage = TEXT("/Game/");
+		if (RelCopy.StartsWith(TEXT("Content/"), ESearchCase::IgnoreCase))
+		{
+			LongPackage += RelCopy.Mid(8);
+		}
+		else
+		{
+			LongPackage += RelCopy;
+		}
+
+		FARFilter Filter;
+		Filter.PackagePaths.Add(*LongPackage);
+		Filter.bRecursivePaths = true;
+		TArray<FAssetData> Assets;
+		AssetRegistry.GetAssets(Filter, Assets);
+		for (const FAssetData& AssetEntry : Assets)
+		{
+			UniquePackages.Add(AssetEntry.PackageName);
+		}
+	}
+	return UniquePackages.Num();
+}
 
 UConventionKeeperCommandlet::UConventionKeeperCommandlet()
 {
@@ -158,12 +217,6 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 		return false;
 	}
 
-	if (Paths.IsEmpty())
-	{
-		Convention->ValidateFolderStructures();
-		return true;
-	}
-
 	TArray<FString> RelativePaths;
 	RelativePaths.Reserve(Paths.Num());
 	for (const FString& Path : Paths)
@@ -173,9 +226,71 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 			: UConventionKeeperCommandlet::ConvertPathToRelativeForValidation(Path));
 	}
 
-	Convention->ValidateFolderStructuresForPaths(RelativePaths);
+#if WITH_EDITOR
+	const bool bInteractiveUI = !IsRunningCommandlet() && FSlateApplication::IsInitialized();
+#else
+	const bool bInteractiveUI = false;
+#endif
+
+	int32 EstimatedAssetsInScope = 0;
+	if (bInteractiveUI)
+	{
+		EstimatedAssetsInScope = CountAssetsInValidationScope(RelativePaths, bAssetPaths);
+	}
+
+	const int32 LargeThreshold =
+		(bInteractiveUI && ConventionKeeperSettings) ? ConventionKeeperSettings->LargeValidationConfirmThreshold : 0;
+	const bool bLargeInteractiveScope =
+		bInteractiveUI && LargeThreshold > 0 && EstimatedAssetsInScope > LargeThreshold;
+
+	if (ConventionKeeperSettings && bLargeInteractiveScope)
+	{
+		const FText Title = LOCTEXT("LargeValidationTitle", "Convention Keeper");
+		const FText Body = FText::Format(
+			LOCTEXT(
+				"LargeValidationBody",
+				"About {0} assets are in scope for this validation. Run convention checks? This may take a while."),
+			FText::AsNumber(EstimatedAssetsInScope));
+		if (FMessageDialog::Open(EAppMsgType::YesNo, Body, Title) != EAppReturnType::Yes)
+		{
+			return true;
+		}
+	}
+
+	if (ConventionKeeperSettings && bLargeInteractiveScope)
+	{
+		const TArray<UConventionKeeperRule*> RulesForProgress = Convention->GetEffectiveRules();
+		const float TotalRules = static_cast<float>(FMath::Max(1, RulesForProgress.Num()));
+		FScopedSlowTask SlowTask(TotalRules, LOCTEXT("SlowValidate", "Convention Keeper: validating..."));
+		SlowTask.MakeDialog(true);
+
+		FConventionKeeperValidationHooks Hooks;
+		Hooks.ShouldAbort = [&SlowTask]() { return SlowTask.ShouldCancel(); };
+		UConventionKeeperConvention_Base* ConventionForDescription = Convention;
+		Hooks.OnRuleProgress = [&SlowTask, ConventionForDescription](int32 Idx, int32 Total, UConventionKeeperRule* Rule)
+		{
+			const FText Line = Rule
+				? FText::Format(
+					LOCTEXT("RuleProgressFmt", "{0} / {1} — {2}"),
+					FText::AsNumber(Idx + 1),
+					FText::AsNumber(Total),
+					Rule->GetDisplayDescription(ConventionForDescription))
+				: FText::Format(
+					LOCTEXT("RuleProgressNoRule", "{0} / {1}"),
+					FText::AsNumber(Idx + 1),
+					FText::AsNumber(Total));
+			SlowTask.EnterProgressFrame(1.f, Line);
+		};
+		Convention->ValidateFolderStructuresForPathsInternal(RelativePaths, &Hooks);
+	}
+	else
+	{
+		Convention->ValidateFolderStructuresForPathsInternal(RelativePaths, nullptr);
+	}
 	return true;
 }
+
+#undef LOCTEXT_NAMESPACE
 
 int32 UConventionKeeperCommandlet::Main(const FString& Params)
 {

@@ -2,6 +2,7 @@
 
 #include "ConventionKeeperConvention_Base.h"
 #include "ConventionKeeperBlueprintLibrary.h"
+#include "ConventionKeeperValidationHooks.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "Localization/ConventionKeeperLocalization.h"
@@ -222,10 +223,17 @@ TSet<FString> UConventionKeeperConvention_Base::ExtractTemplatesFromPath(
 
 void UConventionKeeperConvention_Base::ValidateFolderStructures_Implementation()
 {
-	ValidateFolderStructuresForPaths(TArray<FString>());
+	ValidateFolderStructuresForPathsInternal(TArray<FString>(), nullptr);
 }
 
 void UConventionKeeperConvention_Base::ValidateFolderStructuresForPaths(const TArray<FString>& SelectedPaths)
+{
+	ValidateFolderStructuresForPathsInternal(SelectedPaths, nullptr);
+}
+
+void UConventionKeeperConvention_Base::ValidateFolderStructuresForPathsInternal(
+	const TArray<FString>& SelectedPaths,
+	const FConventionKeeperValidationHooks* Hooks)
 {
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
 	const TMap<FString, FString> Placeholders = Settings ? Settings->GetPlaceholders() : TMap<FString, FString>();
@@ -236,8 +244,17 @@ void UConventionKeeperConvention_Base::ValidateFolderStructuresForPaths(const TA
 	}
 
 	const TArray<UConventionKeeperRule*> EffectiveRules = GetEffectiveRules();
-	for (UConventionKeeperRule* Rule : EffectiveRules)
+	for (int32 RuleIndex = 0; RuleIndex < EffectiveRules.Num(); ++RuleIndex)
 	{
+		UConventionKeeperRule* Rule = EffectiveRules[RuleIndex];
+		if (Hooks && Hooks->OnRuleProgress)
+		{
+			Hooks->OnRuleProgress(RuleIndex, EffectiveRules.Num(), Rule);
+		}
+		if (Hooks && Hooks->ShouldAbort && Hooks->ShouldAbort())
+		{
+			break;
+		}
 		if (Rule && Rule->CanValidate(SelectedPaths, Placeholders))
 		{
 			Rule->Validate(SelectedPaths, Placeholders);

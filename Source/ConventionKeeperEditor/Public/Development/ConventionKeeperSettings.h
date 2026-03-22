@@ -110,6 +110,13 @@ public:
 	bool bValidateAssetNamingOnSave = true;
 
 	/**
+	 * Editor only: if the estimated number of assets in validation scope exceeds this value, a confirmation dialog is shown and a cancelable progress dialog is used while rules run.
+	 * Scope = selected asset packages, recursive assets under selected folders, or entire /Game when validating the whole project. 0 = no prompt and no progress window (validation stays silent in the UI).
+	 */
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, meta = (ClampMin = "0", DisplayName = "Large validation confirm threshold (assets)"))
+	int32 LargeValidationConfirmThreshold = 1000;
+
+	/**
 	 * CI: minimum rule coverage % (0–100). When > 0, commandlet with -Coverage fails if coverage is below this.
 	 * 0 = disabled.
 	 */

@@ -144,7 +144,7 @@ void FConventionKeeperEditorModule::PluginButtonClicked()
 		return;
 	}
 
-	Convention->ValidateFolderStructures();
+	UConventionKeeperCommandlet::ValidateData(TArrayView<const FString>(), false);
 }
 
 void FConventionKeeperEditorModule::RunCoverageTest()

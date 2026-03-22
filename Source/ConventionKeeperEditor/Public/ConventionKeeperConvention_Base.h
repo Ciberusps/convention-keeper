@@ -38,6 +38,8 @@ struct CONVENTIONKEEPEREDITOR_API FRuleOverride
 	TObjectPtr<UConventionKeeperRule> ReplacementRule = nullptr;
 };
 
+class UConventionKeeperCommandlet;
+
 /**
  * Abstract base for conventions: set of rules for validation (folder structure, naming, etc.).
  * Do not instantiate directly — use subclasses (e.g. UEarendilConvention, UUE5StyleGuideConvention).
@@ -48,6 +50,8 @@ UCLASS(Blueprintable, BlueprintType)
 class CONVENTIONKEEPEREDITOR_API UConventionKeeperConvention_Base : public UObject
 {
 	GENERATED_BODY()
+
+	friend class UConventionKeeperCommandlet;
 
 public:
 	/**
@@ -138,6 +142,9 @@ public:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 
 private:
+	void ValidateFolderStructuresForPathsInternal(
+		const TArray<FString>& SelectedPaths,
+		const struct FConventionKeeperValidationHooks* Hooks);
 	void SyncExtendsConventionAssetFlag();
 	void RefreshExtendedRules();
 };
