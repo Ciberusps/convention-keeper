@@ -11,13 +11,18 @@
 #include "Development/ConventionKeeperConventionDetailCustomization.h"
 #include "Localization/ConventionKeeperLocalization.h"
 #include "PropertyEditorModule.h"
+#include "ConventionKeeperValidationHooks.h"
 #include "Rules/ConventionKeeperRule.h"
+#include "Rules/ConventionKeeperRule_FolderStructure.h"
+#include "Rules/ConventionKeeperRule_NamingConvention.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "AssetToolsModule.h"
 #include "AssetTypeActions/ConventionAssetTypeActions.h"
 #include "ContentBrowserModule.h"
 #include "ContentBrowserDelegates.h"
+#include "ContentBrowserDataSubsystem.h"
 #include "Developer/MessageLog/Public/MessageLogModule.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -42,8 +47,6 @@ static const FName ConventionKeeperEditorTabName("ConventionKeeperEditor");
 
 void FConventionKeeperEditorModule::StartupModule()
 {
-	UE_LOG(LogConventionKeeper, Log, TEXT(">>> ConventionKeeperEditor StartupModule() called"));
-
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 
 	FConventionKeeperEditorStyle::Initialize();
@@ -90,6 +93,23 @@ void FConventionKeeperEditorModule::StartupModule()
 #if WITH_EDITOR
 	PackageSavedDelegateHandle = UPackage::PackageSavedWithContextEvent.AddLambda(
 		[this](const FString& FileName, UPackage* Pkg, const FObjectPostSaveContext& Ctx) { OnPackageSaved(FileName, Pkg, Ctx); });
+
+	if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetRegistry")))
+	{
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::GetModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+		bAssetRegistryInitialDiscoveryComplete = !AssetRegistry.IsLoadingAssets();
+
+		AssetRegistryFilesLoadedDelegateHandle = AssetRegistry.OnFilesLoaded().AddRaw(
+			this,
+			&FConventionKeeperEditorModule::OnAssetRegistryFilesLoaded);
+	}
+
+	EditorInitializedDelegateHandle = FEditorDelegates::OnEditorInitialized.AddRaw(
+		this,
+		&FConventionKeeperEditorModule::OnEditorInitialized_RegisterContentBrowserDataHooks);
+	TryRegisterContentBrowserDataHooks();
 #endif
 }
 
@@ -116,6 +136,27 @@ void FConventionKeeperEditorModule::ShutdownModule()
 	}
 
 #if WITH_EDITOR
+	if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetRegistry")))
+	{
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::GetModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+		if (AssetRegistryFilesLoadedDelegateHandle.IsValid())
+		{
+			AssetRegistry.OnFilesLoaded().Remove(AssetRegistryFilesLoadedDelegateHandle);
+			AssetRegistryFilesLoadedDelegateHandle.Reset();
+		}
+	}
+
+	UnregisterContentBrowserDataHooks();
+	if (EditorInitializedDelegateHandle.IsValid())
+	{
+		FEditorDelegates::OnEditorInitialized.Remove(EditorInitializedDelegateHandle);
+		EditorInitializedDelegateHandle.Reset();
+	}
+
+	PendingContentPathsToValidate.Empty();
+	bPendingContentPathValidationScheduled = false;
+
 	if (PackageSavedDelegateHandle.IsValid())
 	{
 		UPackage::PackageSavedWithContextEvent.Remove(PackageSavedDelegateHandle);
@@ -506,6 +547,232 @@ void FConventionKeeperEditorModule::ValidateSavedPackages()
 	if (PathsToValidate.Num() > 0)
 	{
 		UConventionKeeperCommandlet::ValidateData(PathsToValidate, true);
+	}
+}
+
+void FConventionKeeperEditorModule::OnAssetRegistryFilesLoaded()
+{
+	bAssetRegistryInitialDiscoveryComplete = true;
+}
+
+void FConventionKeeperEditorModule::OnContentBrowserItemDiscoveryComplete()
+{
+	bContentBrowserItemDiscoveryComplete = true;
+}
+
+void FConventionKeeperEditorModule::OnEditorInitialized_RegisterContentBrowserDataHooks(double /*DurationSec*/)
+{
+	TryRegisterContentBrowserDataHooks();
+}
+
+void FConventionKeeperEditorModule::TryRegisterContentBrowserDataHooks()
+{
+	if (bContentBrowserDataHooksRegistered || !GEditor)
+	{
+		return;
+	}
+
+	UContentBrowserDataSubsystem* ContentBrowserData = GEditor->GetEditorSubsystem<UContentBrowserDataSubsystem>();
+	if (!ContentBrowserData)
+	{
+		return;
+	}
+
+	bContentBrowserItemDiscoveryComplete = !ContentBrowserData->IsDiscoveringItems();
+
+	ContentBrowserItemDiscoveryCompleteDelegateHandle = ContentBrowserData->OnItemDataDiscoveryComplete().AddRaw(
+		this,
+		&FConventionKeeperEditorModule::OnContentBrowserItemDiscoveryComplete);
+
+	ContentBrowserItemUpdatedDelegateHandle = ContentBrowserData->OnItemDataUpdated().AddRaw(
+		this,
+		&FConventionKeeperEditorModule::OnContentBrowserItemsUpdated);
+
+	bContentBrowserDataHooksRegistered = true;
+}
+
+void FConventionKeeperEditorModule::UnregisterContentBrowserDataHooks()
+{
+	if (!bContentBrowserDataHooksRegistered)
+	{
+		return;
+	}
+
+	if (GEditor)
+	{
+		if (UContentBrowserDataSubsystem* ContentBrowserData = GEditor->GetEditorSubsystem<UContentBrowserDataSubsystem>())
+		{
+			if (ContentBrowserItemUpdatedDelegateHandle.IsValid())
+			{
+				ContentBrowserData->OnItemDataUpdated().Remove(ContentBrowserItemUpdatedDelegateHandle);
+				ContentBrowserItemUpdatedDelegateHandle.Reset();
+			}
+			if (ContentBrowserItemDiscoveryCompleteDelegateHandle.IsValid())
+			{
+				ContentBrowserData->OnItemDataDiscoveryComplete().Remove(ContentBrowserItemDiscoveryCompleteDelegateHandle);
+				ContentBrowserItemDiscoveryCompleteDelegateHandle.Reset();
+			}
+		}
+	}
+
+	bContentBrowserDataHooksRegistered = false;
+}
+
+void FConventionKeeperEditorModule::OnContentBrowserItemsUpdated(TArrayView<const FContentBrowserItemDataUpdate> Updates)
+{
+	if (!bAssetRegistryInitialDiscoveryComplete || !bContentBrowserItemDiscoveryComplete)
+	{
+		return;
+	}
+
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	if (!Settings || !Settings->GetEffectiveValidationEnabled() || !Settings->GetResolvedConvention())
+	{
+		return;
+	}
+
+	for (const FContentBrowserItemDataUpdate& Update : Updates)
+	{
+		const EContentBrowserItemUpdateType UpdateType = Update.GetUpdateType();
+		const FContentBrowserItemData& Item = Update.GetItemData();
+
+		if (!Item.IsFolder() || !Item.IsSupported() || Item.IsTemporary() || Item.IsDisplayOnlyFolder())
+		{
+			continue;
+		}
+
+		const FString InvariantPath = Item.GetInvariantPath().ToString();
+
+		switch (UpdateType)
+		{
+		case EContentBrowserItemUpdateType::Added:
+			if (Settings->bValidateOnFolderCreate)
+			{
+				const FString Parent = UConventionKeeperCommandlet::GetParentGameFolderPackagePathForValidationQueue(InvariantPath);
+				if (!Parent.IsEmpty())
+				{
+					UE_LOG(LogConventionKeeper, Verbose, TEXT("CB ItemUpdated Added: %s → parent: %s"), *InvariantPath, *Parent);
+					EnqueueGameFolderPathForDeferredValidation(Parent);
+				}
+			}
+			break;
+
+		case EContentBrowserItemUpdateType::Removed:
+			if (Settings->bValidateOnFolderDelete)
+			{
+				const FString Parent = UConventionKeeperCommandlet::GetParentGameFolderPackagePathForValidationQueue(InvariantPath);
+				if (!Parent.IsEmpty())
+				{
+					UE_LOG(LogConventionKeeper, Verbose, TEXT("CB ItemUpdated Removed → parent: %s"), *Parent);
+					EnqueueGameFolderPathForDeferredValidation(Parent);
+				}
+			}
+			break;
+
+		case EContentBrowserItemUpdateType::Moved:
+			if (Settings->bValidateOnFolderRename)
+			{
+				const FString Parent = UConventionKeeperCommandlet::GetParentGameFolderPackagePathForValidationQueue(InvariantPath);
+				if (!Parent.IsEmpty())
+				{
+					UE_LOG(LogConventionKeeper, Verbose, TEXT("CB ItemUpdated Moved: %s → parent: %s"), *InvariantPath, *Parent);
+					EnqueueGameFolderPathForDeferredValidation(Parent);
+				}
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+
+void FConventionKeeperEditorModule::EnqueueGameFolderPathForDeferredValidation(const FString& RawPath)
+{
+	FString Normalized = RawPath;
+	Normalized.TrimStartAndEndInline();
+	Normalized.ReplaceInline(TEXT("\\"), TEXT("/"));
+	if (Normalized.StartsWith(TEXT("Game/")) && !Normalized.StartsWith(TEXT("/Game/")))
+	{
+		Normalized = FString(TEXT("/")) + Normalized;
+	}
+
+	if (!Normalized.StartsWith(TEXT("/Game/")))
+	{
+		return;
+	}
+
+	if (Normalized.Equals(TEXT("/Game"), ESearchCase::IgnoreCase) || Normalized.Equals(TEXT("/Game/"), ESearchCase::IgnoreCase))
+	{
+		return;
+	}
+
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	if (Settings)
+	{
+		const FString RelativeForExclusion = UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(Normalized, true);
+		if (RelativeForExclusion.IsEmpty() || Settings->Exclusions.Contains(RelativeForExclusion))
+		{
+			return;
+		}
+	}
+
+	if (!Normalized.EndsWith(TEXT("/")))
+	{
+		Normalized += TEXT("/");
+	}
+
+	PendingContentPathsToValidate.AddUnique(Normalized);
+	UE_LOG(LogConventionKeeper, Verbose, TEXT("Enqueued for validation: %s (queue size: %d)"), *Normalized, PendingContentPathsToValidate.Num());
+
+	if (GEditor && !bPendingContentPathValidationScheduled)
+	{
+		bPendingContentPathValidationScheduled = true;
+		GEditor->GetTimerManager()->SetTimerForNextTick(
+			FTimerDelegate::CreateRaw(this, &FConventionKeeperEditorModule::ValidatePendingContentPaths));
+	}
+}
+
+void FConventionKeeperEditorModule::ValidatePendingContentPaths()
+{
+	bPendingContentPathValidationScheduled = false;
+
+	if (PendingContentPathsToValidate.Num() == 0)
+	{
+		return;
+	}
+
+	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
+	if (!Settings || !Settings->GetEffectiveValidationEnabled() || !Settings->GetResolvedConvention())
+	{
+		PendingContentPathsToValidate.Empty();
+		return;
+	}
+
+	TArray<FString> PathsToValidate;
+	PathsToValidate.Reserve(PendingContentPathsToValidate.Num());
+	for (const FString& P : PendingContentPathsToValidate)
+	{
+		const FString RelativeForExclusion = UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(P, true);
+		if (RelativeForExclusion.IsEmpty() || Settings->Exclusions.Contains(RelativeForExclusion))
+		{
+			continue;
+		}
+		PathsToValidate.AddUnique(P);
+	}
+	PendingContentPathsToValidate.Empty();
+
+	if (PathsToValidate.Num() > 0)
+	{
+		UE_LOG(LogConventionKeeper, Log, TEXT("ValidatePendingContentPaths: %d path(s): [%s]"),
+			PathsToValidate.Num(), *FString::Join(PathsToValidate, TEXT(", ")));
+
+		FConventionKeeperValidationHooks FolderHooks;
+		FolderHooks.RuleFilter = [](const UConventionKeeperRule* Rule) -> bool
+		{
+			return Rule && (Rule->IsA<UConventionKeeperRule_FolderStructure>() || Rule->IsA<UConventionKeeperRule_NamingConvention>());
+		};
+		UConventionKeeperCommandlet::ValidateData(PathsToValidate, false, &FolderHooks);
 	}
 }
 #endif

@@ -15,4 +15,5 @@ struct CONVENTIONKEEPEREDITOR_API FConventionKeeperValidationHooks
 {
 	TFunction<bool()> ShouldAbort;
 	TFunction<void(int32 RuleIndex, int32 RuleCount, UConventionKeeperRule* Rule)> OnRuleProgress;
+	TFunction<bool(const UConventionKeeperRule*)> RuleFilter;
 };

@@ -94,6 +94,7 @@ Two separate checks:
 
 ## 📖 How to use
 
+- **Project Settings → Convention Keeper:** **Validate on new Content path** runs folder-structure (and other path-scoped) checks when Content Browser creates or renames a folder under `/Game` (via Content Browser Data updates, including deferred rename), and when the Asset Registry registers a new path. Waits until initial Content Browser discovery and Asset Registry scan finish. **Validate on save** still handles assets on save.
 - use RMB -> Batch Rename to rename assets/folders/etc.
 - use Auto-Fix where possible
 - set the excluded directories you want to use

@@ -4,6 +4,7 @@
 
 #include "AssetRegistry/ARFilter.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "Commandlets/ConventionKeeperCommandlet.h"
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Localization/ConventionKeeperLocalization.h"
@@ -263,6 +264,9 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 		}
 	};
 
+	TArray<FString> SelectedPathsForScopes(SelectedPaths);
+	UConventionKeeperCommandlet::PruneAncestorContentFolderPaths(SelectedPathsForScopes);
+
 	for (const FString& ResolvedPathWithSlash : ResolvedPaths)
 	{
 		FString ResolvedPath = ResolvedPathWithSlash;
@@ -281,7 +285,7 @@ void UConventionKeeperRule_NamingConvention::Validate_Implementation(const TArra
 			AddScope(Norm, TArray<FString>());
 			continue;
 		}
-		for (const FString& SelectedPath : SelectedPaths)
+		for (const FString& SelectedPath : SelectedPathsForScopes)
 		{
 			const FString NormSelected = NamingConventionPathHelpers::SelectedPathAsContentForm(SelectedPath);
 			const bool bSelectedIsFolder = SelectedPath.EndsWith(TEXT("/"));

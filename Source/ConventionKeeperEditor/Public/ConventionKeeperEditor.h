@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ContentBrowserItemData.h"
 #include "Modules/ModuleManager.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogConventionKeeper, Log, All);
@@ -43,12 +44,31 @@ private:
 	void OnPackageSaved(const FString& PackageFileName, UPackage* Package, const FObjectPostSaveContext& SaveContext);
 	void ValidateSavedPackages();
 
+	void OnAssetRegistryFilesLoaded();
+	void OnContentBrowserItemDiscoveryComplete();
+	void OnContentBrowserItemsUpdated(TArrayView<const FContentBrowserItemDataUpdate> Updates);
+	void EnqueueGameFolderPathForDeferredValidation(const FString& RawPath);
+	void ValidatePendingContentPaths();
+
+	void OnEditorInitialized_RegisterContentBrowserDataHooks(double DurationSec);
+	void TryRegisterContentBrowserDataHooks();
+	void UnregisterContentBrowserDataHooks();
+
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class IAssetTypeActions>> RegisteredAssetTypeActions;
 	FDelegateHandle ContentBrowserPathExtenderDelegateHandle;
 	FDelegateHandle ContentBrowserAssetExtenderDelegateHandle;
 	FDelegateHandle PackageSavedDelegateHandle;
+	FDelegateHandle AssetRegistryFilesLoadedDelegateHandle;
+	FDelegateHandle ContentBrowserItemUpdatedDelegateHandle;
+	FDelegateHandle ContentBrowserItemDiscoveryCompleteDelegateHandle;
+	FDelegateHandle EditorInitializedDelegateHandle;
 
 	TArray<FString> SavedPackagePathsToValidate;
+	TArray<FString> PendingContentPathsToValidate;
+	bool bPendingContentPathValidationScheduled = false;
+	bool bAssetRegistryInitialDiscoveryComplete = false;
+	bool bContentBrowserItemDiscoveryComplete = false;
+	bool bContentBrowserDataHooksRegistered = false;
 };

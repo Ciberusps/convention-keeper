@@ -88,7 +88,7 @@ public:
 	UConventionKeeperConvention_Base* GetResolvedConvention() const;
 
 	/**
-	 * Project default: master switch for all validations. When false, no rules run (menu, context menu, on save, commandlet).
+	 * Project default: master switch for all validations. When false, no rules run (menu, context menu, on save, new Content path, commandlet).
 	 * Can be overridden per user in Convention Keeper (Local) → Local Override Validation (Saved/Config).
 	 * Running validation while off shows one message in the Message Log (or commandlet log), e.g. "ConventionKeeper is offline. Enable in Project Settings → Convention Keeper."
 	 * Message text is in Localization (ValidationDisabled); alternative punchlines you can use there:
@@ -108,6 +108,27 @@ public:
 	 */
 	UPROPERTY(Config, EditAnywhere, meta = (DisplayName = "Validate on save"))
 	bool bValidateAssetNamingOnSave = true;
+
+	/**
+	 * Validate when a new folder is created under /Game (Content Browser, Asset Registry, OS directory watcher).
+	 * Ignored until Content Browser Data and Asset Registry finish initial discovery.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Folder Events", meta = (DisplayName = "Validate on folder create"))
+	bool bValidateOnFolderCreate = true;
+
+	/**
+	 * Validate the parent folder when a folder under /Game is deleted.
+	 * Ignored until Content Browser Data and Asset Registry finish initial discovery.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Folder Events", meta = (DisplayName = "Validate on folder delete"))
+	bool bValidateOnFolderDelete = true;
+
+	/**
+	 * Validate the new path when a folder under /Game is renamed or moved.
+	 * Ignored until Content Browser Data and Asset Registry finish initial discovery.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Folder Events", meta = (DisplayName = "Validate on folder rename/move"))
+	bool bValidateOnFolderRename = true;
 
 	/**
 	 * Editor only: if the estimated number of assets in validation scope exceeds this value, a confirmation dialog is shown and a cancelable progress dialog is used while rules run.

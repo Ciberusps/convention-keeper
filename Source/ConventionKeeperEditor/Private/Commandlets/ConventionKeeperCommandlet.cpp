@@ -19,6 +19,116 @@
 
 #define LOCTEXT_NAMESPACE "ConventionKeeperCommandlet"
 
+void UConventionKeeperCommandlet::PruneAncestorContentFolderPaths(TArray<FString>& Paths)
+{
+	Paths.RemoveAll([](const FString& S) { return S.IsEmpty(); });
+	if (Paths.Num() == 0)
+	{
+		return;
+	}
+
+	{
+		TSet<FString> Seen;
+		TArray<FString> Deduped;
+		Deduped.Reserve(Paths.Num());
+		for (const FString& P : Paths)
+		{
+			if (!Seen.Contains(P))
+			{
+				Seen.Add(P);
+				Deduped.Add(P);
+			}
+		}
+		Paths = MoveTemp(Deduped);
+	}
+
+	if (Paths.Num() <= 1)
+	{
+		return;
+	}
+
+	Paths.Sort([](const FString& A, const FString& B) { return A.Len() > B.Len(); });
+
+	TArray<FString> Pruned;
+	Pruned.Reserve(Paths.Num());
+	for (const FString& Candidate : Paths)
+	{
+		if (Candidate.IsEmpty())
+		{
+			continue;
+		}
+		bool bAncestorOfKept = false;
+		for (const FString& Kept : Pruned)
+		{
+			if (Kept.Len() > Candidate.Len() && Kept.StartsWith(Candidate))
+			{
+				bAncestorOfKept = true;
+				break;
+			}
+		}
+		if (!bAncestorOfKept)
+		{
+			Pruned.Add(Candidate);
+		}
+	}
+	Paths = MoveTemp(Pruned);
+}
+
+FString UConventionKeeperCommandlet::GetParentGameFolderPackagePathForValidationQueue(const FString& InPath)
+{
+	FString P = InPath;
+	P.TrimStartAndEndInline();
+	P.ReplaceInline(TEXT("\\"), TEXT("/"));
+	if (P.StartsWith(TEXT("Game/")) && !P.StartsWith(TEXT("/Game/")))
+	{
+		P = FString(TEXT("/")) + P;
+	}
+	if (!P.StartsWith(TEXT("/Game/")))
+	{
+		return FString();
+	}
+	const int32 DotPos = P.Find(TEXT("."), ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+	const int32 LastSlashBeforeDot = DotPos != INDEX_NONE
+		? P.Find(TEXT("/"), ESearchCase::CaseSensitive, ESearchDir::FromEnd, DotPos)
+		: INDEX_NONE;
+	if (DotPos != INDEX_NONE && LastSlashBeforeDot != INDEX_NONE && DotPos > LastSlashBeforeDot)
+	{
+		const FString AfterDot = P.Mid(DotPos + 1);
+		const FString LeafName = P.Mid(LastSlashBeforeDot + 1, DotPos - LastSlashBeforeDot - 1);
+		const bool bStripObjectOrAssetSuffix =
+			AfterDot.Equals(TEXT("uasset"), ESearchCase::IgnoreCase)
+			|| AfterDot.Equals(TEXT("umap"), ESearchCase::IgnoreCase)
+			|| (!LeafName.IsEmpty() && AfterDot.StartsWith(LeafName));
+		if (bStripObjectOrAssetSuffix)
+		{
+			P = P.Left(DotPos);
+		}
+	}
+	while (P.EndsWith(TEXT("/")))
+	{
+		P.LeftChopInline(1);
+	}
+	int32 LastSlash = INDEX_NONE;
+	for (int32 Idx = P.Len() - 1; Idx >= 0; --Idx)
+	{
+		if (P[Idx] == TEXT('/'))
+		{
+			LastSlash = Idx;
+			break;
+		}
+	}
+	if (LastSlash <= 0)
+	{
+		return FString();
+	}
+	const FString Parent = P.Left(LastSlash + 1);
+	if (Parent.Equals(TEXT("/Game/"), ESearchCase::IgnoreCase))
+	{
+		return FString();
+	}
+	return Parent;
+}
+
 static int32 CountAssetsInValidationScope(TArrayView<const FString> RelativePaths, bool bAssetPaths)
 {
 	if (bAssetPaths)
@@ -194,7 +304,7 @@ FString UConventionKeeperCommandlet::ConvertPathToRelativeForExclusion(const FSt
 	return Result;
 }
 
-bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, bool bAssetPaths)
+bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, bool bAssetPaths, const FConventionKeeperValidationHooks* ExternalHooks)
 {
 	const UConventionKeeperSettings* ConventionKeeperSettings = GetDefault<UConventionKeeperSettings>();
 	if (ConventionKeeperSettings && !ConventionKeeperSettings->GetEffectiveValidationEnabled())
@@ -227,6 +337,11 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 			: UConventionKeeperCommandlet::ConvertPathToRelativeForValidation(Path));
 	}
 
+	if (!bAssetPaths)
+	{
+		RelativePaths.RemoveAll([](const FString& S) { return S.IsEmpty(); });
+	}
+
 #if WITH_EDITOR
 	const bool bInteractiveUI = !IsRunningCommandlet() && FSlateApplication::IsInitialized();
 #else
@@ -236,7 +351,12 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 	int32 EstimatedAssetsInScope = 0;
 	if (bInteractiveUI)
 	{
-		EstimatedAssetsInScope = CountAssetsInValidationScope(RelativePaths, bAssetPaths);
+		TArray<FString> PathsForScopeEstimate(RelativePaths);
+		if (!bAssetPaths)
+		{
+			PruneAncestorContentFolderPaths(PathsForScopeEstimate);
+		}
+		EstimatedAssetsInScope = CountAssetsInValidationScope(PathsForScopeEstimate, bAssetPaths);
 	}
 
 	const int32 LargeThreshold =
@@ -285,11 +405,15 @@ bool UConventionKeeperCommandlet::ValidateData(TArrayView<const FString> Paths, 
 					FText::AsNumber(Total));
 			SlowTask.EnterProgressFrame(1.f, Line);
 		};
+		if (ExternalHooks && ExternalHooks->RuleFilter)
+		{
+			Hooks.RuleFilter = ExternalHooks->RuleFilter;
+		}
 		Convention->ValidateFolderStructuresForPathsInternal(RelativePaths, &Hooks);
 	}
 	else
 	{
-		Convention->ValidateFolderStructuresForPathsInternal(RelativePaths, nullptr);
+		Convention->ValidateFolderStructuresForPathsInternal(RelativePaths, ExternalHooks);
 	}
 	return true;
 }

@@ -433,9 +433,17 @@ void UConventionKeeperConvention_Base::ValidateFolderStructuresForPathsInternal(
 	const UConventionKeeperSettings* Settings = GetDefault<UConventionKeeperSettings>();
 	const TMap<FString, FString> Placeholders = Settings ? Settings->GetPlaceholders() : TMap<FString, FString>();
 
+	FText PageTitle;
 	if (!IsRunningCommandlet())
 	{
-		FMessageLog(TEXT("ConventionKeeper")).NewPage(ConventionKeeperLoc::GetText(FName(TEXT("ConventionValidationPage"))));
+		static int32 ValidationPageCounter = 0;
+		++ValidationPageCounter;
+		const FText BaseTitle = ConventionKeeperLoc::GetText(FName(TEXT("ConventionValidationPage")));
+		PageTitle = FText::Format(
+			NSLOCTEXT("ConventionKeeper", "ValidationPageFmt", "{0} #{1}"),
+			BaseTitle,
+			FText::AsNumber(ValidationPageCounter));
+		FMessageLog(TEXT("ConventionKeeper")).NewPage(PageTitle);
 	}
 
 	const TArray<UConventionKeeperRule*> EffectiveRules = GetEffectiveRules();
@@ -450,6 +458,10 @@ void UConventionKeeperConvention_Base::ValidateFolderStructuresForPathsInternal(
 		{
 			break;
 		}
+		if (Hooks && Hooks->RuleFilter && !Hooks->RuleFilter(Rule))
+		{
+			continue;
+		}
 		if (Rule && Rule->CanValidate(SelectedPaths, Placeholders))
 		{
 			Rule->Validate(SelectedPaths, Placeholders);
@@ -459,7 +471,11 @@ void UConventionKeeperConvention_Base::ValidateFolderStructuresForPathsInternal(
 	if (!IsRunningCommandlet())
 	{
 		FMessageLog Log(TEXT("ConventionKeeper"));
-		if (Log.NumMessages(EMessageSeverity::Info) > 0)
+		if (Log.NumMessages(EMessageSeverity::Warning) > 0)
+		{
+			Log.Notify(PageTitle, EMessageSeverity::Warning, true);
+		}
+		else if (Log.NumMessages(EMessageSeverity::Info) > 0)
 		{
 			Log.Open(EMessageSeverity::Info, true);
 		}

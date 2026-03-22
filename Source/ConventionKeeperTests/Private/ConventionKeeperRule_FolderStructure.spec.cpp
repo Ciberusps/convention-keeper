@@ -101,6 +101,39 @@ void ConventionKeeperRule_FolderStructureSpec::Define()
 		});
 	});
 
+	Describe("CanValidate with FolderPath slash variants", [this]()
+	{
+		It("returns true for placeholder FolderPath with trailing slash", [this]()
+		{
+			UConventionKeeperRule_FolderStructure* Rule = NewObject<UConventionKeeperRule_FolderStructure>();
+			Rule->FolderPath.Path = TEXT("Content/{ProjectName}/Inventory/");
+
+			TArray<FString> SelectedPaths;
+			SelectedPaths.Add(TEXT("/Game/GameCode/Inventory/"));
+
+			TMap<FString, FString> Placeholders;
+			Placeholders.Add(TEXT("ProjectName"), TEXT("GameCode"));
+
+			TestTrue(TEXT("CanValidate should work with trailing slash in FolderPath"),
+				Rule->CanValidate(SelectedPaths, Placeholders));
+		});
+
+		It("returns true for placeholder FolderPath without trailing slash", [this]()
+		{
+			UConventionKeeperRule_FolderStructure* Rule = NewObject<UConventionKeeperRule_FolderStructure>();
+			Rule->FolderPath.Path = TEXT("Content/{ProjectName}/Inventory");
+
+			TArray<FString> SelectedPaths;
+			SelectedPaths.Add(TEXT("/Game/GameCode/Inventory/"));
+
+			TMap<FString, FString> Placeholders;
+			Placeholders.Add(TEXT("ProjectName"), TEXT("GameCode"));
+
+			TestTrue(TEXT("CanValidate should work without trailing slash in FolderPath"),
+				Rule->CanValidate(SelectedPaths, Placeholders));
+		});
+	});
+
 	Describe("ResolvePlaceholdersForPath", [this]()
 	{
 		It("resolves placeholders in asset name patterns", [this]()

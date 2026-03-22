@@ -9,6 +9,7 @@
 #include "Localization/ConventionKeeperLocalization.h"
 #include "Rules/ConventionKeeperRule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "Commandlets/ConventionKeeperCommandlet.h"
 #include "ConventionKeeperBlueprintLibrary.h"
 #include "Development/ConventionKeeperSettings.h"
 #include "Misc/Paths.h"
@@ -689,7 +690,9 @@ void UConventionKeeperRule_AssetNaming::Validate_Implementation(const TArray<FSt
 		for (const FString& R : ResolvedNormPaths) { UE_LOG(LogTemp, Log, TEXT("  ResolvedNormPath: %s"), *R); }
 		for (const FString& S : SelectedPaths) { UE_LOG(LogTemp, Log, TEXT("  SelectedPath: %s"), *S); }
 	}
-	TArray<FAssetNamingScopeEntry> ScopesToProcess = GetScopesForValidation(ResolvedNormPaths, SelectedPaths);
+	TArray<FString> SelectedPathsForScopes(SelectedPaths);
+	UConventionKeeperCommandlet::PruneAncestorContentFolderPaths(SelectedPathsForScopes);
+	TArray<FAssetNamingScopeEntry> ScopesToProcess = GetScopesForValidation(ResolvedNormPaths, SelectedPathsForScopes);
 	if (bDebug)
 	{
 		UE_LOG(LogTemp, Log, TEXT("[ConventionKeeper][AssetNaming] ScopesToProcess=%d"), ScopesToProcess.Num());

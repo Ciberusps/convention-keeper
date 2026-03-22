@@ -261,7 +261,15 @@ bool UConventionKeeperRule_FolderStructure::IsRelevantPath(const TArray<FString>
 		for (const FString& SelectedPath : SelectedPaths)
 		{
 			const FString NormalizedSelectedPath = FolderStructurePathHelpers::SelectedPathAsContentForm(SelectedPath);
-			if (NormalizedResolvedPath.StartsWith(NormalizedSelectedPath))
+			const bool bExplicitFolderSelection = SelectedPath.EndsWith(TEXT("/")) || SelectedPath.EndsWith(TEXT("\\"));
+			if (bExplicitFolderSelection)
+			{
+				if (NormalizedResolvedPath.StartsWith(NormalizedSelectedPath) || NormalizedSelectedPath.StartsWith(NormalizedResolvedPath))
+				{
+					return true;
+				}
+			}
+			else if (NormalizedResolvedPath.StartsWith(NormalizedSelectedPath))
 			{
 				return true;
 			}
@@ -351,6 +359,20 @@ bool UConventionKeeperRule_FolderStructure::CanValidate_Implementation(const TAr
 			}
 			PathsToCheck.Add(UConventionKeeperRule::NormalizeRelativePath(P));
 		}
+		if (PathsToCheck.IsEmpty())
+		{
+			FString FallbackPath = ResolvedFolderPath;
+			FallbackPath.ReplaceInline(TEXT("\\"), TEXT("/"));
+			FallbackPath.TrimStartAndEndInline();
+			while (FallbackPath.StartsWith(TEXT("/")))
+			{
+				FallbackPath.RemoveFromStart(TEXT("/"));
+			}
+			if (!FallbackPath.IsEmpty() && !FallbackPath.Contains(TEXT("{")))
+			{
+				PathsToCheck.Add(UConventionKeeperRule::NormalizeRelativePath(FallbackPath));
+			}
+		}
 	}
 	else
 	{
@@ -388,6 +410,20 @@ TArray<FString> UConventionKeeperRule_FolderStructure::GetConcreteBasePathsForFo
 				P.RemoveFromStart(TEXT("/"));
 			}
 			PathsToCheck.Add(UConventionKeeperRule::NormalizeRelativePath(P));
+		}
+		if (PathsToCheck.IsEmpty())
+		{
+			FString FallbackPath = ResolvedFolderPath;
+			FallbackPath.ReplaceInline(TEXT("\\"), TEXT("/"));
+			FallbackPath.TrimStartAndEndInline();
+			while (FallbackPath.StartsWith(TEXT("/")))
+			{
+				FallbackPath.RemoveFromStart(TEXT("/"));
+			}
+			if (!FallbackPath.IsEmpty() && !FallbackPath.Contains(TEXT("{")))
+			{
+				PathsToCheck.Add(UConventionKeeperRule::NormalizeRelativePath(FallbackPath));
+			}
 		}
 	}
 	else
@@ -477,10 +513,45 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 			MergedPlaceholders.Add(FString::Printf(TEXT("{%s}"), *PP.Key), PP.Value);
 		}
 
+		const FString BaseNorm = UConventionKeeperRule::NormalizeRelativePath(ResolvedBasePath);
+		TArray<FString> DeeperSelectedPaths;
+		for (const FString& Sel : SelectedPaths)
+		{
+			const FString NormSel = FolderStructurePathHelpers::SelectedPathAsContentForm(Sel);
+			if (NormSel.StartsWith(BaseNorm) && NormSel.Len() > BaseNorm.Len())
+			{
+				DeeperSelectedPaths.Add(NormSel);
+			}
+		}
+		const bool bScopeNarrowed = DeeperSelectedPaths.Num() > 0;
+
+		auto IsChildOnSelectedBranch = [&DeeperSelectedPaths](const FString& ChildNorm) -> bool
+		{
+			for (const FString& DeepSel : DeeperSelectedPaths)
+			{
+				if (DeepSel.StartsWith(ChildNorm) || ChildNorm.StartsWith(DeepSel))
+				{
+					return true;
+				}
+			}
+			return false;
+		};
+
 		for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 		{
 			const FString AbsoluteRequired = GetAbsolutePathForRequiredSubfolder(ResolvedBasePath, RequiredFolder.Path, MergedPlaceholders);
 			const FString ResolvedRequiredForLog = ResolvePlaceholdersForPath(RequiredFolder.Path, MergedPlaceholders);
+
+			if (bScopeNarrowed)
+			{
+				const FString RequiredProjectRelative = GetRequiredFolderProjectRelative(ResolvedBasePath, RequiredFolder.Path, MergedPlaceholders);
+				const FString RequiredNorm = UConventionKeeperRule::NormalizeRelativePath(RequiredProjectRelative);
+				if (!IsChildOnSelectedBranch(RequiredNorm))
+				{
+					continue;
+				}
+			}
+
 			const bool bRequiredExists = FPaths::DirectoryExists(AbsoluteRequired);
 			if (!bRequiredExists)
 			{
@@ -496,7 +567,7 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 			}
 		}
 
-		if (RequiredAssets.Num() > 0 || BannedAssets.Num() > 0 || bOtherAssetsNotAllowed)
+		if (!bScopeNarrowed && (RequiredAssets.Num() > 0 || BannedAssets.Num() > 0 || bOtherAssetsNotAllowed))
 		{
 			const FString ExpectedRuleFolderResolved = ResolvePlaceholdersForPath(FolderPath.Path, MergedPlaceholders);
 			const FString ExpectedRuleFolderNorm = UConventionKeeperRule::NormalizeRelativePath(ExpectedRuleFolderResolved);
@@ -592,6 +663,12 @@ void UConventionKeeperRule_FolderStructure::Validate_Implementation(const TArray
 				}
 
 				const FString DiskNorm = UConventionKeeperRule::NormalizeRelativePath(Folder);
+
+				if (bScopeNarrowed && !IsChildOnSelectedBranch(DiskNorm))
+				{
+					continue;
+				}
+
 				bool bFolderAllowed = false;
 				for (const FDirectoryPath& RequiredFolder : RequiredFolders)
 				{

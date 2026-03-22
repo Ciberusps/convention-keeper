@@ -54,6 +54,7 @@ public class ConventionKeeperEditor : ModuleRules
 				"MessageLog",
 				"AssetTools",
 				"ContentBrowser",
+				"ContentBrowserData",
 				"AssetRegistry",
 				// ... add private dependencies that you statically link with here ...
 			}
