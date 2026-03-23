@@ -43,6 +43,14 @@ TODO how to setup in project
 - [ue5-style-guide](https://github.com/Allar/ue5-style-guide) convention - 1 to 1 implementation of the UE5 Style Guide
 - Earendil Convention (recommended) — default Convention Keeper convention (`UEarendilConvention`), more UE5 asset coverage than ue5-style-guide alone. Extend it or create your own (inherits from UE5 Style Guide convention with overrides/additions).
 
+## Base rules
+
+| Base Rule | Description |
+|-------------------|-----------|--------|
+| **AssetNaming** | How the asset naming should be, prefixes, suffixes, patterns, etc. |
+| **FolderStructure** | How the folder structure in project should be |
+| **NamingConvention** | Folder and asset names must be PascalCase/snake_case/kebab-case or other naming convention |
+| **AssetPlacement** | Where the asset should be placed in the project, by class, by folder, by path, etc. |
 
 ## 🌐 Localization & languages
 
