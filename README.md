@@ -46,7 +46,7 @@ TODO how to setup in project
 ## Base rules
 
 | Base Rule | Description |
-|-------------------|-----------|--------|
+|-------------------|--------|
 | **AssetNaming** | How the asset naming should be, prefixes, suffixes, patterns, etc. |
 | **FolderStructure** | How the folder structure in project should be |
 | **NamingConvention** | Folder and asset names must be PascalCase/snake_case/kebab-case or other naming convention |
