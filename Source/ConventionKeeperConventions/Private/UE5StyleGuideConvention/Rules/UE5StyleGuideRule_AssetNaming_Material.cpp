@@ -2,7 +2,7 @@
 
 #include "UE5StyleGuideConvention/Rules/UE5StyleGuideRule_AssetNaming_Material.h"
 #include "Materials/Material.h"
-
+#include "MaterialDomain.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UE5StyleGuideRule_AssetNaming_Material)
 
 UUE5StyleGuideRule_AssetNaming_Material::UUE5StyleGuideRule_AssetNaming_Material()
