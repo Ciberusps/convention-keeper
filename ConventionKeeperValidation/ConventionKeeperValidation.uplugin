@@ -1,0 +1,38 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Convention Keeper Validation",
+	"Description": "Optional extension: AssetValidation rules and StateTree checks. Pulls Data Validation and StateTree engine plugins.",
+	"Category": "Other",
+	"CreatedBy": "Ciberusps",
+	"CreatedByURL": "https://github.com/Ciberusps/convention-keeper",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"EnabledByDefault": true,
+	"Plugins": [
+		{
+			"Name": "ConventionKeeper",
+			"Enabled": true
+		},
+		{
+			"Name": "DataValidation",
+			"Enabled": true
+		},
+		{
+			"Name": "StateTree",
+			"Enabled": true
+		}
+	],
+	"Modules": [
+		{
+			"Name": "ConventionKeeperValidationEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"PlatformAllowList": [
+				"Win64"
+			]
+		}
+	]
+}

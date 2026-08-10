@@ -26,6 +26,8 @@ git submodule add https://github.com/Ciberusps/convention-keeper.git ./Plugins/c
 git submodule update --remote`
 ```
 
+**Optional — AssetValidation / StateTree:** ships as nested folder `ConventionKeeperValidation/` inside this plugin. Unreal only scans **one** `.uplugin` per direct child of the project `Plugins/` directory, so expose it with a **symlink or junction** at `YourProject/Plugins/ConventionKeeperValidation` → `Plugins/convention-keeper/ConventionKeeperValidation` (Git Bash: `ln -s convention-keeper/ConventionKeeperValidation ConventionKeeperValidation` from `Plugins/`). Then enable **ConventionKeeperValidation** in the `.uproject` (or rely on `EnabledByDefault` in its `.uplugin`). Core **ConventionKeeper** has **no** `Plugins` dependencies on other engine plugins; **ConventionKeeperValidation** declares **ConventionKeeper**, **DataValidation**, and **StateTree**.
+
 ## 🚀 Setup
 
 TODO how to setup in project
@@ -51,6 +53,8 @@ TODO how to setup in project
 | **FolderStructure** | How the folder structure in project should be |
 | **NamingConvention** | Folder and asset names must be PascalCase/snake_case/kebab-case or other naming convention |
 | **AssetPlacement** | Where the asset should be placed in the project, by class, by folder, by path, etc. |
+| **AssetValidation** | Optional plugin **ConventionKeeperValidation**: runs one `UEditorValidatorBase` over assets under `ValidationRoot`. Core ConventionKeeper does not depend on DataValidation/StateTree. |
+| **StateTree Deprecated Nodes** | Same extension plugin: preset `UConventionKeeperRule_StateTreeDeprecatedNodes`. |
 
 ## 🌐 Localization & languages
 
