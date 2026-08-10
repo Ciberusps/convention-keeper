@@ -30,7 +30,7 @@ public class ConventionKeeperEditor : ModuleRules
 				"Engine",
 				"PropertyEditor",
 				"Blutility",
-				"UMG", 
+				"UMG",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
